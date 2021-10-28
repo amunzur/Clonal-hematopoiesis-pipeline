@@ -1,0 +1,478 @@
+configfile: "config/config.yaml"
+
+samples = ["GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29", "GUBB-18-323-gDNA-Baseline-IDT-2018Jul31_S28"]
+cohort_name = "new_chip_panel"
+
+pair1 = [sample + "_R1" for sample in samples]
+pair2 = [sample + "_R2" for sample in samples]
+
+all_pairs = pair1 + pair2
+
+PATH_hg38 = config["PATH_hg38"]
+PATH_bed = config["PATH_bed"]
+PATH_bg = config["PATH_bg"]
+PATH_bets = config["PATH_bets"]
+
+# data files
+DIR_raw_fastq = config["DIR_raw_fastq"]
+DIR_merged_fastq = config["DIR_merged_fastq"]
+DIR_masked_fastq = config["DIR_masked_fastq"]
+DIR_trimmed_fastq = config["DIR_trimmed_fastq"]
+DIR_bams = config["DIR_bams"]
+
+# fastqc reports 
+DIR_merged_fastqc = config["DIR_merged_fastqc"]
+DIR_trimmed_fastqc = config["DIR_trimmed_fastqc"]
+
+# metrics files 
+DIR_insertsize_metrics = config["DIR_insertsize_metrics"]
+DIR_markdup_metrics = config["DIR_markdup_metrics"]
+DIR_depth_metrics = config["DIR_depth_metrics"]
+DIR_mpileup = config["DIR_mpileup"]
+
+# variant calling
+DIR_varscan = config["DIR_varscan"]
+VarScan_snv = config["VarScan_snv"]
+VarScan_indel = config["VarScan_indel"]
+
+# annotating variants from varscan
+ANNOVAR_snv_input = config["ANNOVAR_snv_input"]
+ANNOVAR_indel_input = config["ANNOVAR_indel_input"]
+ANNOVAR_snv_output = config["ANNOVAR_snv_output"]
+ANNOVAR_indel_output = config["ANNOVAR_indel_output"]
+
+# filtering varscan2 results using R, based on thresholds etc
+PATH_SAVE_chip_variants = config["PATH_SAVE_chip_variants"]
+PATH_validated_variants = config["PATH_validated_variants"]
+
+# figures 
+DIR_insertsize_figures = config["DIR_insertsize_figures"]
+DIR_insertsize_figures_PNG = config["DIR_insertsize_figures_PNG"]
+
+###################################################
+# TARGET FILES FOR RULE ALL
+###################################################
+MERGE_R1 = expand(DIR_merged_fastq + "/{cohort_wildcard}/{wildcard}_R1.fastq", wildcard = samples, cohort_wildcard = cohort_name)
+MERGE_R2 = expand(DIR_merged_fastq + "/{cohort_wildcard}/{wildcard}_R2.fastq", wildcard = samples, cohort_wildcard = cohort_name)
+
+RUN_FastQC_merged = expand(DIR_merged_fastqc + "/{cohort_wildcard}/{wildcard}_fastqc.html", wildcard = all_pairs, cohort_wildcard = cohort_name)
+MASK_FastQ = expand(DIR_masked_fastq + "/{cohort_wildcard}/{wildcard}_masked.fastq", wildcard = all_pairs, cohort_wildcard = cohort_name)
+
+TRIM_FastQ = [expand(DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R1_masked_val_1.fq", wildcard = samples, cohort_wildcard = cohort_name), \
+	expand(DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R2_masked_val_2.fq", wildcard = samples, cohort_wildcard = cohort_name), \
+	expand(DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R1_masked_val_1_fastqc.html", wildcard = samples, cohort_wildcard = cohort_name), \
+	expand(DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R2_masked_val_2_fastqc.html", wildcard = samples, cohort_wildcard = cohort_name)]
+
+# Alignment, sorting, marking duplicates and adding read groups
+ALIGN_and_SORT = expand(DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
+INDEX_sorted_bams = expand(DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam.bai", wildcard = samples, cohort_wildcard = cohort_name)
+
+FIXMATE = expand(DIR_bams + "/{cohort_wildcard}/fixmate/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
+MARKDUP = [expand(DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name), \
+	expand(DIR_markdup_metrics + "/{cohort_wildcard}/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name)]
+ADD_RG = expand(DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
+INDEX_readGroup_bams = expand(DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam.bai", wildcard = samples, cohort_wildcard = cohort_name)
+
+RUN_mpileup = expand(DIR_mpileup + "/{cohort_wildcard}/{wildcard}.mpileup", wildcard = samples, cohort_wildcard = cohort_name)
+RUN_varscan_snv = expand(VarScan_snv + "/{cohort_wildcard}/{wildcard}.vcf", wildcard = samples, cohort_wildcard = cohort_name)
+RUN_VarScan_indel = expand(VarScan_indel + "/{cohort_wildcard}/{wildcard}.vcf", wildcard = samples, cohort_wildcard = cohort_name)
+
+make_ANNOVAR_snv_input = expand(ANNOVAR_snv_input + "/{cohort_wildcard}/{wildcard}_anno.tsv", wildcard = samples, cohort_wildcard = cohort_name)
+make_ANNOVAR_indel_input = expand(ANNOVAR_indel_input + "/{cohort_wildcard}/{wildcard}_anno.tsv", wildcard = samples, cohort_wildcard = cohort_name)
+
+run_ANNOVAR_snv = expand(ANNOVAR_snv_output + "/{cohort_wildcard}/{wildcard}.hg38_multianno.txt", wildcard = samples, cohort_wildcard = cohort_name)
+run_ANNOVAR_indel = expand(ANNOVAR_indel_output + "/{cohort_wildcard}/{wildcard}.hg38_multianno.txt", wildcard = samples, cohort_wildcard = cohort_name)
+filter_VarScan2_output = [expand(DIR_varscan + "/{cohort_wildcard}/{wildcard}/chip_variants.csv", wildcard = samples, cohort_wildcard = cohort_name), expand(DIR_varscan + "/{cohort_wildcard}/{wildcard}/validated_chip_variants.csv", wildcard = samples, cohort_wildcard = cohort_name)]
+
+run_insert_size = [expand(DIR_insertsize_metrics + "/{cohort_wildcard}/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name), \
+	expand(DIR_insertsize_figures + "/{cohort_wildcard}/{wildcard}.pdf", wildcard = samples, cohort_wildcard = cohort_name)]
+PDF_to_PNG = expand(DIR_insertsize_figures_PNG + "/{cohort_wildcard}/{wildcard}.png", wildcard = samples, cohort_wildcard = cohort_name)
+run_depth = expand(DIR_depth_metrics + "/{cohort_wildcard}/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name) # depth at each position
+
+###################################################
+# TARGET RULES
+###################################################
+
+# only use expansion here
+rule all:
+	input:
+		MERGE_R1,
+		MERGE_R2,
+		RUN_FastQC_merged,
+		MASK_FastQ,
+		TRIM_FastQ,
+		ALIGN_and_SORT,
+		INDEX_sorted_bams, 
+		FIXMATE,
+		MARKDUP,
+		ADD_RG,
+		INDEX_readGroup_bams,
+		RUN_mpileup, 
+		RUN_varscan_snv, 
+		RUN_VarScan_indel, 
+		make_ANNOVAR_snv_input,
+		make_ANNOVAR_indel_input,
+		filter_VarScan2_output,
+		run_ANNOVAR_snv,
+		run_ANNOVAR_indel, 
+		run_insert_size, 
+		PDF_to_PNG,
+		run_depth
+
+rule MERGE_R1: 
+	input: 
+		lane1 = DIR_raw_fastq + "/{cohort_wildcard}/{wildcard}_L001_R1_001.fastq", 
+		lane2 = DIR_raw_fastq + "/{cohort_wildcard}/{wildcard}_L002_R1_001.fastq", 
+		lane3 = DIR_raw_fastq + "/{cohort_wildcard}/{wildcard}_L003_R1_001.fastq", 
+		lane4 = DIR_raw_fastq + "/{cohort_wildcard}/{wildcard}_L004_R1_001.fastq"
+	output:
+		DIR_merged_fastq +  "/{cohort_wildcard}/{wildcard}_R1.fastq"
+	threads: 5
+	shell:
+		"cat {input.lane1} {input.lane2} {input.lane3} {input.lane4} > {output}"
+
+rule MERGE_R2: 
+	input: 
+		lane1 = DIR_raw_fastq + "/{cohort_wildcard}/{wildcard}_L001_R2_001.fastq", 
+		lane2 = DIR_raw_fastq + "/{cohort_wildcard}/{wildcard}_L002_R2_001.fastq", 
+		lane3 = DIR_raw_fastq + "/{cohort_wildcard}/{wildcard}_L003_R2_001.fastq", 
+		lane4 = DIR_raw_fastq + "/{cohort_wildcard}/{wildcard}_L004_R2_001.fastq"
+	output:
+		DIR_merged_fastq +  "/{cohort_wildcard}/{wildcard}_R2.fastq"
+	threads: 5
+	shell:
+		"cat {input.lane1} {input.lane2} {input.lane3} {input.lane4} > {output}"
+
+rule run_fastqc_merged:
+	input:
+		DIR_merged_fastq + "/{cohort_wildcard}/{wildcard}.fastq"
+	output:
+		output_zip = DIR_merged_fastqc + "/{cohort_wildcard}/{wildcard}_fastqc.zip",
+		output_html = DIR_merged_fastqc + "/{cohort_wildcard}/{wildcard}_fastqc.html"
+	threads: 5
+	shell:
+		"/home/amunzur/FastQC/fastqc {input} --outdir=`dirname {output.output_zip}`"
+
+# mask low quality bases in fastq files
+rule mask_fastq:
+	input: 
+		DIR_merged_fastq + "/{cohort_wildcard}/{wildcard}.fastq",
+	output:
+		DIR_masked_fastq + "/{cohort_wildcard}/{wildcard}_masked.fastq"
+	params: 
+		min_base_quality = 30
+	run:
+		shell("/groups/wyattgrp/users/amunzur/gene_panel_pipeline/dependencies/fasta mask by quality {input} {params.min_base_quality} > {output}")
+
+# Trim fastq files using trim galore and run fastqc on them. R1 and R2 fastq files should be provided at the same time. 
+rule trim_fastq: 
+	input: 
+		pair1_masked = DIR_masked_fastq + "/{cohort_wildcard}/{wildcard}_R1_masked.fastq",
+		pair2_masked = DIR_masked_fastq + "/{cohort_wildcard}/{wildcard}_R2_masked.fastq"
+	output:
+		pair1_trimmed = DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R1_masked_val_1.fq",
+		pair2_trimmed = DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R2_masked_val_2.fq",
+		pair1_trimmed_fastqc_html = DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R1_masked_val_1_fastqc.html",
+		pair2_trimmed_fastqc_html = DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R2_masked_val_2_fastqc.html",
+		pair1_trimmed_fastqc_zip = DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R1_masked_val_1_fastqc.zip",
+		pair2_trimmed_fastqc_zip = DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R2_masked_val_2_fastqc.zip"
+	params: 
+		min_base_quality = 20, 
+		clip_R1 = 5, 
+		clip_R2 = 5, 
+		three_prime_clip_R1 = 5, 
+		three_prime_clip_R2 = 5
+	run:
+		shell('trim_galore --quality {params.min_base_quality} \
+			--phred33 \
+			--fastqc \
+			--illumina \
+			--paired \
+			--dont_gzip \
+			--clip_R1 {params.clip_R1} \
+			--clip_R2 {params.clip_R2} \
+			--three_prime_clip_R1 {params.three_prime_clip_R1} \
+			--three_prime_clip_R2 {params.three_prime_clip_R2} \
+			--output_dir `dirname {output.pair1_trimmed}` \
+			--fastqc_args "--nogroup --outdir `dirname {output.pair1_trimmed_fastqc_html}`" \
+			{input.pair1_masked} \
+			{input.pair2_masked}')
+
+# align, sort, remove dups from trimmed fastq files. 
+rule align_sort:
+	input:
+		pair1 = DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R1_masked_val_1.fq",
+		pair2 = DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R2_masked_val_2.fq",
+		PATH_hg38 = PATH_hg38,
+		PATH_bed = PATH_bed
+	params: 
+		min_mapping_quality = 20,
+		bitwise_flag = 12, # remove if the read and the mate is unmapped
+		clipping_threshold = 10
+	output:
+		SORTED_bam = DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam",
+	threads: 12
+	shell:
+		"bwa mem -t {threads} {input.PATH_hg38} {input.pair1} {input.pair2} | \
+		samtools view -h -L {input.PATH_bed} -q {params.min_mapping_quality} -F {params.bitwise_flag} - | \
+		/home/amunzur/samclip --ref {input.PATH_hg38} --max {params.clipping_threshold} | \
+		samtools sort -o {output.SORTED_bam}"
+
+rule index_sorted_bams: 
+	input: 
+		DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam"
+	output:
+		DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam.bai"
+	threads: 3
+	shell:
+		"samtools index {input}"
+
+rule PICARD_fixmate:
+	input: 
+		SORTED_bam = DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam",
+		SORTED_bam_index = DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam.bai" # to make sure this doesnt run before we index the aligned bams
+	output: 
+		DIR_bams + "/{cohort_wildcard}/fixmate/{wildcard}.bam"
+	threads: 12
+	shell:
+		"picard -Xmx40g FixMateInformation \
+					I={input.SORTED_bam} \
+					O={output}"
+
+# Mark and remove duplicates after aligning and sorting. 
+rule mark_duplicates_PICARD: 
+	input:
+		DIR_bams + "/{cohort_wildcard}/fixmate/{wildcard}.bam"
+	params: 
+		min_mapping_quality = 20,
+		bitwise_flag = 4,
+		clipping_threshold = 10
+	output:
+		MARKDUP_bam = DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam",
+		MARKDUP_metrics = DIR_markdup_metrics + "/{cohort_wildcard}/{wildcard}.txt"
+	threads: 12
+	shell:
+		"picard -Xmx40g MarkDuplicates I={input} O={output.MARKDUP_bam} M={output.MARKDUP_metrics} REMOVE_DUPLICATES=true"
+
+# Add read groups after removing duplicates
+rule add_read_groups_PICARD: 
+	input:
+		MARKDUP_bam = DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam"		
+	params: 
+		rglb = "library",
+		rgpl = "ILLUMINA",
+		rgpu = "unit",
+		rgsm = "sample"
+	output:
+		RG_bam = DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam"
+	threads: 12
+	shell:
+		"picard -Xmx40g AddOrReplaceReadGroups I={input} O={output.RG_bam} RGID=1 RGLB={params.rglb} RGPL={params.rgpl} RGPU={params.rgpu} RGSM={params.rgsm}"
+
+rule index_readGroup_bams: 
+	input: 
+		DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam"
+	output:
+		DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam.bai"
+	threads: 3
+	shell:
+		"samtools index {input}"
+
+rule run_insert_size: 
+	input: 
+		BAM = DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam", 
+	output:
+		metrics = DIR_insertsize_metrics + "/{cohort_wildcard}/{wildcard}.txt",
+		figures = DIR_insertsize_figures + "/{cohort_wildcard}/{wildcard}.pdf"
+	threads: 12
+	shell:
+		"picard CollectInsertSizeMetrics \
+			I={input} \
+			O={output.metrics} \
+			H={output.figures} \
+			M=0.5"
+
+rule PDF_to_PNG: 
+	input: 
+		DIR_insertsize_figures + "{cohort_wildcard}/{wildcard}.pdf"
+	output:
+		DIR_insertsize_figures_PNG + "{cohort_wildcard}/{wildcard}.png"
+	threads: 3
+	shell:
+		'bash /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/pdf_to_png.sh {input} {output}'
+
+rule run_depth: 
+	input: 
+		BAM = DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam",
+		PATH_bed = PATH_bed 
+	output:
+		metrics = DIR_depth_metrics + "/{cohort_wildcard}/{wildcard}.txt",
+	threads: 12
+	shell:
+		"samtools depth -b {input.PATH_bed} {input.BAM} > {output}"
+
+rule run_mpileup: 
+	input: 
+		BAM = DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam", 
+		BAM_index = DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam.bai",
+		PATH_hg38 = PATH_hg38
+	output:
+		DIR_mpileup + "/{cohort_wildcard}/{wildcard}.mpileup"
+	threads: 12
+	shell:
+		"samtools mpileup -f {input.PATH_hg38} {input.BAM} -o {output}"
+
+rule run_VarScan_snv: 
+	input: 
+		DIR_mpileup + "/{cohort_wildcard}/{wildcard}.mpileup"
+	output: 
+		VarScan_snv + "/{cohort_wildcard}/{wildcard}.vcf"
+	params:
+		min_coverage = 8,
+		min_reads = 2, 
+		min_avg_base_qual = 30, 
+		min_var_freq = 0.001,
+		p_value = 0.05
+	threads: 12
+	shell:
+		"java -jar /home/amunzur/VarScan.v2.3.9.jar pileup2snp {input} \
+			--min-coverage {params.min_coverage} \
+			--min-reads {params.min_reads} \
+			--min-avg-qual {params.min_avg_base_qual} \
+			--min-var-freq {params.min_var_freq} \
+			--p-value {params.p_value} > {output}"
+
+rule run_VarScan_indel: 
+	input: 
+		DIR_mpileup + "/{cohort_wildcard}/{wildcard}.mpileup"
+	output: 
+		VarScan_indel + "/{cohort_wildcard}/{wildcard}.vcf"
+	params:
+		min_coverage = 8,
+		min_reads = 2, 
+		min_avg_base_qual = 30, 
+		min_var_freq = 0.001,
+		p_value = 0.05
+	threads: 12
+	shell:
+		"java -jar /home/amunzur/VarScan.v2.3.9.jar pileup2indel {input} \
+			--min-coverage {params.min_coverage} \
+			--min-reads {params.min_reads} \
+			--min-avg-qual {params.min_avg_base_qual} \
+			--min-var-freq {params.min_var_freq} \
+			--p-value {params.p_value} > {output}"
+
+# Modify the VarScan2 snv output in such a way that ANNOVAR can handle it.
+rule make_ANNOVAR_snv_input: 
+	input: 
+		VarScan_snv + "/{cohort_wildcard}/{wildcard}.vcf"
+	output: 
+		ANNOVAR_snv_input + "/{cohort_wildcard}/{wildcard}_anno.tsv"
+	shell:
+		'paste <(cat {input} | cut -f1,2)  <(cat {input} | cut -f2,3,19) > {output}'
+
+# Modify the VarScan2 indel output in such a way that ANNOVAR can handle it.
+rule make_ANNOVAR_indel_input: 
+	input: 
+		VarScan_indel + "/{cohort_wildcard}/{wildcard}.vcf"
+	output: 
+		ANNOVAR_indel_input + "/{cohort_wildcard}/{wildcard}_anno.tsv"
+	conda: 
+		"envs/r_env_v2.yaml"
+	shell:
+		'Rscript --silent --slave /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/make_anno_input_indel.R\
+			--PATH_VarScan_indel {input} \
+			--ANNOVAR_indel_input {output}'
+
+# Annotate the SNVs
+rule run_ANNOVAR_snv: 
+	input: 
+		ANNOVAR_snv_input + "/{cohort_wildcard}/{wildcard}_anno.tsv"
+	output: 
+		ANNOVAR_snv_output + "/{cohort_wildcard}/{wildcard}.hg38_multianno.txt"
+	params: 
+		actual_output_file = ANNOVAR_snv_output + "/{cohort_wildcard}/{wildcard}"
+	threads: 12
+	shell:
+		'perl /groups/wyattgrp/software/annovar/annovar/table_annovar.pl {input} /groups/wyattgrp/software/annovar/annovar/humandb/ \
+			-buildver hg38 \
+			-out {params.actual_output_file} \
+			-remove \
+			-protocol refGene,knownGene,avsnp147,exac03,cosmic70,clinvar_20170130,kaviar_20150923,gnomad_exome,dbnsfp33a,dbscsnv11,hrcr1,mcap,revel \
+			-operation g,g,f,f,f,f,f,f,f,f,f,f,f \
+			-nastring .'
+
+# Annotate the indels
+rule run_ANNOVAR_indel: 
+	input: 
+		ANNOVAR_indel_input + "/{cohort_wildcard}/{wildcard}_anno.tsv"
+	output: 
+		ANNOVAR_indel_output + "/{cohort_wildcard}/{wildcard}.hg38_multianno.txt"
+	params: 
+		actual_output_file = ANNOVAR_indel_output + "/{cohort_wildcard}/{wildcard}"
+	threads: 12
+	shell:
+		'perl /groups/wyattgrp/software/annovar/annovar/table_annovar.pl {input} /groups/wyattgrp/software/annovar/annovar/humandb/ \
+			-buildver hg38 \
+			-out {params.actual_output_file} \
+			-remove \
+			-protocol refGene,knownGene,avsnp147,exac03,cosmic70,clinvar_20170130,kaviar_20150923,gnomad_exome,dbnsfp33a,dbscsnv11,hrcr1,mcap,revel \
+			-operation g,g,f,f,f,f,f,f,f,f,f,f,f \
+			-nastring .'
+
+rule filter_ANNOVAR_results: 
+	input: 
+		ANNOVAR_snv_input + "/{cohort_wildcard}/{wildcard}_anno.tsv", # varscan variants
+		ANNOVAR_snv_output + "/{cohort_wildcard}/{wildcard}.hg38_multianno.txt", # annovar annotations
+		ANNOVAR_indel_input + "/{cohort_wildcard}/{wildcard}_anno.tsv",
+		ANNOVAR_indel_output + "/{cohort_wildcard}/{wildcard}.hg38_multianno.txt", 
+		DIR_depth_metrics = DIR_depth_metrics + "/{cohort_wildcard}/{wildcard}.txt"
+	output: 
+		PATH_SAVE_chip_variants = DIR_varscan + "/{cohort_wildcard}/{wildcard}/chip_variants.csv",
+		PATH_validated_variants = DIR_varscan + "/{cohort_wildcard}/{wildcard}/validated_chip_variants.csv"
+	params:
+		THRESHOLD_ExAC_ALL = 0.005, # less than or equal to
+		VALUE_Func_refGene = "intronic", # anyting except this
+		THRESHOLD_VarFreq = 0.30, # less than or equal to, give a fraction not percentage
+		THRESHOLD_Reads2 = 5, # more than or equal to, number of mutant reads
+		THRESHOLD_VAF_bg_ratio = 10, # valid variants should have a higher ratio than this
+		DIR_varscan = DIR_varscan, # contains two folders named indel and snv
+		PATH_bg = PATH_bg, # path to background error rate file 
+		PATH_bets = PATH_bets,
+		PATH_bed = PATH_bed
+	conda: 
+		"envs/r_env_v2.yaml"
+	threads: 10
+	shell:
+		'Rscript /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/filter_VarScan.R \
+			--THRESHOLD_ExAC_ALL {params.THRESHOLD_ExAC_ALL} \
+			--VALUE_Func_refGene {params.VALUE_Func_refGene} \
+			--THRESHOLD_VarFreq {params.THRESHOLD_VarFreq} \
+			--THRESHOLD_Reads2 {params.THRESHOLD_Reads2} \
+			--THRESHOLD_VAF_bg_ratio {params.THRESHOLD_VAF_bg_ratio} \
+			--DIR_varscan {params.DIR_varscan} \
+			--PATH_bg {params.PATH_bg} \
+			--PATH_bets {params.PATH_bets} \
+			--PATH_bed {params.PATH_bed} \
+			--DIR_depth_metrics {input.DIR_depth_metrics} \
+			--PATH_SAVE_chip_variants {output.PATH_SAVE_chip_variants} \
+			--PATH_validated_variants {output.PATH_validated_variants}'
+
+# rule run_VarDict: 
+# 	input: 
+# 		ANNOVAR_snv_input + "/{wildcard}_anno.tsv"
+# 	output: 
+# 		ANNOVAR_snv_output + "/{wildcard}.hg38_multianno.txt"
+# 	params: 
+# 		THRESHOLD_VarFreq = 0.01
+# 	threads: 12
+# 	shell:
+# 		'perl /groups/wyattgrp/software/annovar/annovar/table_annovar.pl {input} /groups/wyattgrp/software/annovar/annovar/humandb/ \
+# 			-buildver hg38 \
+# 			-out {output} + "/{wildcards.wildcard}" \
+# 			-remove \
+# 			-protocol refGene,knownGene,avsnp147,exac03,cosmic70,clinvar_20170130,kaviar_20150923,gnomad_exome,dbnsfp33a,dbscsnv11,hrcr1,mcap,revel \
+# 			-operation g,g,f,f,f,f,f,f,f,f,f,f,f \
+# 			-nastring .'
+
+# vardict -G /path/to/hg19.fa -f $AF_THR -N sample_name -b /path/to/my.bam -c 1 -S 2 -E 3 -g 4 /path/to/my.bed | teststrandbias.R | var2vcf_valid.pl -N sample_name -E -f $AF_THR
