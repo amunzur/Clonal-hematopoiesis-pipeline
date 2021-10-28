@@ -1,0 +1,31 @@
+__default__:
+  partition: "high"
+  cpus: "{threads}"
+  mem: "200000"
+  time: 2:00:00
+  output: "results/logs_slurm/{rule}/{wildcards.wildcard}.log"
+  nodes: 4
+
+make_ANNOVAR_indel_input:
+  use-conda: True
+
+filter_ANNOVAR_results:
+  use-conda: True
+
+# run_fastqc_trimmed:
+#   mem: "8g"
+#   time: 120
+  
+# align_sort_rmdup:
+#   mem: "600000"
+#   time: 5:00:00
+
+# index_bams:
+#   mem: "100000"
+#   time: 1:00:00
+
+
+
+# snakemake --cluster-config config/cluster.yaml --cluster 'sbatch -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 40
+
+# snakemake --cluster "sbatch -t {cluster.time} -p {cluster.partition} -N {cluster.nodes}" --cluster-config config/cluster.yaml --jobs 2 --latency-wait=15
