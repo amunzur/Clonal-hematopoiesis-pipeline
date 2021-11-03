@@ -91,7 +91,6 @@ make_ANNOVAR_indel_input = expand(ANNOVAR_indel_input + "/{cohort_wildcard}/{wil
 
 run_ANNOVAR_snv = expand(ANNOVAR_snv_output + "/{cohort_wildcard}/{wildcard}.hg38_multianno.txt", wildcard = samples, cohort_wildcard = cohort_name)
 run_ANNOVAR_indel = expand(ANNOVAR_indel_output + "/{cohort_wildcard}/{wildcard}.hg38_multianno.txt", wildcard = samples, cohort_wildcard = cohort_name)
-filter_VarScan2_output = [expand(PATH_SAVE_chip_variants_VarScan, cohort_wildcard = cohort_name), expand(PATH_validated_variants_VarScan, cohort_wildcard = cohort_name)]
 
 run_insert_size = [expand(DIR_insertsize_metrics + "/{cohort_wildcard}/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name), \
 	expand(DIR_insertsize_figures + "/{cohort_wildcard}/{wildcard}.pdf", wildcard = samples, cohort_wildcard = cohort_name)]
@@ -122,7 +121,6 @@ rule all:
 		RUN_Vardict,
 		# make_ANNOVAR_snv_input,
 		# make_ANNOVAR_indel_input,
-		# filter_VarScan2_output,
 		run_ANNOVAR_snv,
 		run_ANNOVAR_indel, 
 		# run_insert_size, 
@@ -434,48 +432,6 @@ rule run_ANNOVAR_indel:
 			rm {output.ANNOVAR_indel_output} && \
 			mv {params.temp_output_file} {output.ANNOVAR_indel_output} && \
 			perl -pi -e s/VarAllele/Alt/g {output.ANNOVAR_indel_output}'
-
-rule filter_ANNOVAR_results: 
-	input: 
-		ANNOVAR_snv_output + "/{cohort_wildcard}",# annovar annotations
-		ANNOVAR_indel_output + "/{cohort_wildcard}",
-		DIR_depth_metrics = DIR_depth_metrics + "/{cohort_wildcard}"
-	output: 
-		PATH_SAVE_chip_variants_VarScan = DIR_varscan + "/finalized/{cohort_wildcard}/chip_variants.csv",
-		PATH_validated_variants_VarScan = DIR_varscan + "/finalized/{cohort_wildcard}/validated_chip_variants.csv"
-	params:
-		THRESHOLD_ExAC_ALL = 0.005, # less than or equal to
-		VALUE_Func_refGene = "intronic", # anyting except this
-		THRESHOLD_VarFreq = 0.30, # less than or equal to, give a fraction not percentage
-		THRESHOLD_Reads2 = 5, # more than or equal to, number of mutant reads
-		THRESHOLD_VAF_bg_ratio = 10, # valid variants should have a higher ratio than this
-		DIR_varscan_snv = DIR_varscan + "/snv/{cohort_wildcard}",
-		DIR_varscan_indel = DIR_varscan + "/indel/{cohort_wildcard}", # contains two folders named indel and snv
-		ANNOVAR_snv_output = ANNOVAR_snv_output + "/{cohort_wildcard}",
-		ANNOVAR_indel_output = ANNOVAR_indel_output + "/{cohort_wildcard}",
-		PATH_bg = PATH_bg, # path to background error rate file 
-		PATH_bets = PATH_bets,
-		PATH_bed = PATH_bed
-	conda: 
-		"envs/r_env_v2.yaml"
-	threads: 10
-	shell:
-		'Rscript /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/filter_VarScan.R \
-			--THRESHOLD_ExAC_ALL {params.THRESHOLD_ExAC_ALL} \
-			--VALUE_Func_refGene {params.VALUE_Func_refGene} \
-			--THRESHOLD_VarFreq {params.THRESHOLD_VarFreq} \
-			--THRESHOLD_Reads2 {params.THRESHOLD_Reads2} \
-			--THRESHOLD_VAF_bg_ratio {params.THRESHOLD_VAF_bg_ratio} \
-			--DIR_varscan_snv {params.DIR_varscan_snv}\
-			--DIR_varscan_indel {params.DIR_varscan_indel}\
-			--ANNOVAR_snv_output {params.ANNOVAR_snv_output}\
-			--ANNOVAR_indel_output {params.ANNOVAR_indel_output}\
-			--PATH_bg {params.PATH_bg} \
-			--PATH_bets {params.PATH_bets} \
-			--PATH_bed {params.PATH_bed} \
-			--DIR_depth_metrics {input.DIR_depth_metrics} \
-			--PATH_SAVE_chip_variants_VarScan {output.PATH_SAVE_chip_variants_VarScan} \
-			--PATH_validated_variants_VarScan {output.PATH_validated_variants_VarScan}'
 
 rule run_VarDict: 
 	input: 
