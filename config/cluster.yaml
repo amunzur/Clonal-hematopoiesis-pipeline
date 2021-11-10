@@ -4,7 +4,7 @@ __default__:
   mem: "200000"
   time: 2:00:00
   output: "results/logs_slurm/{rule}/{wildcards.wildcard}.log"
-  nodes: 4
+  nodes: 1
 
 make_ANNOVAR_indel_input:
   use-conda: True
