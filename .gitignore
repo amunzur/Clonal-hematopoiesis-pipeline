@@ -2,6 +2,7 @@
 /groups/wyattgrp/users/amunzur/pipeline/resources
 /groups/wyattgrp/users/amunzur/pipeline/slurm
 
+.snakemake
 config.txt
 
 call_run_VarDict.sh
