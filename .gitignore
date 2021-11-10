@@ -1,6 +1,6 @@
-/groups/wyattgrp/users/amunzur/pipeline/results
-/groups/wyattgrp/users/amunzur/pipeline/resources
-/groups/wyattgrp/users/amunzur/pipeline/slurm
+results
+resources
+slurm
 
 .snakemake
 config.txt
