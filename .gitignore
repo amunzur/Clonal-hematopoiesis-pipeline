@@ -1,3 +1,15 @@
-/groups/wyattgrp/users/amunzur/pipeline/results/report
+/groups/wyattgrp/users/amunzur/pipeline/results
+/groups/wyattgrp/users/amunzur/pipeline/resources
+/groups/wyattgrp/users/amunzur/pipeline/slurm
+
 config.txt
+
+call_run_VarDict.sh
+call_run_VarDict.sh
+extract_metrics.sh
+process_samples.sh
+run_VarDict.sh
+run_VarScan.sh
+trim_align.sh
+
 
