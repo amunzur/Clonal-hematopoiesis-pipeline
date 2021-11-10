@@ -2,25 +2,6 @@
 
 library(tidyverse)
 library(stringr)
-library(argparse)
-
-parser <- ArgumentParser(description = "Filter the variants called by VarScan based on various parameters")
-
-# passed from Snakemake into the script
-parser$add_argument('--THRESHOLD_ExAC_ALL', metavar='VARIABLE', type='double', help="Variants with ExAC values more than this will be filtered out, they might be germline variants.")
-parser$add_argument('--VALUE_Func_refGene', metavar='VARIABLE', type='character', help="Whether to exclude intronic variants or not.")
-parser$add_argument('--THRESHOLD_VarFreq', metavar='VARIABLE', type='double', help="Minimum VAF we allow. If it above, will be filtered out. Give a fraction, not percentage.")
-parser$add_argument('--THRESHOLD_Reads2', metavar='VARIABLE', type='double', help="Minimum number of mutant reads. If a variant has less, will be filtered out.")
-parser$add_argument('--THRESHOLD_VAF_bg_ratio', metavar='VARIABLE', type='double', help="The ratio of VAF and the bg error rate at that position must be more than this.")
-parser$add_argument('--DIR_varscan', metavar='DIRECTORY', type='character', help="Directory where the VarScan outputs are located.")
-parser$add_argument('--PATH_bg', metavar='FILE', type='character', help="{Path to the background error rate.}")
-parser$add_argument('--PATH_bets', metavar='FILE', type='character', help="Path to the betastasis table from this cohort.")
-parser$add_argument('--PATH_bed', metavar='FILE', type='character', help="Path to the bed file for the panel.")
-parser$add_argument('--DIR_depth_metrics', metavar='DIRECTORY', type='character', help="Dir where we keep the depths at individivual base positions.")
-parser$add_argument('--PATH_SAVE_chip_variants', metavar='FILE', type='character', help="Path to save the cleaned up chip variants to after filtering.")
-parser$add_argument('--PATH_validated_variants', metavar='FILE', type='character', help="Path to save the validated variants file with information about whether we detected them all or not.")
-
-args <- parser$parse_args()
 
 # DIR_figures <- "/groups/wyattgrp/users/amunzur/chip_project/figures/main_figures/new_chip_panel_CP"
 # PATH_SAVE_chip_variants <- "/groups/wyattgrp/users/amunzur/chip_project/VarScan2_results/WBC_only/new_chip_panel_CP/snv/exonic.csv"
@@ -86,7 +67,7 @@ combine_anno_varscan <- function(DIR_varscan_snv, DIR_varscan_indel, ANNOVAR_snv
 
 }
 
-add_bg_error_rate <- function(variants_df, PATH_bg) {
+add_bg_error_rate <- function(variants_df, bg) {
 
 	# modify the vars df
 	variants_df <- variants_df %>% mutate(error_type = paste0("mean_error", variants_df$Ref, "to", variants_df$Alt))
@@ -94,7 +75,6 @@ add_bg_error_rate <- function(variants_df, PATH_bg) {
 	variants_df$error_type[grep("\\-", variants_df$error_type)] <- "mean_errordel"
 
 	# modify the bg error rate df
-	bg <- read_delim(PATH_bg, delim = "\t")
 	bg$chrom <- paste0("chr", bg$chrom)
 	bg <- gather(bg, "error_type", "error_rate", starts_with("mean_error"))
 
@@ -130,15 +110,18 @@ add_bg_error_rate <- function(variants_df, PATH_bg) {
 compare_with_bets <- function(PATH_bets, variant_df){
 
 	bets <- as.data.frame(read_delim(PATH_bets, delim = "\t"))
-	variant_df$Position_in_bets <- variant_df$Position %in% bets$POSITION
+	variant_df$detected <- variant_df$Position %in% bets$POSITION
+
+	# add a new col to indicate if the gene of interest in each row is found in the bets. 
+	variant_df$Gene_in_bets <- variant_df$Gene %in% bets$GENE
 
 	return(variant_df)
 }
 
 # this function compares variants to variants jack found. need a path to jack
-compare_with_jacks_figure <- function(PATH_to_jack, variant_df){
+compare_with_jacks_figure <- function(PATH_validated_variants, variant_df){
 
-	validated_vars <- read.delim(PATH_to_jack, header = FALSE)
+	validated_vars <- read.delim(PATH_validated_variants, header = FALSE)
 	names(validated_vars) <- c("Sample", "Gene", "Chrom", "Position", "Ref", "Alt")
 
 	validated_vars$detected <- validated_vars$Position %in% variant_df$Position
@@ -159,8 +142,10 @@ add_depth <- function(DIR_depth_metrics, variant_df) {
 	names(depth_file) <- c("Chrom", "Position", "Depth", "Sample_name")
 	depth_file$Position <- as.character(depth_file$Position) # add the sample names so that we can do a join based on sample names with the variant df later on
 
-
 	combined <- left_join(variant_df, depth_file, by = c("Sample_name", "Chrom", "Position"))
+	# x <- left_join(dedup, depth_file, by = c("Sample_name", "Chrom", "Position"))
+
+	filter(depth_file, Sample_name == "GUBB-17-094-gDNA-Baseline-IDT-2017May25_S3", Chrom == "chr2", Position == "25246696")
 
 	return(combined)
 
@@ -201,9 +186,10 @@ subset_to_panel <- function(PATH_bed, variant_df) {
 			end_pos <- bed_subsetted[j, 3]
 
 			if (all(location >= start_pos, location <= end_pos)) {
+				print(j)
+				print("Position in panel.")
 				to_keep <- append(to_keep, i) # saving the row index of muts we are keeping
 				break 
-				print("Position in panel.")
 				} else {j <- j + 1} # if the location isn't in the panel, go check out the next position in the bed file.
 				# print(c(j, "j"))
 
@@ -243,7 +229,7 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 					DIR_varscan_indel, 
 					ANNOVAR_snv_output, 
 					ANNOVAR_indel_output,
-					PATH_bg,
+					bg,
 					PATH_bets,
 					PATH_bed,
 					DIR_depth_metrics,
@@ -260,33 +246,45 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 	x <- str_split(combined$Sample_name, "-") # split the sample name
 	combined$patient_id <- paste(lapply(x, "[", 1), lapply(x, "[", 2), lapply(x, "[", 3), sep = "-") # paste 2nd and 3rd elements to create the sample name 
 
-	combined <- add_bg_error_rate(combined, PATH_bg) # background error rate
+	combined <- add_bg_error_rate(combined, bg) # background error rate
 	combined_not_intronic <- combined %>%
 						mutate(VarFreq = as.numeric(gsub("%", "", VarFreq))/100, 
 								Total_reads = Reads1 + Reads2, 
 								VAF_bg_ratio = VarFreq/error_rate) %>%
-						select(Sample_name, patient_id, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, Func.refGene, Gene.refGene, AAChange.refGene, ExAC_ALL, variant, error_rate, VAF_bg_ratio) %>%
+						select(Sample_name, patient_id, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, Func.refGene, Gene.refGene, AAChange.refGene, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads) %>%
 						filter(ExAC_ALL <= THRESHOLD_ExAC_ALL, 
 								Func.refGene != VALUE_Func_refGene,
-								VarFreq <= THRESHOLD_VarFreq, 
-								Reads2 >= THRESHOLD_Reads2, 
 								VAF_bg_ratio >= THRESHOLD_VAF_bg_ratio) # vaf should be at least 15 times more than the bg error rate
 
 	# a common naming convention i will be sticking to from now on
-	names(combined_not_intronic) <- c("Sample_name", "Patient_ID", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "Function", "Gene", "AAchange", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio")
-	dedup <- compare_with_bets(PATH_bets, combined_not_intronic)
+	names(combined_not_intronic) <- c("Sample_name", "Patient_ID", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "Function", "Gene", "AAchange", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
+
 	dedup <- distinct(combined_not_intronic, Chrom, Position, Ref, Alt, .keep_all = TRUE) # remove duplicated variants
 	
+	# now filtering based on vaf, read support and depth etc. 
+	dedup <- dedup %>%
+				filter((Total_reads >= 1000 & VAF >= 0.005) | 
+						(Total_reads <= 1000 & Alt_reads >= 5), 
+						VAF < THRESHOLD_VarFreq)
+
 	dedup <- subset_to_panel(PATH_bed, dedup) # subset to panel 
 	dedup <- add_depth(DIR_depth_metrics, dedup) # add depth information at these positions
-	
+	dedup <- compare_with_bets(PATH_bets, dedup)
+
+	# add an extra col for alerting the user if the variant isn't found, despite gene being in the bets
+	dedup <- dedup %>% mutate(Status = case_when(
+										(detected == FALSE & Gene_in_bets == TRUE) ~ "ALERT", 
+										(detected == TRUE & Gene_in_bets == TRUE) ~ "Great",
+										(detected == TRUE & Gene_in_bets == FALSE) ~ "Error",
+										TRUE ~ "OK"))
 	return(dedup)
 
 }
 
 combine_and_save <- function(snv, indel, PATH_validated_variants, PATH_SAVE_chip_variants){
 
-	indel_igv <- indel %>% mutate(Position = Position + 1) 	# make a separate df just for igv
+	indel_igv <- indel %>% mutate(Position = as.numeric(Position), 
+									Position = Position + 1) 	# make a separate df just for igv
 
 	variants_chip <- as.data.frame(rbind(snv, indel))
 	variants_chip_igv <- rbind(snv, indel_igv)
@@ -296,7 +294,7 @@ combine_and_save <- function(snv, indel, PATH_validated_variants, PATH_SAVE_chip
 
 	# PATH_to_jack <- "/groups/wyattgrp/users/amunzur/chip_project/validated_kidney_variants/chip_muts_locations.tsv" # compare with previously validated variants
 	validated_vars <- compare_with_jacks_figure(PATH_validated_variants, variants_chip)
-	variants_chip$detected <- variants_chip$Position %in% validated_vars$Position # add a new col to show if the same var was detected in jacks figure
+	# variants_chip$detected <- variants_chip$Position %in% validated_vars$Position # add a new col to show if the same var was detected in jacks figure
 
 	# PATH_SAVE_chip_variants <- "/groups/wyattgrp/users/amunzur/chip_project/variant_lists/chip_variants.csv"
 	write_csv(variants_chip, PATH_SAVE_chip_variants) # snv + indel, csv
@@ -305,43 +303,63 @@ combine_and_save <- function(snv, indel, PATH_validated_variants, PATH_SAVE_chip
 
 	write_csv(validated_vars, gsub("chip_variants.csv", "validated_variants.csv", PATH_SAVE_chip_variants)) # jack df as csv
 	write_delim(validated_vars, gsub("chip_variants.csv", "validated_variants.tsv", PATH_SAVE_chip_variants), delim = "\t") # jack df as tsv
+
+	return(variants_chip)
 }
 
-snv <- MAIN(THRESHOLD_ExAC_ALL = args$THRESHOLD_ExAC_ALL, 
-				VALUE_Func_refGene = args$VALUE_Func_refGene, 
-				THRESHOLD_VarFreq = args$THRESHOLD_VarFreq, 
-				THRESHOLD_Reads2 = args$THRESHOLD_Reads2, 
-				THRESHOLD_VAF_bg_ratio = args$THRESHOLD_VAF_bg_ratio, 
-				DIR_varscan_snv = args$DIR_varscan_snv,
-				DIR_varscan_indel = args$DIR_varscan_indel,
-				ANNOVAR_snv_output = args$ANNOVAR_snv_output,
-				ANNOVAR_indel_output = args$ANNOVAR_indel_output,
-				PATH_bg = args$PATH_bg,
-				PATH_bets = args$PATH_bets, 
-				PATH_bed = args$PATH_bed,
-				DIR_depth_metrics = args$DIR_depth_metrics, 
+THRESHOLD_ExAC_ALL <- 0.005
+VALUE_Func_refGene <- "intronic"
+THRESHOLD_VarFreq <- 0.30
+THRESHOLD_Reads2 <- 5
+THRESHOLD_VAF_bg_ratio <- 10
+DIR_varscan_snv <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/VarScan2/snv/new_chip_panel"
+DIR_varscan_indel <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/VarScan2/indel/new_chip_panel"
+ANNOVAR_snv_output <- "/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/snv/new_chip_panel"
+ANNOVAR_indel_output <- "/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/indel/new_chip_panel"
+PATH_bg <- "/groups/wyattgrp/users/amunzur/pipeline/resources/bg_error_rate/bg_error.tsv"
+PATH_bets <- "/groups/wyattgrp/users/amunzur/pipeline/resources/betastasis/CLEANED_mutations_no_germline_filter.tsv"
+PATH_bed  <- "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/1000012543_CHIP_Design_selection_results_Version2/capture_targets.bed"
+DIR_depth_metrics <- "/groups/wyattgrp/users/amunzur/pipeline/results/metrics/depth/new_chip_panel"
+
+PATH_validated_variants <- "/groups/wyattgrp/users/amunzur/pipeline/resources/validated_variants/chip_muts_locations.tsv"
+PATH_SAVE_chip_variants <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/VarScan2/finalized/chip_variants.csv"
+
+bg <- read_delim(PATH_bg, delim = "\t")
+
+snv <- MAIN(THRESHOLD_ExAC_ALL, 
+				VALUE_Func_refGene,
+				THRESHOLD_VarFreq,
+				THRESHOLD_Reads2,
+				THRESHOLD_VAF_bg_ratio,
+				DIR_varscan_snv,
+				DIR_varscan_indel,
+				ANNOVAR_snv_output,
+				ANNOVAR_indel_output,
+				bg,
+				PATH_bets,
+				PATH_bed,
+				DIR_depth_metrics,
 				"snv")
 
-indel <- MAIN(THRESHOLD_ExAC_ALL = args$THRESHOLD_ExAC_ALL, 
-				VALUE_Func_refGene = args$VALUE_Func_refGene, 
-				THRESHOLD_VarFreq = args$THRESHOLD_VarFreq, 
-				THRESHOLD_Reads2 = args$THRESHOLD_Reads2, 
-				THRESHOLD_VAF_bg_ratio = args$THRESHOLD_VAF_bg_ratio, 
-				DIR_varscan_snv = args$DIR_varscan_snv,
-				DIR_varscan_indel = args$DIR_varscan_indel,
-				ANNOVAR_snv_output = args$ANNOVAR_snv_output,
-				ANNOVAR_indel_output = args$ANNOVAR_indel_output,
-				PATH_bg = args$PATH_bg,
-				PATH_bets = args$PATH_bets, 
-				PATH_bed = args$PATH_bed,
-				DIR_depth_metrics = args$DIR_depth_metrics, 
+indel <- MAIN(THRESHOLD_ExAC_ALL, 
+				VALUE_Func_refGene, 
+				THRESHOLD_VarFreq, 
+				THRESHOLD_Reads2, 
+				THRESHOLD_VAF_bg_ratio, 
+				DIR_varscan_snv,
+				DIR_varscan_indel,
+				ANNOVAR_snv_output,
+				ANNOVAR_indel_output,
+				bg,
+				PATH_bets,
+				PATH_bed,
+				DIR_depth_metrics,
 				"indel")
 
-combine_and_save(snv = snv,
-					indel = indel, 
-					PATH_validated_variants = args$PATH_validated_variants, 
-					PATH_SAVE_chip_variants = args$PATH_SAVE_chip_variants)
-
+variants_chip <- combine_and_save(snv,
+						indel, 
+						PATH_validated_variants, 
+						PATH_SAVE_chip_variants)
 
 # snv <- MAIN(THRESHOLD_ExAC_ALL = THRESHOLD_ExAC_ALL, 
 # 				VALUE_Func_refGene = VALUE_Func_refGene, 
