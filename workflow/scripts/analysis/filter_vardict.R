@@ -17,11 +17,15 @@ DIR_depth_metrics <- "/groups/wyattgrp/users/amunzur/pipeline/results/metrics/de
 
 PATH_validated_variants <- "/groups/wyattgrp/users/amunzur/pipeline/resources/validated_variants/chip_muts_locations.tsv"
 PATH_SAVE_chip_variants <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Vardict/finalized/chip_variants.csv"
-PATH_utilities_file <- "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/UTILITIES_filter_vardict.R"
+DIR_finland_bams <- "/groups/wyattgrp/data/bam/kidney"
 
-source(PATH_utilities_file)
+PATH_utilities_file_vardict <- "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/UTILITIES_filter_vardict.R"
+PATH_utilities_file <- "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/UTILITIES.R"
 
-bg <- read_delim(PATH_bg, delim = "\t")
+source(PATH_utilities_file_vardict) # functions specificic to vardict
+source(PATH_utilities_file) # functions shared between vardict and varscan
+
+bg <- read_delim(PATH_bg, delim = "\t") # background error rate file
 
 variants <- MAIN(THRESHOLD_ExAC_ALL, 
 				VALUE_Func_refGene,
@@ -33,7 +37,8 @@ variants <- MAIN(THRESHOLD_ExAC_ALL,
 				bg,
 				PATH_bets,
 				PATH_bed,
-				DIR_depth_metrics)
+				DIR_depth_metrics, 
+				DIR_finland_bams)
 
 combine_and_save(variants,
 				PATH_validated_variants, 
