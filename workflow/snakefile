@@ -81,6 +81,7 @@ INDEX_sorted_bams = expand(DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam.
 FIXMATE = expand(DIR_bams + "/{cohort_wildcard}/fixmate/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
 MARKDUP = [expand(DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name), \
 	expand(DIR_markdup_metrics + "/{cohort_wildcard}/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name)]
+Samblaster = expand(DIR_bams + "/{cohort_wildcard}/samblaster/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
 SC_PENALTY = expand(DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
 ADD_RG = expand(DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
 INDEX_readGroup_bams = expand(DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam.bai", wildcard = samples, cohort_wildcard = cohort_name)
@@ -111,15 +112,16 @@ run_depth = expand(DIR_depth_metrics + "/{cohort_wildcard}/{wildcard}.txt", wild
 # only use expansion here
 rule all:
 	input:
-		MERGE_R1,
-		MERGE_R2,
-		RUN_FastQC_merged,
-		MASK_FastQ,
-		TRIM_FastQ,
+		# MERGE_R1,
+		# MERGE_R2,
+		# RUN_FastQC_merged,
+		# MASK_FastQ,
+		# TRIM_FastQ,
 		ALIGN_and_SORT,
 		INDEX_sorted_bams, 
 		FIXMATE,
 		MARKDUP,
+		# Samblaster,
 		# SC_PENALTY,
 		# ADD_RG,
 		# INDEX_readGroup_bams,
@@ -136,7 +138,7 @@ rule all:
 		# run_ANNOVAR_vardict,
 		# run_insert_size, 
 		# PDF_to_PNG,
-		# run_depth,
+		# run_depth
 		
 
 rule MERGE_R1: 
@@ -233,7 +235,7 @@ rule align_sort:
 	threads: 12
 	shell:
 		"bwa mem -t {threads} {input.PATH_hg38} {input.pair1} {input.pair2} | \
-		samtools view -h -L {input.PATH_bed} -q {params.min_mapping_quality} -F {params.bitwise_flag} - | \
+		samtools view -h -q {params.min_mapping_quality} -F {params.bitwise_flag} - | \
 		samtools sort -o {output.SORTED_bam}"
 
 rule index_sorted_bams: 
@@ -266,11 +268,24 @@ rule mark_duplicates_PICARD:
 		MARKDUP_metrics = DIR_markdup_metrics + "/{cohort_wildcard}/{wildcard}.txt"
 	threads: 12
 	shell:
-		"picard -Xmx40g MarkDuplicates I={input} O={output.MARKDUP_bam} M={output.MARKDUP_metrics} REMOVE_DUPLICATES=true"
+		"picard -Xmx40g MarkDuplicates I={input} O={output.MARKDUP_bam} M={output.MARKDUP_metrics}"
+
+rule mark_duplicates_SAMBLASTER: 
+	input:
+		DIR_bams + "/{cohort_wildcard}/fixmate/{wildcard}.bam"
+	output:
+		SAMBLASTER_bam = DIR_bams + "/{cohort_wildcard}/samblaster/{wildcard}.bam"
+	params:
+		DIR_bams + "/{cohort_wildcard}/samblaster/{wildcard}.sam" # sam output from samblaster
+	threads: 12
+	shell:
+		"samtools sort -n -O sam -o - {input} | /home/amunzur/samblaster/samblaster -r -o {params}"
+		"samtools view -hb {params} > {output}"
 
 rule filter_out_soft_clipped: 
 	input:
-		DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam"
+		# DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam"
+		DIR_bams + "/{cohort_wildcard}/samblaster/{wildcard}.bam"
 	params: 
 		PATH_hg38 = PATH_hg38,
 		clipping_threshold = 10
@@ -512,8 +527,6 @@ rule reformat_vardict_results:
 # 		DIR_Vardict + "/{cohort_wildcard}/{wildcard}.vcf"
 # 	output: 
 # 		DIR_Vardict + "/{cohort_wildcard}_reformatted/{wildcard}.tsv"
-# 	conda: 
-# 		"envs/r_env_v2.yaml"
 # 	shell:
 # 		'Rscript --silent --slave /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/reformat_vardict.R\
 # 			--PATH_Vardict_output {input} \
