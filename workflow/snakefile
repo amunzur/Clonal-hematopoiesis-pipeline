@@ -81,7 +81,6 @@ INDEX_sorted_bams = expand(DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam.
 FIXMATE = expand(DIR_bams + "/{cohort_wildcard}/fixmate/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
 MARKDUP = [expand(DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name), \
 	expand(DIR_markdup_metrics + "/{cohort_wildcard}/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name)]
-Samblaster = expand(DIR_bams + "/{cohort_wildcard}/samblaster/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
 SC_PENALTY = expand(DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
 ADD_RG = expand(DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
 INDEX_readGroup_bams = expand(DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam.bai", wildcard = samples, cohort_wildcard = cohort_name)
@@ -121,7 +120,6 @@ rule all:
 		INDEX_sorted_bams, 
 		FIXMATE,
 		MARKDUP,
-		# Samblaster,
 		# SC_PENALTY,
 		# ADD_RG,
 		# INDEX_readGroup_bams,
@@ -270,35 +268,11 @@ rule mark_duplicates_PICARD:
 	shell:
 		"picard -Xmx40g MarkDuplicates I={input} O={output.MARKDUP_bam} M={output.MARKDUP_metrics}"
 
-rule mark_duplicates_SAMBLASTER: 
-	input:
-		DIR_bams + "/{cohort_wildcard}/fixmate/{wildcard}.bam"
-	output:
-		SAMBLASTER_bam = DIR_bams + "/{cohort_wildcard}/samblaster/{wildcard}.bam"
-	params:
-		DIR_bams + "/{cohort_wildcard}/samblaster/{wildcard}.sam" # sam output from samblaster
-	threads: 12
-	shell:
-		"samtools sort -n -O sam -o - {input} | /home/amunzur/samblaster/samblaster -r -o {params}"
-		"samtools view -hb {params} > {output}"
-
-rule filter_out_soft_clipped: 
-	input:
-		# DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam"
-		DIR_bams + "/{cohort_wildcard}/samblaster/{wildcard}.bam"
-	params: 
-		PATH_hg38 = PATH_hg38,
-		clipping_threshold = 10
-	output:
-		DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam",
-	threads: 12
-	shell:
-		"samtools view -h {input} | /home/amunzur/samclip --ref {params.PATH_hg38} --max {params.clipping_threshold} | samtools sort > {output}"
-
 # Add read groups after removing duplicates
 rule add_read_groups_PICARD: 
 	input:
-		DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam"		
+		# DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam"	
+		DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam"	
 	params: 
 		rglb = "library",
 		rgpl = "ILLUMINA",
