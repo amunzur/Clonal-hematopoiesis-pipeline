@@ -1,7 +1,9 @@
 return_vardict_output <- function(DIR_vardict) {
 
 	df_main <- as.data.frame(read_delim(DIR_vardict, delim = "\t")) 
-	df <- df_main %>% mutate(Sample_name = gsub(".tsv", "", basename(DIR_vardict)))
+	df <- df_main %>% 
+		mutate(Sample_name = gsub(".tsv", "", basename(DIR_vardict))) %>%
+		filter(!str_detect(Alt, 'N')) 	# Drop variants if the called variant has an "N" in it. 
 
 	return(df)
 
@@ -106,13 +108,14 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 	combined_not_intronic <- combined %>%
 						mutate(Total_reads = Reads1 + Reads2, 
 								VAF_bg_ratio = VarFreq/error_rate) %>%
-						select(Sample_name, patient_id, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, Func.refGene, Gene.refGene, AAChange.refGene, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads) %>%
+						select(Sample_name, patient_id, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, REF_Fw, REF_Rv, ALT_Fw, ALT_Rv, Func.refGene, Gene.refGene, AAChange.refGene, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads) %>%
 						filter(ExAC_ALL <= THRESHOLD_ExAC_ALL, 
 								Func.refGene != VALUE_Func_refGene,
-								VAF_bg_ratio >= THRESHOLD_VAF_bg_ratio) # vaf should be at least 15 times more than the bg error rate
+								VAF_bg_ratio >= THRESHOLD_VAF_bg_ratio, # vaf should be at least 15 times more than the bg error rate
+								StrandBias_Fisher_pVal > 0.05) 
 
 	# a common naming convention i will be sticking to from now on
-	names(combined_not_intronic) <- c("Sample_name", "Patient_ID", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "Function", "Gene", "AAchange", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
+	names(combined_not_intronic) <- c("Sample_name", "Patient_ID", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
 
 	dedup <- distinct(combined_not_intronic, Chrom, Position, Ref, Alt, .keep_all = TRUE) # remove duplicated variants
 
@@ -144,19 +147,12 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 
 combine_and_save <- function(variants, PATH_validated_variants, PATH_SAVE_chip_variants){
 
-	# make a separate df for igv because the indel positions need to be adjusted before we can take snapshots 
-	idx <- which(variants$Variant == "deletion")
-	if (length(idx) > 0) {
-		variants_igv <- variants %>% mutate(Position = as.numeric(Position))
-		variants_igv$Position[idx] <- variants_igv$Position[idx] + 1} else {variants_igv <- variants}
-
 	validated_vars <- compare_with_jacks_figure(PATH_validated_variants, variants)
 	# variants$detected <- variants$Position %in% validated_vars$Position # add a new col to show if the same var was detected in jacks figure
 
 	# PATH_SAVE_chip_variants <- "/groups/wyattgrp/users/amunzur/chip_project/variant_lists/chip_variants.csv"
 	write_csv(variants, PATH_SAVE_chip_variants) # snv + indel, csv
 	write_delim(variants, gsub(".csv", ".tsv", PATH_SAVE_chip_variants), delim = "\t") # snv + indel, tsv
-	write_delim(variants_igv, gsub("chip_variants.csv", "chip_variants_igv.tsv", PATH_SAVE_chip_variants), delim = "\t") # snv + indel for igv
 
 	write_csv(validated_vars, gsub("chip_variants.csv", "validated_variants.csv", PATH_SAVE_chip_variants)) # jack df as csv
 	write_delim(validated_vars, gsub("chip_variants.csv", "validated_variants.tsv", PATH_SAVE_chip_variants), delim = "\t") # jack df as tsv

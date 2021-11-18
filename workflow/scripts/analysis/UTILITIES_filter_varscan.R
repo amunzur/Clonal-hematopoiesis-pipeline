@@ -1,11 +1,10 @@
 return_varscan_output <- function(PATH_varscan) {
 
-	print(PATH_varscan)
-
 	df_main <- as.data.frame(read_delim(PATH_varscan, delim = "\t")) 
 	df <- df_main %>%
 			mutate(Sample_name = gsub(".vcf", "", basename(PATH_varscan))) %>%
-			rename(Chr = Chrom, Start = Position, Alt = VarAllele)
+			rename(Chr = Chrom, Start = Position, Alt = VarAllele) %>%
+			filter(!str_detect(Alt, 'N')) 	# Drop variants if the called variant has an "N" in it. 
 
 	return(df)
 
@@ -17,8 +16,8 @@ combine_anno_varscan <- function(DIR_varscan_snv, DIR_varscan_indel, ANNOVAR_snv
 	# determine which dir to scan based on the cariant_type given
 	if (variant_type == "snv") {
 		DIR_varscan <- DIR_varscan_snv
-		DIR_ANNOVAR <- ANNOVAR_snv_output} 
-	else {DIR_varscan <- DIR_varscan_indel
+		DIR_ANNOVAR <- ANNOVAR_snv_output
+	} else {DIR_varscan <- DIR_varscan_indel
 		DIR_ANNOVAR <- ANNOVAR_indel_output}
 
 	anno_df_list <- lapply(as.list(list.files(DIR_ANNOVAR, full.names = TRUE, pattern = "\\.hg38_multianno.txt$")), return_anno_output)
@@ -35,8 +34,8 @@ combine_anno_varscan <- function(DIR_varscan_snv, DIR_varscan_indel, ANNOVAR_snv
 	# 	varscan_df$Alt[grep("-", varscan_df$Alt)] <- "-"}
 
 	combined <- left_join(varscan_df, anno_df, by = c("Sample_name", "Chr", "Start", "Ref", "Alt")) %>%
-					mutate(ExAC_ALL = as.numeric(gsub(".", 0, ExAC_ALL)), 
-						gnomAD_exome_ALL = as.numeric(gsub(".", 0, gnomAD_exome_ALL)))
+					mutate(ExAC_ALL = as.numeric(gsub("\\.", 0, ExAC_ALL)), 
+						gnomAD_exome_ALL = as.numeric(gsub("\\.", 0, gnomAD_exome_ALL)))
 
 	return(combined)
 
@@ -81,6 +80,33 @@ add_bg_error_rate <- function(variants_df, bg) {
 	return(variants_df)
 }
 
+# Do Fisher's test to calculate the strand bias. This function should be applied across all rows with an apply function. 
+evaluate_strandBias <- function(variants_df){
+
+	message("Evaluating strand bias.")
+
+	minifunction <- function(some_row) {
+		
+		dat <- matrix(c(as.numeric(some_row[15]), 
+						as.numeric(some_row[17]), 
+						as.numeric(some_row[16]), 
+						as.numeric(some_row[18])), nrow = 2, ncol = 2, byrow = FALSE)
+
+		dimnames(dat) <- list(c("Ref", "Alt"), c("Forward", "Reverse"))
+
+		fishers_pval <- fisher.test(dat)$p.value
+		odds_ratio <- oddsratio(dat + 1)$measure[2]
+
+		return(list(fishers_pval = fishers_pval, odds_ratio = odds_ratio))}
+
+	values_list <- apply(variants_df, 1, minifunction) # contains both the pval from fishers test and the odds ratio
+	variants_df$StrandBias_Fisher_pVal <- unname(unlist(values_list)[seq(1, length(unlist(values_list)), 2)]) # select every odd element starting from 0 - fishers exact
+	variants_df$StrandBias_OddsRatio <- unname(unlist(values_list)[seq(2, length(unlist(values_list)), 2)]) # select every even element starting from 2 - odds ratio
+
+	return(variants_df)
+
+}
+
 # main function to run everything
 MAIN <- function(THRESHOLD_ExAC_ALL, 
 					VALUE_Func_refGene, 
@@ -110,17 +136,22 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 	combined$patient_id <- paste(lapply(x, "[", 1), lapply(x, "[", 2), lapply(x, "[", 3), sep = "-") # paste 2nd and 3rd elements to create the sample name 
 
 	combined <- add_bg_error_rate(combined, bg) # background error rate
+
+	# some filtering based on some criteria
 	combined_not_intronic <- combined %>%
 						mutate(VarFreq = as.numeric(gsub("%", "", VarFreq))/100, 
 								Total_reads = Reads1 + Reads2, 
 								VAF_bg_ratio = VarFreq/error_rate) %>%
-						select(Sample_name, patient_id, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, Func.refGene, Gene.refGene, AAChange.refGene, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads) %>%
 						filter(ExAC_ALL <= THRESHOLD_ExAC_ALL, 
 								Func.refGene != VALUE_Func_refGene,
 								VAF_bg_ratio >= THRESHOLD_VAF_bg_ratio) # vaf should be at least 15 times more than the bg error rate
+	# add strand bias
+	combined_not_intronic <- evaluate_strandBias(combined_not_intronic)
+	combined_not_intronic <- combined_not_intronic %>%
+						filter(StrandBias_Fisher_pVal > 0.05) %>%
+						select(Sample_name, patient_id, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, Reads1Plus, Reads1Minus, Reads2Plus, Reads2Minus, Func.refGene, Gene.refGene, AAChange.refGene, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads)
 
-	# a common naming convention i will be sticking to from now on
-	names(combined_not_intronic) <- c("Sample_name", "Patient_ID", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "Function", "Gene", "AAchange", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
+	names(combined_not_intronic) <- c("Sample_name", "Patient_ID", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
 
 	dedup <- distinct(combined_not_intronic, Chrom, Position, Ref, Alt, .keep_all = TRUE) # remove duplicated variants
 	
@@ -132,7 +163,7 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 
 	dedup <- subset_to_panel(PATH_bed, dedup) # subset to panel 
 	dedup <- add_depth(DIR_depth_metrics, dedup) # add depth information at these positions
-	dedup <- compare_with_bets(PATH_bets, dedup)
+	dedup <- compare_with_bets(PATH_bets, dedup) # indicate whether the variant has been found previously and whether the gene where the variant is in exists in the bets table.
 
 	# add an extra col for alerting the user if the variant isn't found, despite gene being in the bets
 	dedup <- dedup %>% mutate(Status = case_when(
@@ -152,11 +183,7 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 
 combine_and_save <- function(snv, indel, PATH_validated_variants, PATH_SAVE_chip_variants){
 
-	indel_igv <- indel %>% mutate(Position = as.numeric(Position), 
-									Position = Position + 1) 	# make a separate df just for igv
-
 	variants_chip <- as.data.frame(rbind(snv, indel))
-	variants_chip_igv <- rbind(snv, indel_igv)
 
 	# variants_documentation <- add_documentation(THRESHOLD_ExAC_ALL, VALUE_Func_refGene, THRESHOLD_VarFreq, THRESHOLD_Reads2, THRESHOLD_VAF_bg_ratio)
 	# comment(variants_chip) <- variants_documentation
@@ -168,7 +195,6 @@ combine_and_save <- function(snv, indel, PATH_validated_variants, PATH_SAVE_chip
 	# PATH_SAVE_chip_variants <- "/groups/wyattgrp/users/amunzur/chip_project/variant_lists/chip_variants.csv"
 	write_csv(variants_chip, PATH_SAVE_chip_variants) # snv + indel, csv
 	write_delim(variants_chip, gsub(".csv", ".tsv", PATH_SAVE_chip_variants), delim = "\t") # snv + indel, tsv
-	write_delim(variants_chip_igv, gsub("chip_variants.csv", "chip_variants_igv.tsv", PATH_SAVE_chip_variants), delim = "\t") # snv + indel for igv
 
 	write_csv(validated_vars, gsub("chip_variants.csv", "validated_variants.csv", PATH_SAVE_chip_variants)) # jack df as csv
 	write_delim(validated_vars, gsub("chip_variants.csv", "validated_variants.tsv", PATH_SAVE_chip_variants), delim = "\t") # jack df as tsv
