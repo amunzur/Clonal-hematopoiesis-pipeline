@@ -37,15 +37,96 @@ MAKE_variant_type_plot <- function(df_main) {
 
 }
 
+# Simple bar plot showing the number of chips per patient
+MAKE_chips_per_patient <- function(df_main, color_what) {
+
+	# Total number of chips per patient, to merge later on
+	df_total_counts <- df_main %>%
+		select(Patient_ID) %>%
+		group_by(Patient_ID) %>%
+		summarise(total_counts = n())
+
+	df_variants <- df_main %>% 
+		select(Patient_ID, Gene, all_of(color_what)) %>%
+		group_by_at(c("Patient_ID", color_what)) %>%
+		summarise(variant_counts = n())
+
+	df <- left_join(df_variants, df_total_counts, by = "Patient_ID") %>%
+			arrange(total_counts)
+	
+	df$Patient_ID <- factor(df$Patient_ID, levels = unique(df$Patient_ID))
+
+	p <- ggplot(data = df, aes_string(x = "Patient_ID", y = "variant_counts", fill = color_what)) + 
+		geom_bar(stat = "identity") + 
+		scale_y_continuous(breaks = pretty_breaks(10), name = "Count") + 
+		cool_theme +
+		theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5)) +
+		ggtitle("Distribution of CHIP variants per patient, colored according to variant type.")
+
+	y.ticks <- ggplot_build(p)$layout$panel_params[[1]]$y.major_source
+
+	p <- p + geom_hline(yintercept = y.ticks, size = 0.5, linetype = "dotted", color = "black")
+
+	return(p)
+
+}
+
+# Make a plot to show the number of chips identified by the two variant callers.
+make_variant_caller_counts <- function(df_main){
+
+	df <- df_main %>%
+		select(variant_caller, Variant) %>%
+		group_by(variant_caller, Variant) %>%
+		summarize(n = n()) %>%
+		group_by(variant_caller)
+
+	p <- ggplot(data = df, aes(x = variant_caller, y = n, fill = Variant)) + 
+		geom_bar(position="stack", stat="identity") + 
+		scale_y_continuous(breaks = pretty_breaks(10), name = "Count") + 
+		xlab("Variant caller") + 
+		cool_theme +
+		theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5)) +
+		ggtitle("Distribution of CHIP variants across variant callers")
+
+	return(p)
+
+}
+
+MAKE_variant_type_plot <- function(df_main) {
+
+	df <- df_main %>% select(Variant, Function)
+	df <- df[!df$Function == ".", ]
+
+	p <- ggplot(data = df, aes(x = Variant, fill = Function)) + 
+		geom_bar(stat = "count") + 
+		scale_y_continuous(breaks = pretty_breaks(10), name = "Count") + 
+		scale_fill_brewer(palette = "Set1") +
+		cool_theme + 
+		ggtitle("Number of variants and functions") 
+
+	return(p)
+
+}
+
 # counts for each gene, only considering exonic variants
 MAKE_gene_counts_plot <- function(df_main) {
 
-	df <- df_main %>% 
+	# Counts how many total number of snvs and indels a gene has in total. Only contains one occurrence of each gene. 
+	df_total_counts <- df_main %>% 
+			select(Function, Gene, Variant) %>%
+			filter(Function == "exonic") %>%
+			group_by(Gene) %>%
+			mutate(total_count = table(Gene)) %>% 
+			distinct(Gene, .keep_all = TRUE) %>%
+			select(Gene, total_count)
+
+	df_variants <- df_main %>% 
 			select(Function, Gene, Variant) %>%
 			filter(Function == "exonic")
 
-	df <- as.data.frame(table(df)) # we need the counts information to sort accordingly
-	df <- df[order(df$Freq), ]
+	df_variants <- as.data.frame(table(df_variants)) # we need the counts information to sort accordingly
+	df <- left_join(df_variants, df_total_counts, by = c("Gene"))
+	df <- df[order(df$total_count), ]
 	df$Gene <- factor(df$Gene, levels = unique(df$Gene))
 
 	p <- ggplot(data = df, aes(x = Gene, y = Freq, fill = Variant)) + 
@@ -97,8 +178,6 @@ MAKE_vaf_plot_variant <- function(df_main) {
 	
 	df <- select(df_main, Sample_name, Patient_ID, VAF, Function, Variant)
 
-	# x <- str_split(df$Sample_name, "-") # split the sample name
-	# df$patient_id <- paste(lapply(x, "[", 2), lapply(x, "[", 3), sep = "-") # paste 2nd and 3rd elements to create the sample name 
 	df <- df[order(df$VAF), ]
 	df$Patient_ID <- factor(df$Patient_ID, levels = unique(df$Patient_ID))
 
@@ -122,29 +201,27 @@ MAKE_vaf_plot_variant <- function(df_main) {
 # vaf_plot_variant is needed because we present the patients in the same order
 MAKE_average_depth_per_patient <- function(df_average_depth, vaf_plot_variant) {
 
-	df_average_depth <- read.delim(PATH_to_averaged_depth, sep = " ", header = FALSE)
-	names(df_average_depth) <- c("bam_file", "average_depth")
+	df <- df_main %>%
+		select(Patient_ID, Depth)
 
 	y.labels <- ggplot_build(vaf_plot_variant)$layout$panel_params[[1]]$y.labels
-
-	df <- df_average_depth[order(df_average_depth$average_depth), ]
-	x <- str_split(df$bam_file, "-") # split the sample name
-	df$Patient_ID <- paste(lapply(x, "[", 1), lapply(x, "[", 2), lapply(x, "[", 3), sep = "-") # paste 2nd and 3rd elements to create the sample name 
 	df$Patient_ID <- factor(df$Patient_ID, levels = y.labels)
+
 	df <- df[!is.na(df$Patient_ID), ] # drop NAs
 
-	p <- ggplot(data = df, aes(x = Patient_ID, y = average_depth)) + 
+	p <- ggplot(data = df, aes(x = Patient_ID, y = Depth)) + 
 			geom_bar(stat = "identity") + 
 			cool_theme +
 			scale_y_continuous(breaks = pretty_breaks(15), name = "Average depth") + 
 			xlab("Patient ID") + 
 			cool_theme + 
-			ggtitle("Showing average depth across all positions per patient") + 
+			ggtitle("Average sample depth in patients with at least one variant") + 
 			coord_flip()
 
 	x.ticks <- ggplot_build(p)$layout$panel_params[[1]]$x.major_source
 
 	p <- p + geom_hline(yintercept = x.ticks, size = 0.5, linetype = "dotted", color = "black")
+
 	return(p)
 
 }
@@ -152,24 +229,18 @@ MAKE_average_depth_per_patient <- function(df_average_depth, vaf_plot_variant) {
 # patients that didnt have any variants will have a NA, we will make a separate plot for them. 
 MAKE_average_depth_per_patient2 <- function(df_average_depth, vaf_plot_variant) {
 
-	df_average_depth <- read.delim(PATH_to_averaged_depth, sep = " ", header = FALSE)
-	names(df_average_depth) <- c("bam_file", "average_depth")
+	df <- df_main %>%
+		select(Patient_ID, Depth)
 
 	y.labels <- ggplot_build(vaf_plot_variant)$layout$panel_params[[1]]$y.labels
-
-	df <- df_average_depth[order(df_average_depth$average_depth), ]
-	x <- str_split(df$bam_file, "-") # split the sample name
-	df$Patient_ID <- paste(lapply(x, "[", 1), lapply(x, "[", 2), lapply(x, "[", 3), sep = "-") # paste 2nd and 3rd elements to create the sample name 
 	df$Patient_ID <- factor(df$Patient_ID, levels = y.labels)
 
 	# patients that didnt have any variants will have a NA in the Patient_ID column, we will make a separate plot for them. 
 	df_no_var <- df[is.na(df$Patient_ID), ] # identify the NA patients
-	x <- str_split(df_no_var$bam_file, "-") # split the sample name
-	df_no_var$Patient_ID <- paste(lapply(x, "[", 1), lapply(x, "[", 2), lapply(x, "[", 3), sep = "-") # paste 2nd and 3rd elements to create the sample name 
-	df_no_var <- df_no_var[order(df_no_var$average_depth), ]
+	df_no_var <- df_no_var[order(df_no_var$Depth), ]
 	df_no_var$Patient_ID <- factor(df_no_var$Patient_ID, levels = unique(df_no_var$Patient_ID))
 
-	p <- ggplot(data = df_no_var, aes(x = Patient_ID, y = average_depth)) + 
+	p <- ggplot(data = df_no_var, aes(x = Patient_ID, y = Depth)) + 
 			geom_bar(stat = "identity") + 
 			cool_theme +
 			scale_y_continuous(breaks = pretty_breaks(15), name = "Average depth") + 
@@ -229,8 +300,12 @@ MAIN <- function(PATH_figure_main, PATH_to_variants, PATH_to_averaged_depth) {
 	p3 <- MAKE_vaf_plot_function(df_main) 
 	p4 <- MAKE_vaf_plot_variant(df_main)  
 	p5 <- MAKE_average_depth_per_patient(PATH_to_averaged_depth, p4) 
-	p6 <- MAKE_average_depth_per_patient2(PATH_to_averaged_depth, p4)
+	# p6 <- MAKE_average_depth_per_patient2(PATH_to_averaged_depth, p4) # Not running because all patients have at least one variant so this plot is empty
 	p7 <- MAKE_depth_at_variants(df_main, p4)
+	p8 <- MAKE_chips_per_patient(df_main)
+	p8 <- MAKE_chips_per_patient(df_main, "Variant") # barplot showing chips per patient, colored according to snv, and indel
+	p9 <- MAKE_chips_per_patient(df_main, "Function") # barplot showing chips per patient, colored according to function (exonic, splicing etc)
+	p10 <- make_variant_caller_counts(df_main)
 
 	dir.create(PATH_figure_main)
 
@@ -244,7 +319,7 @@ MAIN <- function(PATH_figure_main, PATH_to_variants, PATH_to_averaged_depth) {
 
 }
 
-PATH_variants <- "/groups/wyattgrp/users/amunzur/chip_project/variant_lists/chip_variants.csv" # Before subsetting to IGV\
+PATH_to_variants <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined/combined.csv" # Before subsetting to IGV
 PATH_figure_main <- "/groups/wyattgrp/users/amunzur/chip_project/figures/main_figures/new_chip_panel/before_manual_curation"
 
 PATH_variants_igv <- "/groups/wyattgrp/users/amunzur/chip_project/variant_lists/chip_variants_igv_subsetted.csv" # Before subsetting to IGV\ # After subsetting to IGV
@@ -253,8 +328,7 @@ PATH_figure_main_igv <- "/groups/wyattgrp/users/amunzur/chip_project/figures/mai
 PATH_to_averaged_depth <- "/groups/wyattgrp/users/amunzur/chip_project/metrics/coverage_information/new_chip_panel_CP.txt"
 DIR_individual_depths <- "/groups/wyattgrp/users/amunzur/chip_project/metrics/coverage_information/individual_samples/new_chip_panel_CP"
 
-
-MAIN(PATH_figure_main, PATH_variants, PATH_to_averaged_depth)
+MAIN(PATH_figure_main, PATH_to_variants, PATH_to_averaged_depth)
 MAIN(PATH_figure_main_igv, PATH_variants_igv, PATH_to_averaged_depth)
 
 # combined_plots <- plot_grid(p1, p2, p3, p4, p5, p6, p7, labels = c('A', 'B', 'C', 'D', 'E', 'F', 'G'), label_size = 12)
