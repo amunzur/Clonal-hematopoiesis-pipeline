@@ -34,7 +34,7 @@ compare_with_jacks_figure <- function(PATH_validated_variants, variant_df){
 }
 
 # add the depth at each variant position
-add_depth <- function(DIR_depth_metrics, variant_df) {
+add_depth <- function(DIR_depth_metrics, PATH_collective_depth_metrics, variant_df) {
 
 	file_name_list <- list.files(DIR_depth_metrics, full.names = TRUE)
 	depth_file_list <- lapply(file_name_list, read.delim, header = FALSE) # load the related files to a list
@@ -47,6 +47,10 @@ add_depth <- function(DIR_depth_metrics, variant_df) {
 	depth_file$Position <- as.character(depth_file$Position) # add the sample names so that we can do a join based on sample names with the variant df later on
 
 	combined <- left_join(variant_df, depth_file, by = c("Sample_name", "Chrom", "Position"))
+
+	# Add the median depth across all positions
+	depth_file <- as.data.frame(read_delim(PATH_collective_depth_metrics, delim = "\t"))
+	combined <- left_join(combined, depth_file, by = "Sample_name")
 
 	return(combined)
 
