@@ -2,6 +2,7 @@
 
 library(tidyverse)
 library(stringr)
+library(epitools) # use conda activate r_env_v1
 
 THRESHOLD_ExAC_ALL <- 0.005
 VALUE_Func_refGene <- "intronic"
@@ -16,6 +17,7 @@ PATH_bg <- "/groups/wyattgrp/users/amunzur/pipeline/resources/bg_error_rate/bg_e
 PATH_bets <- "/groups/wyattgrp/users/amunzur/pipeline/resources/betastasis/CLEANED_mutations_no_germline_filter.tsv"
 PATH_bed  <- "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/1000012543_CHIP_Design_selection_results_Version2/capture_targets.bed"
 DIR_depth_metrics <- "/groups/wyattgrp/users/amunzur/pipeline/results/metrics/depth/new_chip_panel"
+PATH_collective_depth_metrics <- "/groups/wyattgrp/users/amunzur/pipeline/results/metrics/averaged_depth/new_chip_panel/averaged_depths.txt"
 
 PATH_validated_variants <- "/groups/wyattgrp/users/amunzur/pipeline/resources/validated_variants/chip_muts_locations.tsv"
 PATH_SAVE_chip_variants <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/VarScan2/finalized/chip_variants.csv"
@@ -26,7 +28,6 @@ PATH_utilities_file <- "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts
 
 source(PATH_utilities_file_varscan) # functions specific to varscan
 source(PATH_utilities_file) # functions shared between vardict and varscan
-
 
 bg <- read_delim(PATH_bg, delim = "\t")
 
@@ -43,6 +44,7 @@ snv <- MAIN(THRESHOLD_ExAC_ALL,
 				PATH_bets,
 				PATH_bed,
 				DIR_depth_metrics,
+				PATH_collective_depth_metrics,
 				DIR_finland_bams,
 				"snv")
 
@@ -59,6 +61,7 @@ indel <- MAIN(THRESHOLD_ExAC_ALL,
 				PATH_bets,
 				PATH_bed,
 				DIR_depth_metrics,
+				PATH_collective_depth_metrics,
 				DIR_finland_bams,
 				"indel")
 

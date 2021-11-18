@@ -14,6 +14,7 @@ PATH_bg <- "/groups/wyattgrp/users/amunzur/pipeline/resources/bg_error_rate/bg_e
 PATH_bets <- "/groups/wyattgrp/users/amunzur/pipeline/resources/betastasis/CLEANED_mutations_no_germline_filter.tsv"
 PATH_bed  <- "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/1000012543_CHIP_Design_selection_results_Version2/capture_targets.bed"
 DIR_depth_metrics <- "/groups/wyattgrp/users/amunzur/pipeline/results/metrics/depth/new_chip_panel"
+PATH_collective_depth_metrics <- "/groups/wyattgrp/users/amunzur/pipeline/results/metrics/averaged_depth/new_chip_panel/averaged_depths.txt"
 
 PATH_validated_variants <- "/groups/wyattgrp/users/amunzur/pipeline/resources/validated_variants/chip_muts_locations.tsv"
 PATH_SAVE_chip_variants <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Vardict/finalized/chip_variants.csv"
@@ -37,7 +38,8 @@ variants <- MAIN(THRESHOLD_ExAC_ALL,
 				bg,
 				PATH_bets,
 				PATH_bed,
-				DIR_depth_metrics, 
+				DIR_depth_metrics,
+				PATH_collective_depth_metrics, 
 				DIR_finland_bams)
 
 combine_and_save(variants,
