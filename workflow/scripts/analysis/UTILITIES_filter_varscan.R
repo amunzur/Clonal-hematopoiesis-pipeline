@@ -121,6 +121,7 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 					PATH_bets,
 					PATH_bed,
 					DIR_depth_metrics,
+					PATH_collective_depth_metrics,
 					DIR_finland_bams,
 					variant_type){
 
@@ -162,7 +163,7 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 						VAF < THRESHOLD_VarFreq)
 
 	dedup <- subset_to_panel(PATH_bed, dedup) # subset to panel 
-	dedup <- add_depth(DIR_depth_metrics, dedup) # add depth information at these positions
+	dedup <- add_depth(DIR_depth_metrics, PATH_collective_depth_metrics, dedup) # add depth information at these positions
 	dedup <- compare_with_bets(PATH_bets, dedup) # indicate whether the variant has been found previously and whether the gene where the variant is in exists in the bets table.
 
 	# add an extra col for alerting the user if the variant isn't found, despite gene being in the bets
