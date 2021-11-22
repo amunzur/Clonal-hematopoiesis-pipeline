@@ -1,0 +1,62 @@
+---
+title: "CHIP REPORTS"
+subtitle: 
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+
+params:
+  Patient_ID: 'Patient_ID'
+  PATH_variants: PATH_variants
+
+output: 
+  html_document:
+    code_folding: hide
+---
+
+```{r setup, include = FALSE}
+
+library(tidyverse)
+library(plotly)
+library(gridExtra)
+library(cowplot)
+library(scales)
+library(RColorBrewer)
+
+source("/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/visualization/UTILITIES_chip_plots.R") # functions defined here
+PATH_variants <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/VarScan2/finalized/chip_variants.csv" # combined file with all variants
+Patient_ID_string <- "GUBB-17-094"
+
+```
+
+```{r}
+
+variant_colors <- c("#DA291CFF", "#56A8CBFF", "#53A567FF")
+function_colors <- c("#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3")
+
+df_main <- as.data.frame(read_csv(PATH_variants)) %>% filter(Patient_ID == Patient_ID_string)
+
+```
+
+
+```{r setup, include = FALSE}
+
+
+pie1_variant <- MAKE_pies(df_main, "Variant", variant_colors, "Variant distribution")
+pie2_function <- MAKE_pies(df_main, "Function", function_colors, "Function distribution")
+
+
+
+
+
+
+```
+
+```{r, include = FALSE}
+
+PATH_to_variants <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined/combined.csv"
+PATH_figure_main <- "/groups/wyattgrp/users/amunzur/pipeline/results/figures/main_figures/new_chip_panel/before_manual_curation"
+
+df_main <- read_csv(PATH_to_variants)
+df_main$Function <- factor(df_main$Function, levels = sort(unique(df_main$Function), decreasing = TRUE))
+df_main$Variant <- factor(df_main$Variant, levels = sort(unique(df_main$Variant), decreasing = FALSE))
+
+```
