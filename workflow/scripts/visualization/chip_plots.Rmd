@@ -1,0 +1,82 @@
+---
+title: "CHIP project"
+subtitle: "GUBB cohort"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+library(tidyverse)
+library(plotly)
+library(gridExtra)
+library(cowplot)
+library(scales)
+library(RColorBrewer)
+
+source("/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/visualization/plotting.R") # functions here
+```
+
+```{r, include = FALSE}
+
+PATH_to_variants <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined/combined.csv"
+PATH_figure_main <- "/groups/wyattgrp/users/amunzur/pipeline/results/figures/main_figures/new_chip_panel/before_manual_curation"
+
+df_main <- read_csv(PATH_to_variants)
+df_main$Function <- factor(df_main$Function, levels = sort(unique(df_main$Function), decreasing = TRUE))
+df_main$Variant <- factor(df_main$Variant, levels = sort(unique(df_main$Variant), decreasing = FALSE))
+
+```
+
+```{r, include = FALSE}
+
+variant_colors <- c("#DA291CFF", "#56A8CBFF", "#53A567FF")
+function_colors <- c("#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3")
+
+```
+
+```{r, include = FALSE}
+
+p1 <- MAKE_variant_type_plot(df_main, function_colors)
+p2 <- MAKE_gene_counts_plot(df_main, variant_colors)
+p3 <- MAKE_vaf_plot_function(df_main, function_colors)
+p4 <- MAKE_vaf_plot_variant(df_main, variant_colors)
+# p5_positional_depth <- MAKE_average_depth_per_patient(PATH_to_averaged_depth, "Depth", "Depth at variants", "Depth at variant positions", p4) 
+p6 <- MAKE_depth_plots(df_main, p4)
+p7 <- MAKE_chips_per_patient(df_main, "Variant", variant_colors, "Distribution of CHIP variants per patient, colored according to variant type.") # barplot showing chips per patient, colored according to snv, and inde
+p8 <- MAKE_chips_per_patient(df_main, "Function", function_colors, "Distribution of CHIP variants per patient, colored according to variant functions.") # barplot showing chips per patient, colored according to function (exonic, splicing etc
+p9 <- make_variant_caller_counts(df_main, variant_colors)
+
+```
+
+```{r, echo = FALSE}
+
+
+p1 <- ggplotly(p = p1)
+p2 <- ggplotly(p = p2, height = 600, width=1200)
+p3 <- ggplotly(p = p3, height = 900, width=1200, tooltip = "all")
+p4 <- ggplotly(p = p4, height = 900, width = 1200)
+p6 <- ggplotly(p = p6, height = 900, width = 1200)
+p7 <- ggplotly(p = p7, height = 600, width=1200)
+p8 <- ggplotly(p = p8, height = 600, width=1200)
+p9 <- ggplotly(p = p9)
+
+```
+
+```{r, echo = FALSE, fig.align = 'center'}
+
+p1
+p2
+p3
+p4
+p6
+p7
+p8
+p9
+
+
+
+
+```
+
+
+
