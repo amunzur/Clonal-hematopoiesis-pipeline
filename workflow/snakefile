@@ -52,10 +52,6 @@ ANNOVAR_indel_output = config["ANNOVAR_indel_output"]
 ANNOVAR_Vardict_input = config["ANNOVAR_Vardict_input"]
 ANNOVAR_Vardict_output = config["ANNOVAR_Vardict_output"]
 
-# filtering varscan2 results using R, based on thresholds etc
-PATH_SAVE_chip_variants_VarScan = DIR_varscan + "/finalized/{cohort_wildcard}/chip_variants.csv"
-PATH_validated_variants_VarScan = DIR_varscan + "/finalized/{cohort_wildcard}/validated_chip_variants.csv"
-
 # figures 
 DIR_insertsize_figures = config["DIR_insertsize_figures"]
 DIR_insertsize_figures_PNG = config["DIR_insertsize_figures_PNG"]
@@ -116,10 +112,10 @@ rule all:
 		# RUN_FastQC_merged,
 		# MASK_FastQ,
 		# TRIM_FastQ,
-		ALIGN_and_SORT,
-		INDEX_sorted_bams, 
-		FIXMATE,
-		MARKDUP,
+		# ALIGN_and_SORT,
+		# INDEX_sorted_bams, 
+		# FIXMATE,
+		# MARKDUP,
 		# SC_PENALTY,
 		# ADD_RG,
 		# INDEX_readGroup_bams,
@@ -137,7 +133,6 @@ rule all:
 		# run_insert_size, 
 		# PDF_to_PNG,
 		# run_depth
-		
 
 rule MERGE_R1: 
 	input: 
@@ -295,7 +290,7 @@ rule index_readGroup_bams:
 
 rule run_insert_size: 
 	input: 
-		BAM = DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam", 
+		DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam"
 	output:
 		metrics = DIR_insertsize_metrics + "/{cohort_wildcard}/{wildcard}.txt",
 		figures = DIR_insertsize_figures + "/{cohort_wildcard}/{wildcard}.pdf"
@@ -307,6 +302,20 @@ rule run_insert_size:
 			H={output.figures} \
 			M=0.5"
 
+rule filter_clipped_reads:
+	input: 
+		BAM = DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam",
+		PATH_hg38 = PATH_hg38
+	output:
+		BAM = DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam"
+		# BAM_index = DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam.bai"
+	threads: 12
+	params:
+		clipping_threshold = 10
+	shell:
+		"samtools view -h {input.BAM} | /home/amunzur/samclip --ref {input.PATH_hg38} --max {params.clipping_threshold} | samtools view -bh > {output.BAM}"
+		# "samtools index {output.BAM}"
+
 rule PDF_to_PNG: 
 	input: 
 		DIR_insertsize_figures + "{cohort_wildcard}/{wildcard}.pdf"
@@ -316,20 +325,21 @@ rule PDF_to_PNG:
 	shell:
 		'bash /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/pdf_to_png.sh {input} {output}'
 
+# Compute depth at each position
 rule run_depth: 
 	input: 
-		BAM = DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam",
+		BAM = DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam",
 		PATH_bed = PATH_bed 
 	output:
-		metrics = DIR_depth_metrics + "/{cohort_wildcard}/{wildcard}.txt",
+		metrics = DIR_depth_metrics + "/{cohort_wildcard}/{wildcard}.txt"
 	threads: 12
 	shell:
 		"samtools depth -b {input.PATH_bed} {input.BAM} > {output}"
 
 rule run_mpileup: 
 	input: 
-		BAM = DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam", 
-		BAM_index = DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam.bai",
+		BAM = DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam", 
+		BAM_index = DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam.bai",
 		PATH_hg38 = PATH_hg38
 	output:
 		DIR_mpileup + "/{cohort_wildcard}/{wildcard}.mpileup"
@@ -442,7 +452,7 @@ rule run_ANNOVAR_indel:
 
 rule run_VarDict: 
 	input: 
-		RG_bam = DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam"
+		RG_bam = DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam"
 	output: 
 		DIR_Vardict + "/{cohort_wildcard}/{wildcard}.vcf" # snv and indel together
 	params: 
