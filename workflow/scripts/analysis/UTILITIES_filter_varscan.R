@@ -107,6 +107,25 @@ evaluate_strandBias <- function(variants_df){
 
 }
 
+add_AAchange_effect <- function(variants_df){
+
+	# Extract all annotations that start with "p." from each variant.
+	p_list <- lapply(str_split(dedup$AAchange, ":"), function(x) grep("p.", x, value = TRUE))
+
+	# apply regex to each element
+	p_list <- lapply(p_list, function(x) str_extract(x, 'p.[a-zA-z]*[0-9][a-zA-Z]$'))
+
+	# drop repeated elements 
+	p_list <- lapply(p_list, unique)
+
+
+str_extract(dedup$AAchange, 'p.[a-zA-z]\\d[a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9]')
+
+str_extract(dedup$AAchange, 'p.[a-zA-z]*[0-9][a-zA-Z]$')
+
+
+}
+
 # main function to run everything
 MAIN <- function(THRESHOLD_ExAC_ALL, 
 					VALUE_Func_refGene, 
