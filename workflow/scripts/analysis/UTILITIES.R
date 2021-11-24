@@ -96,6 +96,79 @@ subset_to_panel <- function(PATH_bed, variant_df) {
 
 } # end of function
 
+add_AAchange_effect <- function(variants_df){
+
+	# Extract all annotations that start with "p." from each variant.
+	p_list <- lapply(str_split(variants_df$AAChange.refGene, ":"), function(x) grep("p.", x, value = TRUE))
+	p_list <- lapply(p_list, function(x) unique(gsub(",.*", "", x))) # gene name follows the annotation, remove it and subset to unique values
+	
+	add_effect <- function(pattern, effect_name, p_list){
+		
+		effects <- lapply(p_list, function(x) grepl(pattern, x)) # if it contains the string "fs" anywhere
+		effects <- lapply(effects, function(my_vector) case_when(my_vector == TRUE ~ effect_name))
+
+		return(effects)
+	}
+
+	# creating a list of first and second AA will help identify missense and synonymous mutations 
+	first_AA <- lapply(p_list, function(x) substr(x, 3, 3)) # first AA
+	second_AA <- lapply(p_list, function(x) substr(x, nchar(x), nchar(x))) # second AA that first one changes into
+	second_AA <- lapply(second_AA, function(x) grep("s|X", x, invert = TRUE, value = TRUE)) # exclude the frameshift
+
+	# missense mutations 
+	idx <- mapply(function(x, y) {x != y}, first_AA, second_AA)
+	missense_list <- lapply(idx, function(my_vector) case_when(my_vector == TRUE ~ "missense"))
+
+	# synonymous mutations
+	idx <- mapply(function(x, y) {x == y}, first_AA, second_AA)
+	synonymous_list <- lapply(idx, function(my_vector) case_when(my_vector == TRUE ~ "synonymous"))
+
+	# frameshift, stop gain and start loss
+	fs_list <- add_effect("fs", "frameshift", p_list)
+	stop_gain_list <- add_effect("X$", "stop_gain", p_list)
+	start_loss_list <- add_effect("^p.M.+[a-zA-Z]$", "start_loss", p_list) # Methionine becomes something else
+
+	# now combine all mutational effects into one list
+	effects <- mapply(c, fs_list, stop_gain_list, start_loss_list, synonymous_list, missense_list, SIMPLIFY=TRUE)
+	effects <- lapply(effects, function(x) x[!is.na(x)]) # remove all NAs
+
+	# convert all elements with a length 0 to NA
+	effects <- purrr::modify_if(effects, ~ length(.) == 0, ~ NA_character_)
+	p_list <- purrr::modify_if(p_list, ~ length(.) == 0, ~ NA_character_)
+
+	# collapse into single strings separated by :
+	effects <- unlist(lapply(effects, function(x) paste(x, collapse = ":"))) # concatenate the strings from the same mutation with a colon 
+
+	# add two new cols to the df
+	variants_df$Protein_annotation <- unlist(lapply(p_list, function(x) paste(x, collapse = ":")))
+	variants_df$Effects <- unlist(lapply(effects, function(x) paste(x, collapse = ":")))
+
+	return(variants_df)
+
+} # end of function
+
+add_finland_readcounts <- function(variants_df, DIR_tnvstats, PATH_temp, PATH_filter_tnvstats_script, identifier){
+	# Add the number of reads supporting the variants in Matti's bams. This helps justify that the variant is real, but we weren't able to detect it.
+
+	write_delim(dedup, PATH_temp, delim = "\t") # save a temp file before we add the read counts, depth and vaf from finland bams
+
+	DIR_tnvstats <- "/groups/wyattgrp/users/amunzur/pipeline/results/metrics/tnvstats/kidney_samples"
+	PATH_temp <- "/groups/wyattgrp/users/amunzur/pipeline/results/temp/snv.tsv"
+	PATH_filter_tnvstats_script <- "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/filter_tnvstats.sh"
+	PATHS_tnvstats <- as.list(unique(grep(paste(variants_df$Sample_name_finland, collapse = "|"), list.files(DIR_tnvstats, full.names = TRUE, recursive = TRUE), value = TRUE))) # complete file paths to tnvstats
+
+	# Make a list of system commands to run
+	LIST_system_command <- list()
+	for (PATH_tnvstat in PATHS_tnvstats) {
+		system_command <- paste("bash", PATH_filter_tnvstats_script, PATH_temp, PATH_tnvstat, identifier)
+		LIST_system_command <- append(LIST_system_command, system_command)
+	}
+
+	# Run them in a loop to generate smaller tnvstats files that only contain the positions of interest
+	for (system_command in LIST_system_command) {system(system_command)}
+
+}
+
 # This function generates a string of explanations to add to the final df as comments. 
 add_documentation <- function(THRESHOLD_ExAC_ALL, VALUE_Func_refGene, THRESHOLD_VarFreq, THRESHOLD_Reads2, THRESHOLD_VAF_bg_ratio){
 
@@ -109,3 +182,8 @@ add_documentation <- function(THRESHOLD_ExAC_ALL, VALUE_Func_refGene, THRESHOLD_
 	return(docs)
 
 }
+
+
+
+
+
