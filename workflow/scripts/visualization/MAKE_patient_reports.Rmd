@@ -20,9 +20,10 @@ library(gridExtra)
 library(cowplot)
 library(scales)
 library(RColorBrewer)
+library(knitr)
 
-source("/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/visualization/UTILITIES_chip_plots.R") # functions defined here
-PATH_variants <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/VarScan2/finalized/chip_variants.csv" # combined file with all variants
+source("/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/visualization/UTILITIES_MAKE_patient_reports.R") # functions defined here
+PATH_variants <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined/combined.csv" # combined file with all variants
 Patient_ID_string <- "GUBB-17-094"
 
 ```
@@ -34,29 +35,63 @@ function_colors <- c("#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3")
 
 df_main <- as.data.frame(read_csv(PATH_variants)) %>% filter(Patient_ID == Patient_ID_string)
 
+averaged_depth <- unique(df_main$Averaged_depth)
+median_depth <- unique(df_main$Median_depth)
+
+```
+
+```{r}
+
+kable(df_main)
+
 ```
 
 
-```{r setup, include = FALSE}
+```{r include = FALSE}
+
+p1 <- MAKE_variant_type_plot(df_main, function_colors)
+p2 <- MAKE_gene_counts_plot(df_main, variant_colors)
+p3 <- MAKE_chips_per_patient(df_main, function_colors, "Distribution of CHIP variants, grouped by function and colored by variant type.") 
+p4 <- make_variant_caller_counts(df_main, variant_colors)
 
 
-pie1_variant <- MAKE_pies(df_main, "Variant", variant_colors, "Variant distribution")
-pie2_function <- MAKE_pies(df_main, "Function", function_colors, "Function distribution")
-
-
-
+# p6 <- MAKE_depth_plots(df_main, p4)
+# p9 <- make_variant_caller_counts(df_main, variant_colors)
 
 
 
 ```
+
+
+
+```{r}
+
+p1 <- ggplotly(p = p1)
+p2 <- ggplotly(p = p2, height = 500, width = 500)
+p3 <- ggplotly(p = p3, height = 500, width = 500, tooltip = "all")
+p4 <- ggplotly(p = p4, height = 500, width = 500, tooltip = "all")
+
+
+
+```
+
+```{r}
+
+p1
+p2
+p3
+p4
+
+```
+
 
 ```{r, include = FALSE}
 
-PATH_to_variants <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined/combined.csv"
-PATH_figure_main <- "/groups/wyattgrp/users/amunzur/pipeline/results/figures/main_figures/new_chip_panel/before_manual_curation"
+# PATH_to_variants <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined/combined.csv"
+# PATH_figure_main <- "/groups/wyattgrp/users/amunzur/pipeline/results/figures/main_figures/new_chip_panel/before_manual_curation"
 
-df_main <- read_csv(PATH_to_variants)
-df_main$Function <- factor(df_main$Function, levels = sort(unique(df_main$Function), decreasing = TRUE))
-df_main$Variant <- factor(df_main$Variant, levels = sort(unique(df_main$Variant), decreasing = FALSE))
+# df_main <- read_csv(PATH_to_variants)
+# df_main$Function <- factor(df_main$Function, levels = sort(unique(df_main$Function), decreasing = TRUE))
+# df_main$Variant <- factor(df_main$Variant, levels = sort(unique(df_main$Variant), decreasing = FALSE))
 
 ```
