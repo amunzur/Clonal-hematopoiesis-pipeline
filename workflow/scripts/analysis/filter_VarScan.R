@@ -18,6 +18,9 @@ PATH_bets <- "/groups/wyattgrp/users/amunzur/pipeline/resources/betastasis/CLEAN
 PATH_bed  <- "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/1000012543_CHIP_Design_selection_results_Version2/capture_targets.bed"
 DIR_depth_metrics <- "/groups/wyattgrp/users/amunzur/pipeline/results/metrics/depth/new_chip_panel"
 PATH_collective_depth_metrics <- "/groups/wyattgrp/users/amunzur/pipeline/results/metrics/averaged_depth/new_chip_panel/averaged_depths.txt"
+DIR_tnvstats <- "/groups/wyattgrp/users/amunzur/pipeline/results/metrics/tnvstats/kidney_samples"
+DIR_temp <- "/groups/wyattgrp/users/amunzur/pipeline/results/temp"
+PATH_filter_tnvstats_script <- "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/filter_tnvstats.sh"
 
 PATH_validated_variants <- "/groups/wyattgrp/users/amunzur/pipeline/resources/validated_variants/chip_muts_locations.tsv"
 PATH_SAVE_chip_variants <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/VarScan2/finalized/chip_variants.csv"
@@ -46,7 +49,11 @@ snv <- MAIN(THRESHOLD_ExAC_ALL,
 				DIR_depth_metrics,
 				PATH_collective_depth_metrics,
 				DIR_finland_bams,
-				"snv")
+				DIR_temp,
+				DIR_tnvstats,
+				PATH_filter_tnvstats_script,
+				"snv", 
+				"varscan")
 
 indel <- MAIN(THRESHOLD_ExAC_ALL, 
 				VALUE_Func_refGene, 
@@ -63,7 +70,11 @@ indel <- MAIN(THRESHOLD_ExAC_ALL,
 				DIR_depth_metrics,
 				PATH_collective_depth_metrics,
 				DIR_finland_bams,
-				"indel")
+				DIR_temp,
+				DIR_tnvstats,
+				PATH_filter_tnvstats_script,
+				"indel", 
+				"varscan")
 
 variants_chip <- combine_and_save(snv,
 						indel, 
