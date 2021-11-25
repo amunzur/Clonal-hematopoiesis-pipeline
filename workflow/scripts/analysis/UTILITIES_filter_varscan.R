@@ -107,25 +107,6 @@ evaluate_strandBias <- function(variants_df){
 
 }
 
-add_AAchange_effect <- function(variants_df){
-
-	# Extract all annotations that start with "p." from each variant.
-	p_list <- lapply(str_split(dedup$AAchange, ":"), function(x) grep("p.", x, value = TRUE))
-
-	# apply regex to each element
-	p_list <- lapply(p_list, function(x) str_extract(x, 'p.[a-zA-z]*[0-9][a-zA-Z]$'))
-
-	# drop repeated elements 
-	p_list <- lapply(p_list, unique)
-
-
-str_extract(dedup$AAchange, 'p.[a-zA-z]\\d[a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9]')
-
-str_extract(dedup$AAchange, 'p.[a-zA-z]*[0-9][a-zA-Z]$')
-
-
-}
-
 # main function to run everything
 MAIN <- function(THRESHOLD_ExAC_ALL, 
 					VALUE_Func_refGene, 
@@ -142,7 +123,11 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 					DIR_depth_metrics,
 					PATH_collective_depth_metrics,
 					DIR_finland_bams,
-					variant_type){
+					DIR_temp,
+					DIR_tnvstats,
+					PATH_filter_tnvstats_script,
+					variant_type,
+					variant_caller){
 
 	combined <- combine_anno_varscan(DIR_varscan_snv, DIR_varscan_indel, ANNOVAR_snv_output, ANNOVAR_indel_output, variant_type) # add annovar annots to the varscan outputs
 
@@ -165,14 +150,21 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 						filter(ExAC_ALL <= THRESHOLD_ExAC_ALL, 
 								Func.refGene != VALUE_Func_refGene,
 								VAF_bg_ratio >= THRESHOLD_VAF_bg_ratio) # vaf should be at least 15 times more than the bg error rate
-	# add strand bias
-	combined_not_intronic <- evaluate_strandBias(combined_not_intronic)
+	
+	combined_not_intronic <- evaluate_strandBias(combined_not_intronic) # add strand bias
+	combined_not_intronic <- add_AAchange_effect(combined_not_intronic) # Add protein annot and the effect of the mutations as two separate columns 
+
 	combined_not_intronic <- combined_not_intronic %>%
 						filter(StrandBias_Fisher_pVal > 0.05) %>%
-						select(Sample_name, patient_id, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, Reads1Plus, Reads1Minus, Reads2Plus, Reads2Minus, Func.refGene, Gene.refGene, AAChange.refGene, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads)
+						select(Sample_name, patient_id, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, Reads1Plus, Reads1Minus, Reads2Plus, Reads2Minus, Func.refGene, Gene.refGene, AAChange.refGene, Protein_annotation, Effects, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads)
 
-	names(combined_not_intronic) <- c("Sample_name", "Patient_ID", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
+	names(combined_not_intronic) <- c("Sample_name", "Patient_ID", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
 
+	# add for splicing variants, make sure both the "Function" and "Effects" column have the string splicing
+	idx <- grep("splicing", combined_not_intronic$Function)
+	combined_not_intronic$Effects[idx] <- "splicing"
+
+	# remove duplicated vars 
 	dedup <- distinct(combined_not_intronic, Chrom, Position, Ref, Alt, .keep_all = TRUE) # remove duplicated variants
 	
 	# now filtering based on vaf, read support and depth etc. 
@@ -190,15 +182,30 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 										(detected == FALSE & Gene_in_bets == TRUE) ~ "ALERT", 
 										(detected == TRUE & Gene_in_bets == TRUE) ~ "Great",
 										(detected == TRUE & Gene_in_bets == FALSE) ~ "Error",
-										TRUE ~ "OK"))
+										TRUE ~ "OK"), 
+								Position = as.numeric(Position))
 
 	# add the sample ID from the finland bams
 	finland_sample_IDs <- gsub(".bam", "", grep("*.bam$", list.files(DIR_finland_bams), value = TRUE))
 	dedup$Sample_name_finland <- unlist(lapply(as.list(gsub("GUBB", "GU", dedup$Patient_ID)), function(x) grep(x, finland_sample_IDs, value = TRUE)))
 	dedup <- dedup %>% relocate(Sample_name_finland, .after = Sample_name)
 
-	return(dedup)
+	# write_csv(dedup, "/groups/wyattgrp/users/amunzur/pipeline/results/temp/snv_varscan_dedup.csv")
+	# write_csv(dedup, "/groups/wyattgrp/users/amunzur/pipeline/results/temp/indel_varscan_dedup.csv")
+	# dedup <- read_csv("/groups/wyattgrp/users/amunzur/pipeline/results/temp/snv_varscan_dedup.csv")
+	dedup <- read_csv("/groups/wyattgrp/users/amunzur/pipeline/results/temp/indel_varscan_dedup.csv")
 
+	message("Filtering tnvstats right now.")
+	filtered_tnvstats <- filter_tnvstats_by_variants(
+							variants_df = dedup, 
+							DIR_tnvstats = DIR_tnvstats, 
+							PATH_temp = file.path(DIR_temp, paste(variant_caller, paste0(variant_type, ".tsv"), sep = "_")), 
+							PATH_filter_tnvstats_script = PATH_filter_tnvstats_script, 
+							identifier = paste(variant_caller, variant_type, sep = "_"))
+
+	dedup <- add_finland_readcounts(dedup, filtered_tnvstats)
+
+	return(dedup)
 }
 
 combine_and_save <- function(snv, indel, PATH_validated_variants, PATH_SAVE_chip_variants){

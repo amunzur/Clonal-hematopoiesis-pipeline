@@ -97,7 +97,11 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 					PATH_bed,
 					DIR_depth_metrics,
 					PATH_collective_depth_metrics,
-					DIR_finland_bams){
+					DIR_finland_bams, 
+					DIR_temp,
+					DIR_tnvstats,
+					PATH_filter_tnvstats_script, 
+					variant_caller){
 
 	combined <- combine_anno_vardict(DIR_vardict, DIR_ANNOVAR) # add annovar annots to the varscan outputs
 
@@ -106,17 +110,22 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 	combined$patient_id <- paste(lapply(x, "[", 1), lapply(x, "[", 2), lapply(x, "[", 3), sep = "-") # paste 2nd and 3rd elements to create the sample name 
 
 	combined <- add_bg_error_rate(combined, bg) # background error rate
+	combined <- add_AAchange_effect(combined) # protein annot and the effects
+
 	combined_not_intronic <- combined %>%
 						mutate(Total_reads = Reads1 + Reads2, 
 								VAF_bg_ratio = VarFreq/error_rate) %>%
-						select(Sample_name, patient_id, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, REF_Fw, REF_Rv, ALT_Fw, ALT_Rv, Func.refGene, Gene.refGene, AAChange.refGene, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads) %>%
+						select(Sample_name, patient_id, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, REF_Fw, REF_Rv, ALT_Fw, ALT_Rv, Func.refGene, Gene.refGene, AAChange.refGene, Protein_annotation, Effects, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads) %>%
 						filter(ExAC_ALL <= THRESHOLD_ExAC_ALL, 
 								Func.refGene != VALUE_Func_refGene,
 								VAF_bg_ratio >= THRESHOLD_VAF_bg_ratio, # vaf should be at least 15 times more than the bg error rate
 								StrandBias_Fisher_pVal > 0.05) 
 
 	# a common naming convention i will be sticking to from now on
-	names(combined_not_intronic) <- c("Sample_name", "Patient_ID", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
+	names(combined_not_intronic) <- c("Sample_name", "Patient_ID", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
+
+	idx <- grep("splicing", combined_not_intronic$Function)
+	combined_not_intronic$Effects[idx] <- "splicing"
 
 	dedup <- distinct(combined_not_intronic, Chrom, Position, Ref, Alt, .keep_all = TRUE) # remove duplicated variants
 
@@ -135,12 +144,26 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 										(detected == FALSE & Gene_in_bets == TRUE) ~ "ALERT", 
 										(detected == TRUE & Gene_in_bets == TRUE) ~ "Great",
 										(detected == TRUE & Gene_in_bets == FALSE) ~ "Error",
-										TRUE ~ "OK"))
+										TRUE ~ "OK"), 
+								Position = as.numeric(Position))
 
 	# add the sample ID from the finland bams
 	finland_sample_IDs <- gsub(".bam", "", grep("*.bam$", list.files(DIR_finland_bams), value = TRUE))
 	dedup$Sample_name_finland <- unlist(lapply(as.list(gsub("GUBB", "GU", dedup$Patient_ID)), function(x) grep(x, finland_sample_IDs, value = TRUE)))
 	dedup <- dedup %>% relocate(Sample_name_finland, .after = Sample_name)
+
+	# write_csv(dedup, "/groups/wyattgrp/users/amunzur/pipeline/results/temp/vardict_dedup.csv")
+	# dedup <- read_csv("/groups/wyattgrp/users/amunzur/pipeline/results/temp/vardict_dedup.csv")
+
+	message("Filtering tnvstats right now.")
+	filtered_tnvstats <- filter_tnvstats_by_variants(
+							variants_df = dedup, 
+							DIR_tnvstats = DIR_tnvstats, 
+							PATH_temp = file.path(DIR_temp, variant_caller), 
+							PATH_filter_tnvstats_script = PATH_filter_tnvstats_script, 
+							identifier = variant_caller)
+
+	dedup <- add_finland_readcounts(dedup, filtered_tnvstats)
 
 	return(dedup)
 
