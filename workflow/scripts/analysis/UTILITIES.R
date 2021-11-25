@@ -147,26 +147,72 @@ add_AAchange_effect <- function(variants_df){
 
 } # end of function
 
-add_finland_readcounts <- function(variants_df, DIR_tnvstats, PATH_temp, PATH_filter_tnvstats_script, identifier){
-	# Add the number of reads supporting the variants in Matti's bams. This helps justify that the variant is real, but we weren't able to detect it.
+filter_tnvstats_by_variants <- function(variants_df, DIR_tnvstats, PATH_temp, PATH_filter_tnvstats_script, identifier){
 
-	write_delim(dedup, PATH_temp, delim = "\t") # save a temp file before we add the read counts, depth and vaf from finland bams
+	write_delim(variants_df, PATH_temp, delim = "\t") # save a temp file before we add the read counts, depth and vaf from finland bams
 
-	DIR_tnvstats <- "/groups/wyattgrp/users/amunzur/pipeline/results/metrics/tnvstats/kidney_samples"
-	PATH_temp <- "/groups/wyattgrp/users/amunzur/pipeline/results/temp/snv.tsv"
-	PATH_filter_tnvstats_script <- "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/filter_tnvstats.sh"
 	PATHS_tnvstats <- as.list(unique(grep(paste(variants_df$Sample_name_finland, collapse = "|"), list.files(DIR_tnvstats, full.names = TRUE, recursive = TRUE), value = TRUE))) # complete file paths to tnvstats
+	PATHS_tnvstats <- unique(grep(".bam.tnvstat$", PATHS_tnvstats, value = TRUE)) # make sure we filter for the original tnvstat files
 
-	# Make a list of system commands to run
-	LIST_system_command <- list()
+	# Run system commands for each tnvstats
+	message("Filtering tnvstats in through system commands.")
 	for (PATH_tnvstat in PATHS_tnvstats) {
-		system_command <- paste("bash", PATH_filter_tnvstats_script, PATH_temp, PATH_tnvstat, identifier)
-		LIST_system_command <- append(LIST_system_command, system_command)
+		message(basename(PATH_tnvstat))
+		system(paste("bash", PATH_filter_tnvstats_script, PATH_temp, PATH_tnvstat, identifier))
 	}
 
-	# Run them in a loop to generate smaller tnvstats files that only contain the positions of interest
-	for (system_command in LIST_system_command) {system(system_command)}
+	PATHS_filtered_tnvstats <- unique(
+		grep(paste(variants_df$Sample_name_finland, collapse = "|"), 
+			list.files(DIR_tnvstats, full.names = TRUE, recursive = TRUE), value = TRUE)) # complete file paths to tnvstats
+	
+	PATHS_filtered_tnvstats <- grep(identifier, PATHS_filtered_tnvstats, value = TRUE) # grep for the correct identifier to ensure we grab the right filtered file
+	filtered_tnvstats <- lapply(PATHS_filtered_tnvstats, function(some_path) read_delim(some_path, delim = "\t")) # load all tnvstats
+	filtered_tnvstats <- do.call(rbind, filtered_tnvstats) %>% select(-contains("_n"), -tumor_max_value, -gc, -target)
 
+	# fix some formatting issues
+	filtered_tnvstats$base_tumor <- gsub("TRUE", "T", filtered_tnvstats$base_tumor)
+	filtered_tnvstats$ref <- gsub("TRUE", "T", filtered_tnvstats$ref)
+	filtered_tnvstats$sample_t <- gsub(".bam", "", filtered_tnvstats$sample_t)
+
+	return(filtered_tnvstats)
+
+}
+
+add_finland_readcounts <- function(variants_df, filtered_tnvstats){
+	# Add the number of reads supporting the variants in Matti's bams. This helps justify that the variant is real, but we weren't able to detect it.
+
+	variants_df_subsetted <- variants_df %>% 
+			select(Chrom, Position, Ref, Alt, Sample_name_finland) # only the cols we need to extract info from the tnvstats df
+
+	# go through each variant and identify the correct position in the tnvstats file
+	finland_df <- left_join(filtered_tnvstats, variants_df_subsetted, by = c("chrom" = "Chrom", "pos" = "Position", "sample_t" = "Sample_name_finland"))
+	
+	# Choose the corresponding mutant reads based on what the alt is
+	finland_df <- finland_df %>%
+		mutate(
+		F_tumor_alt_reads = case_when(
+			Alt == "A" ~ A_t, 
+			Alt == "C" ~ C_t, 
+			Alt == "T" ~ T_t, 
+			Alt == "G" ~ G_t,
+			grepl("\\+", Alt) | nchar(Alt) > 1 ~ insertions_t, 
+			grepl("\\-", Alt) | nchar(ref) > 1 ~ deletions_t,
+			TRUE ~ NA_real_), 
+		F_tumor_vaf = case_when(
+			Alt == "A" ~ AAF_t, 
+			Alt == "C" ~ CAF_t, 
+			Alt == "T" ~ TAF_t, 
+			Alt == "G" ~ GAF_t, 
+			grepl("\\+", Alt) ~ insertions_t/reads_all_t, 
+			grepl("\\-", Alt) ~ deletions_t/reads_all_t,
+			TRUE ~ NA_real_)) %>%
+		select(chrom, pos, ref, sample_t, reads_all_t, F_tumor_alt_reads, F_tumor_vaf, N_t)
+
+	# combine with the variants_df
+	names(finland_df) <- c("Chrom", "Position", "Ref", "Sample_name_finland", "F_tumor_depth", "F_tumor_alt_reads", "F_tumor_vaf", "F_N_counts") # some renaming so that the merge happens with ease
+	variants_df <- left_join(variants_df, finland_df)
+
+	return(variants_df)
 }
 
 # This function generates a string of explanations to add to the final df as comments. 
