@@ -149,6 +149,13 @@ add_AAchange_effect <- function(variants_df){
 
 filter_tnvstats_by_variants <- function(variants_df, DIR_tnvstats, PATH_temp, PATH_filter_tnvstats_script, identifier){
 
+	# Add 1 to indels so that the merge happens correctly
+	variants_df <- variants_df %>% 
+	mutate(
+		Position = case_when(
+			Variant == "deletion" ~ Position + 1, 
+			TRUE ~ Position))
+
 	write_delim(variants_df, PATH_temp, delim = "\t") # save a temp file before we add the read counts, depth and vaf from finland bams
 
 	PATHS_tnvstats <- as.list(unique(grep(paste(variants_df$Sample_name_finland, collapse = "|"), list.files(DIR_tnvstats, full.names = TRUE, recursive = TRUE), value = TRUE))) # complete file paths to tnvstats
@@ -178,14 +185,31 @@ filter_tnvstats_by_variants <- function(variants_df, DIR_tnvstats, PATH_temp, PA
 
 }
 
-add_finland_readcounts <- function(variants_df, filtered_tnvstats){
+add_finland_readcounts <- function(variants_df, filtered_tnvstats, variant_caller){
 	# Add the number of reads supporting the variants in Matti's bams. This helps justify that the variant is real, but we weren't able to detect it.
+	
+	# Add 1 to the pos for indels because varcallers report one base too early
+	if (variant_caller == "varscan") {
 
+		variants_df <- variants_df %>% mutate(
+				Position = case_when(
+					Variant == "deletion" ~ Position + 1, 
+					TRUE ~ Position))
+
+	} else if (variant_caller == "vardict") {
+
+		variants_df <- variants_df %>% mutate(
+				Position = case_when(
+					Variant == "deletion" ~ Position + 1,
+					Variant == "insertion" ~ Position + 1,
+					TRUE ~ Position))
+	}
+	
 	variants_df_subsetted <- variants_df %>% 
-			select(Chrom, Position, Ref, Alt, Sample_name_finland) # only the cols we need to extract info from the tnvstats df
+			select(Chrom, Position, Ref, Alt, Sample_name_finland, Variant)
 
 	# go through each variant and identify the correct position in the tnvstats file
-	finland_df <- left_join(filtered_tnvstats, variants_df_subsetted, by = c("chrom" = "Chrom", "pos" = "Position", "sample_t" = "Sample_name_finland"))
+	finland_df <- left_join(variants_df_subsetted, filtered_tnvstats, by = c("Chrom" = "chrom", "Position" = "pos", "Sample_name_finland" = "sample_t")) # this allows for exact matches
 	
 	# Choose the corresponding mutant reads based on what the alt is
 	finland_df <- finland_df %>%
@@ -195,22 +219,29 @@ add_finland_readcounts <- function(variants_df, filtered_tnvstats){
 			Alt == "C" ~ C_t, 
 			Alt == "T" ~ T_t, 
 			Alt == "G" ~ G_t,
-			grepl("\\+", Alt) | nchar(Alt) > 1 ~ insertions_t, 
-			grepl("\\-", Alt) | nchar(ref) > 1 ~ deletions_t,
+			Variant == "deletion" ~ deletions_t, 
+			Variant == "insertion" ~ insertions_t,
 			TRUE ~ NA_real_), 
 		F_tumor_vaf = case_when(
 			Alt == "A" ~ AAF_t, 
 			Alt == "C" ~ CAF_t, 
 			Alt == "T" ~ TAF_t, 
 			Alt == "G" ~ GAF_t, 
-			grepl("\\+", Alt) ~ insertions_t/reads_all_t, 
-			grepl("\\-", Alt) ~ deletions_t/reads_all_t,
+			Variant == "deletion" ~ deletions_t/reads_all_t, 
+			Variant == "insertion" ~ insertions_t/reads_all_t,
 			TRUE ~ NA_real_)) %>%
-		select(chrom, pos, ref, sample_t, reads_all_t, F_tumor_alt_reads, F_tumor_vaf, N_t)
+		select(Chrom, Position, Ref, Sample_name_finland, reads_all_t, F_tumor_alt_reads, F_tumor_vaf, N_t)
 
 	# combine with the variants_df
 	names(finland_df) <- c("Chrom", "Position", "Ref", "Sample_name_finland", "F_tumor_depth", "F_tumor_alt_reads", "F_tumor_vaf", "F_N_counts") # some renaming so that the merge happens with ease
 	variants_df <- left_join(variants_df, finland_df)
+
+	# revert back to the original position values 
+	variants_df <- variants_df %>% 
+		mutate(
+			Position = case_when(
+				Variant == "deletion" ~ Position - 1, 
+				TRUE ~ Position))
 
 	return(variants_df)
 }
@@ -228,8 +259,3 @@ add_documentation <- function(THRESHOLD_ExAC_ALL, VALUE_Func_refGene, THRESHOLD_
 	return(docs)
 
 }
-
-
-
-
-
