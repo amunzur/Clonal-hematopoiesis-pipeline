@@ -52,37 +52,3 @@ variants <- MAIN(THRESHOLD_ExAC_ALL,
 combine_and_save(variants,
 				PATH_validated_variants,
 				PATH_SAVE_chip_variants)
-
-# variants_df <- read_csv(PATH_SAVE_chip_variants)
-# write_csv(variants, "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Vardict/finalized/vars.csv") # snv + indel, csv
-
-# snv <- MAIN(THRESHOLD_ExAC_ALL = THRESHOLD_ExAC_ALL, 
-# 				VALUE_Func_refGene = VALUE_Func_refGene, 
-# 				THRESHOLD_VarFreq = THRESHOLD_VarFreq, 
-# 				THRESHOLD_Reads2 = THRESHOLD_Reads2, 
-# 				THRESHOLD_VAF_bg_ratio = THRESHOLD_VAF_bg_ratio, 
-# 				DIR_varscan_snv = DIR_varscan_snv,
-# 				DIR_varscan_indel = DIR_varscan_indel,
-# 				ANNOVAR_snv_output = ANNOVAR_snv_output,
-# 				ANNOVAR_indel_output = ANNOVAR_indel_output,
-# 				PATH_bg = PATH_bg,
-# 				PATH_bets = PATH_bets, 
-# 				PATH_bed = PATH_bed,
-# 				DIR_depth_metrics = DIR_depth_metrics, 
-# 				"snv")
-
-# indel <- MAIN(THRESHOLD_ExAC_ALL = THRESHOLD_ExAC_ALL, 
-# 				VALUE_Func_refGene = VALUE_Func_refGene, 
-# 				THRESHOLD_VarFreq = THRESHOLD_VarFreq, 
-# 				THRESHOLD_Reads2 = THRESHOLD_Reads2, 
-# 				THRESHOLD_VAF_bg_ratio = THRESHOLD_VAF_bg_ratio, 
-# 				DIR_varscan_snv = DIR_varscan_snv,
-# 				DIR_varscan_indel = DIR_varscan_indel,
-# 				ANNOVAR_snv_output = ANNOVAR_snv_output,
-# 				ANNOVAR_indel_output = ANNOVAR_indel_output,
-# 				PATH_bg = PATH_bg,
-# 				PATH_bets = PATH_bets, 
-# 				PATH_bed = PATH_bed,
-# 				DIR_depth_metrics = DIR_depth_metrics, 
-# 				"indel")
-

@@ -193,7 +193,7 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 	# write_csv(dedup, "/groups/wyattgrp/users/amunzur/pipeline/results/temp/snv_varscan_dedup.csv")
 	# write_csv(dedup, "/groups/wyattgrp/users/amunzur/pipeline/results/temp/indel_varscan_dedup.csv")
 	# dedup <- read_csv("/groups/wyattgrp/users/amunzur/pipeline/results/temp/snv_varscan_dedup.csv")
-	dedup <- read_csv("/groups/wyattgrp/users/amunzur/pipeline/results/temp/indel_varscan_dedup.csv")
+	# dedup <- read_csv("/groups/wyattgrp/users/amunzur/pipeline/results/temp/indel_varscan_dedup.csv")
 
 	message("Filtering tnvstats right now.")
 	filtered_tnvstats <- filter_tnvstats_by_variants(
