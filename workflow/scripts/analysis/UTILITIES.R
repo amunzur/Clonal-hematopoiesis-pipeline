@@ -10,14 +10,18 @@ return_anno_output <- function(DIR_ANNOVAR) {
 
 }
 
-# compare with the bets list, add an extra col to show if the vars we called also appear in the bets
-compare_with_bets <- function(PATH_bets, variant_df){
+# compare with the somatic bets and germline bets list, add an extra col to show if the vars we called also appear in either one of them bets
+compare_with_bets <- function(PATH_bets_somatic, PATH_bets_germline, PATH_PCa_panel_2017, variant_df){
 
-	bets <- as.data.frame(read_delim(PATH_bets, delim = "\t"))
-	variant_df$detected <- variant_df$Position %in% bets$POSITION
+	bets_somatic <- as.data.frame(read_delim(PATH_bets_somatic, delim = "\t"))
+	bets_germline <- as.data.frame(read_delim(PATH_bets_germline, delim = "\t"))
 
-	# add a new col to indicate if the gene of interest in each row is found in the bets. 
-	variant_df$Gene_in_bets <- variant_df$Gene %in% bets$GENE
+	variant_df$In_germline_bets <- variant_df$Position %in% bets_germline$POSITION
+	variant_df$In_somatic_bets <- variant_df$Position %in% bets_somatic$POSITION
+
+	# add a new col to indicate if the gene of interest in each row was also found in the 2017 PCa panel design 	
+	panel <- read_csv(PATH_PCa_panel_2017)
+	variant_df$In_2017_PCa <- variant_df$Gene %in% panel$GENE
 
 	return(variant_df)
 }
@@ -188,22 +192,30 @@ filter_tnvstats_by_variants <- function(variants_df, DIR_tnvstats, PATH_temp, PA
 add_finland_readcounts <- function(variants_df, filtered_tnvstats, variant_caller){
 	# Add the number of reads supporting the variants in Matti's bams. This helps justify that the variant is real, but we weren't able to detect it.
 	
+	modify_pos <- function(variants_df, variant_caller, add_or_subtract) {
+
+		if (add_or_subtract == "add") {
+
+				variants_df <- variants_df %>% mutate(
+						Position = case_when(
+							Variant == "deletion" ~ Position + 1, 
+							TRUE ~ Position))
+
+		} else {
+
+				variants_df <- variants_df %>% mutate(
+						Position = case_when(
+							Variant == "deletion" ~ Position - 1, 
+							TRUE ~ Position))
+
+		} # end of if loop
+
+		return(variants_df)
+
+	} # end of function
+
 	# Add 1 to the pos for indels because varcallers report one base too early
-	if (variant_caller == "varscan") {
-
-		variants_df <- variants_df %>% mutate(
-				Position = case_when(
-					Variant == "deletion" ~ Position + 1, 
-					TRUE ~ Position))
-
-	} else if (variant_caller == "vardict") {
-
-		variants_df <- variants_df %>% mutate(
-				Position = case_when(
-					Variant == "deletion" ~ Position + 1,
-					Variant == "insertion" ~ Position + 1,
-					TRUE ~ Position))
-	}
+	variants_df <- modify_pos(variants_df, variant_caller, "add")
 	
 	variants_df_subsetted <- variants_df %>% 
 			select(Chrom, Position, Ref, Alt, Sample_name_finland, Variant)
@@ -215,18 +227,18 @@ add_finland_readcounts <- function(variants_df, filtered_tnvstats, variant_calle
 	finland_df <- finland_df %>%
 		mutate(
 		F_tumor_alt_reads = case_when(
-			Alt == "A" ~ A_t, 
-			Alt == "C" ~ C_t, 
-			Alt == "T" ~ T_t, 
-			Alt == "G" ~ G_t,
+			Variant == "snv" & Alt == "A" ~ A_t, 
+			Variant == "snv" & Alt == "C" ~ C_t, 
+			Variant == "snv" & Alt == "T" ~ T_t, 
+			Variant == "snv" & Alt == "G" ~ G_t,
 			Variant == "deletion" ~ deletions_t, 
 			Variant == "insertion" ~ insertions_t,
 			TRUE ~ NA_real_), 
 		F_tumor_vaf = case_when(
-			Alt == "A" ~ AAF_t, 
-			Alt == "C" ~ CAF_t, 
-			Alt == "T" ~ TAF_t, 
-			Alt == "G" ~ GAF_t, 
+			Variant == "snv" & Alt == "A" ~ AAF_t, 
+			Variant == "snv" & Alt == "C" ~ CAF_t, 
+			Variant == "snv" & Alt == "T" ~ TAF_t, 
+			Variant == "snv" & Alt == "G" ~ GAF_t, 
 			Variant == "deletion" ~ deletions_t/reads_all_t, 
 			Variant == "insertion" ~ insertions_t/reads_all_t,
 			TRUE ~ NA_real_)) %>%
@@ -237,11 +249,7 @@ add_finland_readcounts <- function(variants_df, filtered_tnvstats, variant_calle
 	variants_df <- left_join(variants_df, finland_df)
 
 	# revert back to the original position values 
-	variants_df <- variants_df %>% 
-		mutate(
-			Position = case_when(
-				Variant == "deletion" ~ Position - 1, 
-				TRUE ~ Position))
+	variants_df <- modify_pos(variants_df, variant_caller, "subtract")
 
 	return(variants_df)
 }
