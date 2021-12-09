@@ -57,8 +57,6 @@ add_bg_error_rate <- function(variants_df, bg) {
 	bg <- gather(bg, "error_type", "error_rate", starts_with("mean_error"))
 
 	# now if we have a deletion, we want to recover the pos + 1 in the bg file, this is actual place where deletion begins 
-	original_pos <- variants_df$Start
-
 	var_pos <- variants_df$Start
 	deletion_idx <- which(variants_df$variant == "deletion")
 	
@@ -66,15 +64,9 @@ add_bg_error_rate <- function(variants_df, bg) {
 		var_pos[deletion_idx] <- as.numeric(var_pos[deletion_idx]) + 1 # add 1 to the position of all the deletions
 		variants_df$Start <- var_pos}
 
-	bg <- subset(bg, pos %in% variants_df$Start) # subset to the positions we have in the variants so that the df is smaller and more managable
-
 	# this merge adds an exta col with the error rate 
 	bg$pos <- as.character(bg$pos)
-	variants_df <- left_join(variants_df, bg, by = c("Start" = "pos", "error_type" = "error_type"))
-
-	# the merge above adds two extra cols we dont want, remove those 
-	variants_df$chrom <- NULL
-	variants_df$ref <- NULL
+	variants_df <- left_join(variants_df, bg, by = c("Chr" = "chrom", "Start" = "pos", "error_type" = "error_type")) # to add the error rates from bg to variants df
 
 	# subtract 1 from the positions after merging
 	if (length(deletion_idx) > 0) {
@@ -85,7 +77,8 @@ add_bg_error_rate <- function(variants_df, bg) {
 }
 
 # main function to run everything
-MAIN <- function(THRESHOLD_ExAC_ALL, 
+MAIN <- function(cohort_name,
+					THRESHOLD_ExAC_ALL, 
 					VALUE_Func_refGene, 
 					THRESHOLD_VarFreq, 
 					THRESHOLD_Reads2, 
@@ -103,6 +96,7 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 					PATH_filter_tnvstats_script, 
 					variant_caller){
 
+	variant_caller = variant_caller # just so the function doesn't complain about us not using this argument
 	combined <- combine_anno_vardict(DIR_vardict, DIR_ANNOVAR) # add annovar annots to the varscan outputs
 
 	# add patient id
@@ -112,7 +106,7 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 	combined <- add_bg_error_rate(combined, bg) # background error rate
 	combined <- add_AAchange_effect(combined) # protein annot and the effects
 
-	combined_not_intronic <- combined %>%
+	combined <- combined %>%
 						mutate(Total_reads = Reads1 + Reads2, 
 								VAF_bg_ratio = VarFreq/error_rate) %>%
 						select(Sample_name, patient_id, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, REF_Fw, REF_Rv, ALT_Fw, ALT_Rv, Func.refGene, Gene.refGene, AAChange.refGene, Protein_annotation, Effects, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads) %>%
@@ -122,52 +116,57 @@ MAIN <- function(THRESHOLD_ExAC_ALL,
 								StrandBias_Fisher_pVal > 0.05) 
 
 	# a common naming convention i will be sticking to from now on
-	names(combined_not_intronic) <- c("Sample_name", "Patient_ID", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
+	names(combined) <- c("Sample_name", "Patient_ID", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
 
-	idx <- grep("splicing", combined_not_intronic$Function)
-	combined_not_intronic$Effects[idx] <- "splicing"
+	idx <- grep("splicing", combined$Function)
+	combined$Effects[idx] <- "splicing"
 
-	dedup <- distinct(combined_not_intronic, Chrom, Position, Ref, Alt, .keep_all = TRUE) # remove duplicated variants
+	# add a new col indicating if the variant is duplicated or not
+	combined$Duplicate <- duplicated(combined[c("Chrom", "Position", "Ref", "Alt")])
 
 	# now filtering based on vaf, read support and depth etc. 
-	dedup <- dedup %>%
+	combined <- combined %>%
 				filter((Total_reads >= 1000 & VAF >= 0.005) | 
 						(Total_reads <= 1000 & Alt_reads >= 5), 
 						VAF < THRESHOLD_VarFreq)
 
-	dedup <- subset_to_panel(PATH_bed, dedup) # subset to panel
-	dedup <- add_depth(DIR_depth_metrics, PATH_collective_depth_metrics, dedup) # add depth information at these positions 
-	dedup <- compare_with_bets(PATH_bets, dedup)
+	combined <- subset_to_panel(PATH_bed, combined) # subset to panel
+	combined <- add_depth(DIR_depth_metrics, PATH_collective_depth_metrics, combined) # add depth information at these positions 
+	combined <- compare_with_bets(PATH_bets, combined)
 
 	# add an extra col for alerting the user if the variant isn't found, despite gene being in the bets
-	dedup <- dedup %>% mutate(Status = case_when(
+	combined <- combined %>% mutate(Status = case_when(
 										(detected == FALSE & Gene_in_bets == TRUE) ~ "ALERT", 
 										(detected == TRUE & Gene_in_bets == TRUE) ~ "Great",
 										(detected == TRUE & Gene_in_bets == FALSE) ~ "Error",
 										TRUE ~ "OK"), 
 								Position = as.numeric(Position))
 
-	# add the sample ID from the finland bams
-	finland_sample_IDs <- gsub(".bam", "", grep("*.bam$", list.files(DIR_finland_bams), value = TRUE))
-	dedup$Sample_name_finland <- unlist(lapply(as.list(gsub("GUBB", "GU", dedup$Patient_ID)), function(x) grep(x, finland_sample_IDs, value = TRUE)))
-	dedup <- dedup %>% relocate(Sample_name_finland, .after = Sample_name)
+	if (cohort_name == "new_chip_panel"){
 
-	# write_csv(dedup, "/groups/wyattgrp/users/amunzur/pipeline/results/temp/vardict_dedup.csv")
-	# dedup <- read_csv("/groups/wyattgrp/users/amunzur/pipeline/results/temp/vardict_dedup.csv")
+		# add the sample ID from the finland bams
+		finland_sample_IDs <- gsub(".bam", "", grep("*.bam$", list.files(DIR_finland_bams), value = TRUE))
+		combined$Sample_name_finland <- unlist(lapply(as.list(gsub("GUBB", "GU", combined$Patient_ID)), function(x) grep(x, finland_sample_IDs, value = TRUE)))
+		combined <- combined %>% relocate(Sample_name_finland, .after = Sample_name)
 
-	message("Filtering tnvstats right now.")
-	filtered_tnvstats <- filter_tnvstats_by_variants(
-							variants_df = dedup, 
-							DIR_tnvstats = DIR_tnvstats, 
-							PATH_temp = file.path(DIR_temp, variant_caller), 
-							PATH_filter_tnvstats_script = PATH_filter_tnvstats_script, 
-							identifier = variant_caller)
+		# write_csv(combined, "/groups/wyattgrp/users/amunzur/pipeline/results/temp/vardict_combined.csv")
+		# combined <- read_csv("/groups/wyattgrp/users/amunzur/pipeline/results/temp/vardict_combined.csv")
 
-	dedup <- add_finland_readcounts(dedup, filtered_tnvstats)
+		message("Filtering tnvstats right now.")
+		filtered_tnvstats <- filter_tnvstats_by_variants(
+								variants_df = combined, 
+								DIR_tnvstats = DIR_tnvstats, 
+								PATH_temp = file.path(DIR_temp, variant_caller), 
+								PATH_filter_tnvstats_script = PATH_filter_tnvstats_script, 
+								identifier = variant_caller)
 
-	return(dedup)
+		combined <- add_finland_readcounts(combined, filtered_tnvstats, variant_caller)
 
-}
+	}
+
+	return(combined)
+
+} # end of function
 
 combine_and_save <- function(variants, PATH_validated_variants, PATH_SAVE_chip_variants){
 
