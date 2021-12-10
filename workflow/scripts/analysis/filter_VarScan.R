@@ -17,7 +17,11 @@ DIR_varscan_indel <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/
 ANNOVAR_snv_output <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/snv", cohort_name)
 ANNOVAR_indel_output <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/indel", cohort_name)
 PATH_bg <- "/groups/wyattgrp/users/amunzur/pipeline/resources/bg_error_rate/bg_error.tsv"
-PATH_bets <- "/groups/wyattgrp/users/amunzur/pipeline/resources/betastasis/CLEANED_mutations_no_germline_filter.tsv"
+
+PATH_bets_somatic <- "/groups/wyattgrp/users/amunzur/pipeline/resources/betastasis/CLEANED_mutations_kidney_cancer_somatic.tsv"
+PATH_bets_germline <- "/groups/wyattgrp/users/amunzur/pipeline/resources/betastasis/CLEANED_mutations_no_germline_filter.tsv"
+PATH_PCa_panel_2017 <- "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/CRPC2017/CRPC2017_genes.tsv"
+
 PATH_bed  <- "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/1000012543_CHIP_Design_selection_results_Version2/capture_targets.bed"
 DIR_depth_metrics <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/metrics/depth", cohort_name)
 PATH_collective_depth_metrics <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/metrics/averaged_depth", cohort_name, "averaged_depths.txt")
@@ -49,7 +53,9 @@ snv <- MAIN(cohort_name,
 				ANNOVAR_snv_output,
 				ANNOVAR_indel_output,
 				bg,
-				PATH_bets,
+				PATH_bets_somatic,
+				PATH_bets_germline,
+				PATH_PCa_panel_2017,
 				PATH_bed,
 				DIR_depth_metrics,
 				PATH_collective_depth_metrics,
@@ -72,7 +78,9 @@ indel <- MAIN(cohort_name,
 				ANNOVAR_snv_output,
 				ANNOVAR_indel_output,
 				bg,
-				PATH_bets,
+				PATH_bets_somatic,
+				PATH_bets_germline,
+				PATH_PCa_panel_2017,
 				PATH_bed,
 				DIR_depth_metrics,
 				PATH_collective_depth_metrics,
