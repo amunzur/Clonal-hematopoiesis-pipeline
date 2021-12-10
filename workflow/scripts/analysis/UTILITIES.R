@@ -254,6 +254,24 @@ add_finland_readcounts <- function(variants_df, filtered_tnvstats, variant_calle
 	return(variants_df)
 }
 
+# Based on chrom, position, alt and ref, identify which variants are duplicates. Mark them as dups in the variants_df.
+identify_duplicates <- function(variants_df) {
+
+	dups <- variants_df %>% 
+			get_dupes(Chrom, Position, Ref, Alt) %>%
+			select(names(variants_df))
+
+	dups$dupe_count <- NULL # drop an extra col that the function above adds
+	non_dups <- setdiff(variant_df, dups)
+
+	dups$Duplicate <- TRUE
+	non_dups$Duplicate <- FALSE
+
+	variants_df <- rbind(non_dups, dups)
+
+	return(variants_df)
+}
+
 # This function generates a string of explanations to add to the final df as comments. 
 add_documentation <- function(THRESHOLD_ExAC_ALL, VALUE_Func_refGene, THRESHOLD_VarFreq, THRESHOLD_Reads2, THRESHOLD_VAF_bg_ratio){
 
@@ -267,3 +285,4 @@ add_documentation <- function(THRESHOLD_ExAC_ALL, VALUE_Func_refGene, THRESHOLD_
 	return(docs)
 
 }
+
