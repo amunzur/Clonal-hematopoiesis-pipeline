@@ -2,13 +2,13 @@ import pandas as pd
 
 # snakemake --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch --exclude=cn[01-05] -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 40
 
-PATH_to_samples = "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/new_chip_panel.tsv"
+PATH_to_samples = "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/batch2.tsv"
 configfile: "config/config.yaml"
 
 samples = pd.read_csv(PATH_to_samples, sep = '\t')["sample_names"].tolist()
 
 # samples = ["GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29", "GUBB-17-012-gDNA-Baseline-IDT-2017Jan17_S1", "GUBB-18-323-gDNA-Baseline-IDT-2018Jul31_S28"]
-cohort_name = "new_chip_panel"
+cohort_name = "batch2"
 
 pair1 = [sample + "_R1" for sample in samples]
 pair2 = [sample + "_R2" for sample in samples]
@@ -25,6 +25,7 @@ DIR_raw_fastq = config["DIR_raw_fastq"]
 DIR_merged_fastq = config["DIR_merged_fastq"]
 DIR_masked_fastq = config["DIR_masked_fastq"]
 DIR_trimmed_fastq = config["DIR_trimmed_fastq"]
+DIR_extracted_fastq = config["DIR_extracted_fastq"]
 DIR_bams = config["DIR_bams"]
 
 # fastqc reports 
@@ -36,6 +37,7 @@ DIR_insertsize_metrics = config["DIR_insertsize_metrics"]
 DIR_markdup_metrics = config["DIR_markdup_metrics"]
 DIR_depth_metrics = config["DIR_depth_metrics"]
 DIR_mpileup = config["DIR_mpileup"]
+DIR_complexity_metrics = config["DIR_complexity_metrics"]
 
 # variant calling
 DIR_varscan = config["DIR_varscan"]
@@ -65,10 +67,13 @@ MERGE_R2 = expand(DIR_merged_fastq + "/{cohort_wildcard}/{wildcard}_R2.fastq", w
 RUN_FastQC_merged = expand(DIR_merged_fastqc + "/{cohort_wildcard}/{wildcard}_fastqc.html", wildcard = all_pairs, cohort_wildcard = cohort_name)
 MASK_FastQ = expand(DIR_masked_fastq + "/{cohort_wildcard}/{wildcard}_masked.fastq", wildcard = all_pairs, cohort_wildcard = cohort_name)
 
-TRIM_FastQ = [expand(DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R1_masked_val_1.fq", wildcard = samples, cohort_wildcard = cohort_name), \
-	expand(DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R2_masked_val_2.fq", wildcard = samples, cohort_wildcard = cohort_name), \
-	expand(DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R1_masked_val_1_fastqc.html", wildcard = samples, cohort_wildcard = cohort_name), \
-	expand(DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R2_masked_val_2_fastqc.html", wildcard = samples, cohort_wildcard = cohort_name)]
+EXTRACT_FastQ_R1 = expand(DIR_extracted_fastq + "/{cohort_wildcard}/{wildcard}_R1_extracted.fastq", wildcard = samples, cohort_wildcard = cohort_name)
+EXTRACT_FastQ_R2 = expand(DIR_extracted_fastq + "/{cohort_wildcard}/{wildcard}_R2_extracted.fastq", wildcard = samples, cohort_wildcard = cohort_name)
+
+TRIM_FastQ = [expand(DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R1_extracted_val_1.fq", wildcard = samples, cohort_wildcard = cohort_name), \
+	expand(DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R2_extracted_val_2.fq", wildcard = samples, cohort_wildcard = cohort_name), \
+	expand(DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R1_extracted_val_1_fastqc.html", wildcard = samples, cohort_wildcard = cohort_name), \
+	expand(DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R2_extracted_val_2_fastqc.html", wildcard = samples, cohort_wildcard = cohort_name)]
 
 # Alignment, sorting, marking duplicates and adding read groups
 ALIGN_and_SORT = expand(DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
@@ -80,6 +85,8 @@ MARKDUP = [expand(DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam", wildca
 SC_PENALTY = expand(DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
 ADD_RG = expand(DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
 INDEX_readGroup_bams = expand(DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam.bai", wildcard = samples, cohort_wildcard = cohort_name)
+
+run_complexity_metrics_markdup = expand(DIR_complexity_metrics + "/{cohort_wildcard}/PICARD_complexity_markDup/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name)
 
 RUN_mpileup = expand(DIR_mpileup + "/{cohort_wildcard}/{wildcard}.mpileup", wildcard = samples, cohort_wildcard = cohort_name)
 RUN_varscan_snv = expand(VarScan_snv + "/{cohort_wildcard}/{wildcard}.vcf", wildcard = samples, cohort_wildcard = cohort_name)
@@ -109,9 +116,11 @@ rule all:
 	input:
 		# MERGE_R1,
 		# MERGE_R2,
-		# RUN_FastQC_merged,
-		# MASK_FastQ,
-		# TRIM_FastQ,
+		RUN_FastQC_merged,
+		MASK_FastQ,
+		EXTRACT_FastQ_R1,
+		EXTRACT_FastQ_R2,
+		TRIM_FastQ,
 		# ALIGN_and_SORT,
 		# INDEX_sorted_bams, 
 		# FIXMATE,
@@ -171,7 +180,7 @@ rule run_fastqc_merged:
 # mask low quality bases in fastq files
 rule mask_fastq:
 	input: 
-		DIR_merged_fastq + "/{cohort_wildcard}/{wildcard}.fastq",
+		DIR_merged_fastq + "/{cohort_wildcard}/{wildcard}.fastq"
 	output:
 		DIR_masked_fastq + "/{cohort_wildcard}/{wildcard}_masked.fastq"
 	params: 
@@ -179,22 +188,43 @@ rule mask_fastq:
 	run:
 		shell("/groups/wyattgrp/users/amunzur/gene_panel_pipeline/dependencies/fasta mask by quality {input} {params.min_base_quality} > {output}")
 
+# extracts from the 5' end
+rule extract_UMIs:
+	input: 
+		R1 = DIR_masked_fastq + "/{cohort_wildcard}/{wildcard}_R1_masked.fastq",
+		R2 = DIR_masked_fastq + "/{cohort_wildcard}/{wildcard}_R2_masked.fastq"
+	output:
+		R1_extracted = DIR_extracted_fastq + "/{cohort_wildcard}/{wildcard}_R1_extracted.fastq",
+		R2_extracted = DIR_extracted_fastq + "/{cohort_wildcard}/{wildcard}_R2_extracted.fastq"
+	conda: 
+		"envs/umi_tools.yaml"
+	shell:
+		"umi_tools extract \
+							--ignore-read-pair-suffixes \
+							--bc-pattern=NNNCC \
+							--bc-pattern2=NNNCC \
+		                    --extract-method=string \
+		                    --stdin={input.R1} \
+		                    --stdout={output.R1_extracted} \
+		                    --read2-in={input.R2} \
+		                    --read2-out={output.R2_extracted}"
+
 # Trim fastq files using trim galore and run fastqc on them. R1 and R2 fastq files should be provided at the same time. 
 rule trim_fastq: 
 	input: 
-		pair1_masked = DIR_masked_fastq + "/{cohort_wildcard}/{wildcard}_R1_masked.fastq",
-		pair2_masked = DIR_masked_fastq + "/{cohort_wildcard}/{wildcard}_R2_masked.fastq"
+		R1_extracted = DIR_extracted_fastq + "/{cohort_wildcard}/{wildcard}_R1_extracted.fastq",
+		R2_extracted = DIR_extracted_fastq + "/{cohort_wildcard}/{wildcard}_R2_extracted.fastq"
 	output:
-		pair1_trimmed = DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R1_masked_val_1.fq",
-		pair2_trimmed = DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R2_masked_val_2.fq",
-		pair1_trimmed_fastqc_html = DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R1_masked_val_1_fastqc.html",
-		pair2_trimmed_fastqc_html = DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R2_masked_val_2_fastqc.html",
-		pair1_trimmed_fastqc_zip = DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R1_masked_val_1_fastqc.zip",
-		pair2_trimmed_fastqc_zip = DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R2_masked_val_2_fastqc.zip"
+		pair1_trimmed = DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R1_extracted_val_1.fq",
+		pair2_trimmed = DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R2_extracted_val_2.fq",
+		pair1_trimmed_fastqc_html = DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R1_extracted_val_1_fastqc.html",
+		pair2_trimmed_fastqc_html = DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R2_extracted_val_2_fastqc.html",
+		pair1_trimmed_fastqc_zip = DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R1_extracted_val_1_fastqc.zip",
+		pair2_trimmed_fastqc_zip = DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R2_extracted_val_2_fastqc.zip"
 	params: 
 		min_base_quality = 20, 
-		clip_R1 = 5, 
-		clip_R2 = 5, 
+		clip_R1 = 0, 
+		clip_R2 = 0, 
 		three_prime_clip_R1 = 5, 
 		three_prime_clip_R2 = 5
 	run:
@@ -204,20 +234,18 @@ rule trim_fastq:
 			--illumina \
 			--paired \
 			--dont_gzip \
-			--clip_R1 {params.clip_R1} \
-			--clip_R2 {params.clip_R2} \
 			--three_prime_clip_R1 {params.three_prime_clip_R1} \
 			--three_prime_clip_R2 {params.three_prime_clip_R2} \
 			--output_dir `dirname {output.pair1_trimmed}` \
 			--fastqc_args "--nogroup --outdir `dirname {output.pair1_trimmed_fastqc_html}`" \
-			{input.pair1_masked} \
-			{input.pair2_masked}')
+			{input.R1_extracted} \
+			{input.R2_extracted}')
 
 # align, sort, remove dups from trimmed fastq files. 
 rule align_sort:
 	input:
-		pair1 = DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R1_masked_val_1.fq",
-		pair2 = DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R2_masked_val_2.fq",
+		pair1 = DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R1_extracted_val_1.fq",
+		pair2 = DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R2_extracted_val_2.fq",
 		PATH_hg38 = PATH_hg38,
 		PATH_bed = PATH_bed
 	params: 
@@ -252,6 +280,18 @@ rule PICARD_fixmate:
 					I={input.SORTED_bam} \
 					O={output}"
 
+# run complexity estimates before removing duplicates 
+# rule PICARD_complexity_fixmate:
+# 	input: 
+# 		MARKDUP_bam = DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam"
+# 	output: 
+# 		complexity_metrics = DIR_complexity_metrics + "/{cohort_wildcard}/PICARD_complexity_markDup/{wildcard}.txt"
+# 	threads: 12
+# 	shell:
+# 		"picard -Xmx40g EstimateLibraryComplexity \
+# 					I={input} \
+# 					O={output}"
+
 # Mark and remove duplicates after aligning and sorting. 
 rule mark_duplicates_PICARD: 
 	input:
@@ -262,6 +302,18 @@ rule mark_duplicates_PICARD:
 	threads: 12
 	shell:
 		"picard -Xmx40g MarkDuplicates I={input} O={output.MARKDUP_bam} M={output.MARKDUP_metrics}"
+
+# run complexity estimates after removing duplicates
+# rule PICARD_complexity_markDup:
+# 	input: 
+# 		MARKDUP_bam = DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam"
+# 	output: 
+# 		complexity_metrics = DIR_complexity_metrics + "/{cohort_wildcard}/PICARD_complexity_markDup/{wildcard}.txt"
+# 	threads: 12
+# 	shell:
+# 		"picard -Xmx40g EstimateLibraryComplexity \
+# 					I={input} \
+# 					O={output}"
 
 # Add read groups after removing duplicates
 rule add_read_groups_PICARD: 
@@ -307,7 +359,7 @@ rule filter_clipped_reads:
 		BAM = DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam",
 		PATH_hg38 = PATH_hg38
 	output:
-		BAM = DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam"
+		BAM = DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam",
 		# BAM_index = DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam.bai"
 	threads: 12
 	params:
