@@ -38,6 +38,7 @@ DIR_markdup_metrics = config["DIR_markdup_metrics"]
 DIR_depth_metrics = config["DIR_depth_metrics"]
 DIR_mpileup = config["DIR_mpileup"]
 DIR_complexity_metrics = config["DIR_complexity_metrics"]
+DIR_dedup_metrics = config["DIR_dedup_metrics"]
 
 # variant calling
 DIR_varscan = config["DIR_varscan"]
@@ -78,6 +79,7 @@ TRIM_FastQ = [expand(DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R1_extra
 # Alignment, sorting, marking duplicates and adding read groups
 ALIGN_and_SORT = expand(DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
 INDEX_sorted_bams = expand(DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam.bai", wildcard = samples, cohort_wildcard = cohort_name)
+DEDUP_umitools = expand(DIR_bams + "/{cohort_wildcard}/dedup/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
 
 FIXMATE = expand(DIR_bams + "/{cohort_wildcard}/fixmate/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
 MARKDUP = [expand(DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name), \
@@ -121,8 +123,9 @@ rule all:
 		EXTRACT_FastQ_R1,
 		EXTRACT_FastQ_R2,
 		TRIM_FastQ,
-		# ALIGN_and_SORT,
-		# INDEX_sorted_bams, 
+		ALIGN_and_SORT,
+		INDEX_sorted_bams, 
+		DEDUP_umitools,
 		# FIXMATE,
 		# MARKDUP,
 		# SC_PENALTY,
@@ -302,6 +305,19 @@ rule mark_duplicates_PICARD:
 	threads: 12
 	shell:
 		"picard -Xmx40g MarkDuplicates I={input} O={output.MARKDUP_bam} M={output.MARKDUP_metrics}"
+
+# Deduplication using UMI tools
+rule dedup_UMITOOLS: 
+	input:
+		SORTED_bam = DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam"
+	output:
+		DEDUP_bam = DIR_bams + "/{cohort_wildcard}/dedup/{wildcard}.bam",
+		DEDUP_metrics = DIR_dedup_metrics + "/{cohort_wildcard}/{wildcard}.txt"
+	threads: 12
+	conda: 
+		"envs/umi_tools.yaml"
+	shell:
+		"umi_tools dedup -I {input} --output-stats={output.DEDUP_metrics} -S {output.DEDUP_bam}"
 
 # run complexity estimates after removing duplicates
 # rule PICARD_complexity_markDup:
