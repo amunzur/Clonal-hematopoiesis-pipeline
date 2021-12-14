@@ -8,7 +8,8 @@ PATH_bets: "resources/betastasis/CLEANED_mutations_kidney_cancer_somatic.tsv"
 DIR_raw_fastq: "results/data/fastq/raw"
 DIR_merged_fastq: "results/data/fastq/merged"
 DIR_masked_fastq: "results/data/fastq/masked"
-DIR_trimmed_fastq: "results/data/fastq/trimmed" # trimmed fastqs saved here
+DIR_extracted_fastq: "results/data/fastq/extracted"
+DIR_trimmed_fastq: "results/data/fastq/trimmed"
 DIR_bams: "results/data/bam"
 
 # fastqc reports 
@@ -20,6 +21,8 @@ DIR_insertsize_metrics: "results/metrics/insert_size"
 DIR_markdup_metrics: "results/metrics/PICARD_markdup"
 DIR_depth_metrics: "results/metrics/depth"
 DIR_mpileup: "results/metrics/mpileup"
+DIR_complexity_metrics: "results/metrics/library_complexity"
+DIR_dedup_metrics: "results/metrics/dedup"
 
 # variant calling
 DIR_varscan: "results/variant_calling/VarScan2"
