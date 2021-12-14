@@ -26,8 +26,8 @@ combine_anno_vardict <- function(DIR_vardict, DIR_ANNOVAR) {
 	combined <- left_join(vardict_df, anno_df, by = c("Sample_name", "Chr", "Start")) %>%
 					mutate(Ref = vardict_df$Ref, 
 						Alt = vardict_df$Alt,
-						ExAC_ALL = as.numeric(gsub("\\.", 0, ExAC_ALL)), 
-						gnomAD_exome_ALL = as.numeric(gsub("\\.", 0, gnomAD_exome_ALL)))
+						ExAC_ALL = replace_na(as.numeric(ExAC_ALL), 0), 
+						gnomAD_exome_ALL = replace_na(as.numeric(gnomAD_exome_ALL), 0))
 
 	combined$Ref.x <- NULL
 	combined$Alt.x <- NULL

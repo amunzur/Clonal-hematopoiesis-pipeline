@@ -34,9 +34,9 @@ combine_anno_varscan <- function(DIR_varscan_snv, DIR_varscan_indel, ANNOVAR_snv
 	# 	varscan_df$Alt[grep("-", varscan_df$Alt)] <- "-"}
 
 	combined <- left_join(varscan_df, anno_df, by = c("Sample_name", "Chr", "Start", "Ref", "Alt")) %>%
-					mutate(ExAC_ALL = as.numeric(gsub("\\.", 0, ExAC_ALL)), 
-						gnomAD_exome_ALL = as.numeric(gsub("\\.", 0, gnomAD_exome_ALL)))
-
+					mutate(ExAC_ALL = replace_na(as.numeric(ExAC_ALL), 0), 
+						gnomAD_exome_ALL = replace_na(as.numeric(gnomAD_exome_ALL), 0))
+					
 	return(combined)
 
 }
