@@ -11,7 +11,7 @@ return_anno_output <- function(DIR_ANNOVAR) {
 }
 
 # compare with the somatic bets and germline bets list, add an extra col to show if the vars we called also appear in either one of them bets
-compare_with_bets <- function(PATH_bets_somatic, PATH_bets_germline, PATH_PCa_panel_2017, variant_df){
+compare_with_bets <- function(PATH_bets_somatic, PATH_bets_germline, PATH_panel_genes, variant_df){
 
 	bets_somatic <- as.data.frame(read_delim(PATH_bets_somatic, delim = "\t"))
 	bets_germline <- as.data.frame(read_delim(PATH_bets_germline, delim = "\t"))
@@ -20,8 +20,8 @@ compare_with_bets <- function(PATH_bets_somatic, PATH_bets_germline, PATH_PCa_pa
 	variant_df$In_somatic_bets <- variant_df$Position %in% bets_somatic$POSITION
 
 	# add a new col to indicate if the gene of interest in each row was also found in the 2017 PCa panel design 	
-	panel <- read_csv(PATH_PCa_panel_2017)
-	variant_df$In_2017_PCa <- variant_df$Gene %in% panel$GENE
+	panel <- read_csv(PATH_panel_genes)
+	variant_df$In_panel <- variant_df$Gene %in% panel$GENE
 
 	return(variant_df)
 }
@@ -262,7 +262,7 @@ identify_duplicates <- function(variants_df) {
 			select(names(variants_df))
 
 	dups$dupe_count <- NULL # drop an extra col that the function above adds
-	non_dups <- setdiff(variant_df, dups)
+	non_dups <- setdiff(variants_df, dups)
 
 	dups$Duplicate <- TRUE
 	non_dups$Duplicate <- FALSE

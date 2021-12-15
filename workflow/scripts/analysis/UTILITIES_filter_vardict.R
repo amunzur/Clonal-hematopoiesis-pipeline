@@ -88,7 +88,7 @@ MAIN <- function(cohort_name,
 					bg,
 					PATH_bets_somatic,
 					PATH_bets_germline,
-					PATH_PCa_panel_2017,
+					PATH_panel_genes,
 					PATH_bed,
 					DIR_depth_metrics,
 					PATH_collective_depth_metrics,
@@ -134,13 +134,13 @@ MAIN <- function(cohort_name,
 
 	combined <- subset_to_panel(PATH_bed, combined) # subset to panel
 	combined <- add_depth(DIR_depth_metrics, PATH_collective_depth_metrics, combined) # add depth information at these positions 
-	combined <- compare_with_bets(PATH_bets_somatic, PATH_bets_germline, PATH_PCa_panel_2017, combined) # adds three new columns
+	combined <- compare_with_bets(PATH_bets_somatic, PATH_bets_germline, PATH_panel_genes, combined) # adds three new columns
 
 	# add an extra col for alerting the user if the variant isn't found, despite gene being in the bets
 	combined <- combined %>% mutate(Status = case_when(
-										(In_germline_bets == FALSE & In_2017_PCa == TRUE) ~ "ALERT", 
-										(In_germline_bets == TRUE & In_2017_PCa == TRUE) ~ "Great",
-										(In_germline_bets == TRUE & In_2017_PCa == FALSE) ~ "Error",
+										(In_germline_bets == FALSE & In_panel == TRUE) ~ "ALERT", 
+										(In_germline_bets == TRUE & In_panel == TRUE) ~ "Great",
+										(In_germline_bets == TRUE & In_panel == FALSE) ~ "Error",
 										TRUE ~ "OK"), 
 								Position = as.numeric(Position))
 
