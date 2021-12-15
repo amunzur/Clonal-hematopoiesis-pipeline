@@ -3,6 +3,7 @@
 library(tidyverse)
 library(stringr)
 library(epitools) # use conda activate r_env_v1
+library(janitor)
 
 cohort_name <- "new_chip_panel"
 variant_caller <- "varscan"
@@ -20,7 +21,7 @@ PATH_bg <- "/groups/wyattgrp/users/amunzur/pipeline/resources/bg_error_rate/bg_e
 
 PATH_bets_somatic <- "/groups/wyattgrp/users/amunzur/pipeline/resources/betastasis/CLEANED_mutations_kidney_cancer_somatic.tsv"
 PATH_bets_germline <- "/groups/wyattgrp/users/amunzur/pipeline/resources/betastasis/CLEANED_mutations_no_germline_filter.tsv"
-PATH_PCa_panel_2017 <- "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/CRPC2017/CRPC2017_genes.tsv"
+PATH_panel_genes <- "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/kidney/genes.tsv"
 
 PATH_bed  <- "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/1000012543_CHIP_Design_selection_results_Version2/capture_targets.bed"
 DIR_depth_metrics <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/metrics/depth", cohort_name)
@@ -55,7 +56,7 @@ snv <- MAIN(cohort_name,
 				bg,
 				PATH_bets_somatic,
 				PATH_bets_germline,
-				PATH_PCa_panel_2017,
+				PATH_panel_genes,
 				PATH_bed,
 				DIR_depth_metrics,
 				PATH_collective_depth_metrics,
