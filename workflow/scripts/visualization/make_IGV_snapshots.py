@@ -48,10 +48,12 @@ def make_igv_batch_script(variants_df, PATH_batch, DIR_snapshots, DIR_vancouver_
 given_range = 200
 add_prefix = ""
 add_suffix = ".bam"
+cohort_name = "new_chip_panel"
 
-PATH_varscan = "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined/vardict.csv"
-PATH_vardict = "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined/varscan.csv"
-DIR_vancouver_bams = "/groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty"
+PATH_varscan = os.path.join("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined", cohort_name, "varscan.csv")
+PATH_vardict = os.path.join("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined", cohort_name, "vardict.csv")
+
+DIR_vancouver_bams = os.path.join("/groups/wyattgrp/users/amunzur/pipeline/results/data/bam", cohort_name, "SC_penalty")
 DIR_finland_bams = "/groups/wyattgrp/data/bam/kidney"
 
 varscan = pd.read_csv(PATH_varscan)
@@ -63,18 +65,18 @@ combined.loc[(combined["Variant"] == "deletion") | (combined["Variant"] == "inse
 
 # Alert samples
 combined_ALERT = combined.loc[combined['Status'] == "ALERT"] 
-IGV_script_ALERT = "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/IGV_batch_scripts/new_chip_panel_ALERT.txt" # output path, the batch script to be used to run in IGV
-DIR_snap_ALERT = "/groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT"
+IGV_script_ALERT = os.path.join("/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/IGV_batch_scripts", cohort_name + "_ALERT.txt") # output path, the batch script to be used to run in IGV
+DIR_snap_ALERT = os.path.join("/groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots", cohort_name + "ALERT")
 
 # OK samples 
 combined_OK = combined.loc[combined['Status'] == "OK"] 
-IGV_script_OK = "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/IGV_batch_scripts/new_chip_panel_OK.txt" # output path, the batch script to be used to run in IGV
-DIR_snap_OK = "/groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_OK"
+IGV_script_OK = os.path.join("/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/IGV_batch_scripts", cohort_name + "_OK.txt") # output path, the batch script to be used to run in IGV
+DIR_snap_OK = os.path.join("/groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots", cohort_name + "OK")
 
 # Great samples
 combined_Great = combined.loc[combined['Status'] == "Great"] 
-IGV_script_Great = "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/IGV_batch_scripts/new_chip_panel_Great.txt" # output path, the batch script to be used to run in IGV
-DIR_snap_Great = "/groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_Great"
+IGV_script_Great = os.path.join("/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/IGV_batch_scripts", cohort_name + "_Great.txt") # output path, the batch script to be used to run in IGV
+DIR_snap_Great = os.path.join("/groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots", cohort_name + "Great")
 
 make_igv_batch_script(combined_ALERT, IGV_script_ALERT, DIR_snap_ALERT, DIR_vancouver_bams, DIR_finland_bams, add_prefix, add_suffix, given_range)
 make_igv_batch_script(combined_OK, IGV_script_OK, DIR_snap_OK, DIR_vancouver_bams, DIR_finland_bams, add_prefix, add_suffix, given_range)
@@ -84,3 +86,12 @@ make_igv_batch_script(combined_Great, IGV_script_Great, DIR_snap_Great, DIR_vanc
 # /home/amunzur/IGV_Linux_2.11.3/igv.sh --batch /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/IGV_batch_scripts/new_chip_panel_ALERT.txt
 # /home/amunzur/IGV_Linux_2.11.3/igv.sh --batch /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/IGV_batch_scripts/new_chip_panel_OK.txt
 # /home/amunzur/IGV_Linux_2.11.3/igv.sh --batch /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/IGV_batch_scripts/new_chip_panel_Great.txt
+
+# Now this next bit is for making snapshots of vardict alert samples, they look a bit suspicious. 
+# Only retain ALERT vars called by vardict only.
+variants_df = vardict[(vardict.Status == "ALERT") & (vardict.variant_caller == "Vardict")]
+PATH_batch = os.path.join("/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/IGV_batch_scripts", cohort_name + "_vardict_only_ALERT.txt")
+DIR_snapshots = os.path.join("/groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots", cohort_name + "_vardict_only_ALERT")
+
+make_igv_batch_script(variants_df, PATH_batch, DIR_snapshots, DIR_vancouver_bams, DIR_finland_bams, add_prefix, add_suffix, given_range)
+# /home/amunzur/IGV_Linux_2.11.3/igv.sh --batch /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/IGV_batch_scripts/new_chip_panel_vardict_only_ALERT.txt
