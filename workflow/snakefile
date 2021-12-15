@@ -2,13 +2,13 @@ import pandas as pd
 
 # snakemake --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch --exclude=cn[01-05] -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 40
 
-PATH_to_samples = "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/batch2.tsv"
+cohort_name = "batch2"
+PATH_to_samples = "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/" + cohort_name + ".tsv"
 configfile: "config/config.yaml"
 
 samples = pd.read_csv(PATH_to_samples, sep = '\t')["sample_names"].tolist()
 
 # samples = ["GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29", "GUBB-17-012-gDNA-Baseline-IDT-2017Jan17_S1", "GUBB-18-323-gDNA-Baseline-IDT-2018Jul31_S28"]
-cohort_name = "batch2"
 
 pair1 = [sample + "_R1" for sample in samples]
 pair2 = [sample + "_R2" for sample in samples]
@@ -87,8 +87,8 @@ MARKDUP = [expand(DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam", wildca
 SC_PENALTY = expand(DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
 ADD_RG = expand(DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
 INDEX_readGroup_bams = expand(DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam.bai", wildcard = samples, cohort_wildcard = cohort_name)
-
-run_complexity_metrics_markdup = expand(DIR_complexity_metrics + "/{cohort_wildcard}/PICARD_complexity_markDup/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name)
+INDEX_SC_penalty_bams = expand(DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam.bai", wildcard = samples, cohort_wildcard = cohort_name)
+run_complexity_metrics_markdup = expand(DIR_complexity_metrics + "/{cohort_wildcard}/PICARD_complexity_dedup/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name)
 
 RUN_mpileup = expand(DIR_mpileup + "/{cohort_wildcard}/{wildcard}.mpileup", wildcard = samples, cohort_wildcard = cohort_name)
 RUN_varscan_snv = expand(VarScan_snv + "/{cohort_wildcard}/{wildcard}.vcf", wildcard = samples, cohort_wildcard = cohort_name)
@@ -125,26 +125,27 @@ rule all:
 		TRIM_FastQ,
 		ALIGN_and_SORT,
 		INDEX_sorted_bams, 
-		DEDUP_umitools,
-		# FIXMATE,
-		# MARKDUP,
-		# SC_PENALTY,
-		# ADD_RG,
-		# INDEX_readGroup_bams,
-		# RUN_mpileup, 
-		# RUN_varscan_snv, 
-		# RUN_VarScan_indel, 
-		# RUN_Vardict,
-		# REFORMAT_vardict_results,
-		# make_ANNOVAR_snv_input,
-		# make_ANNOVAR_indel_input,
-		# make_ANNOVAR_vardict_input,
-		# run_ANNOVAR_snv,
-		# run_ANNOVAR_indel, 
-		# run_ANNOVAR_vardict,
-		# run_insert_size, 
-		# PDF_to_PNG,
-		# run_depth
+		INDEX_readGroup_bams,
+		INDEX_SC_penalty_bams,
+		# DEDUP_umitools,
+		FIXMATE,
+		MARKDUP,
+		SC_PENALTY,
+		ADD_RG,
+		RUN_mpileup, 
+		RUN_varscan_snv, 
+		RUN_VarScan_indel, 
+		RUN_Vardict,
+		REFORMAT_vardict_results,
+		make_ANNOVAR_snv_input,
+		make_ANNOVAR_indel_input,
+		make_ANNOVAR_vardict_input,
+		run_ANNOVAR_snv,
+		run_ANNOVAR_indel, 
+		run_ANNOVAR_vardict,
+		run_insert_size, 
+		PDF_to_PNG,
+		run_depth
 
 rule MERGE_R1: 
 	input: 
@@ -187,7 +188,7 @@ rule mask_fastq:
 	output:
 		DIR_masked_fastq + "/{cohort_wildcard}/{wildcard}_masked.fastq"
 	params: 
-		min_base_quality = 30
+		min_base_quality = 20
 	run:
 		shell("/groups/wyattgrp/users/amunzur/gene_panel_pipeline/dependencies/fasta mask by quality {input} {params.min_base_quality} > {output}")
 
@@ -283,18 +284,6 @@ rule PICARD_fixmate:
 					I={input.SORTED_bam} \
 					O={output}"
 
-# run complexity estimates before removing duplicates 
-# rule PICARD_complexity_fixmate:
-# 	input: 
-# 		MARKDUP_bam = DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam"
-# 	output: 
-# 		complexity_metrics = DIR_complexity_metrics + "/{cohort_wildcard}/PICARD_complexity_markDup/{wildcard}.txt"
-# 	threads: 12
-# 	shell:
-# 		"picard -Xmx40g EstimateLibraryComplexity \
-# 					I={input} \
-# 					O={output}"
-
 # Mark and remove duplicates after aligning and sorting. 
 rule mark_duplicates_PICARD: 
 	input:
@@ -309,32 +298,36 @@ rule mark_duplicates_PICARD:
 # Deduplication using UMI tools
 rule dedup_UMITOOLS: 
 	input:
-		SORTED_bam = DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam"
+		SORTED_bam = DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam",
+		SORTED_bam_idx = DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam.bai"
+	params:
+		DEDUP_metrics_general = DIR_dedup_metrics + "/{cohort_wildcard}/{wildcard}"
 	output:
 		DEDUP_bam = DIR_bams + "/{cohort_wildcard}/dedup/{wildcard}.bam",
-		DEDUP_metrics = DIR_dedup_metrics + "/{cohort_wildcard}/{wildcard}.txt"
+		DEDUP_metrics1 = DIR_dedup_metrics + "/{cohort_wildcard}/{wildcard}_edit_distance.tsv",
+		DEDUP_metrics2 = DIR_dedup_metrics + "/{cohort_wildcard}/{wildcard}_per_umi_per_position.tsv",
+		DEDUP_metrics3 = DIR_dedup_metrics + "/{cohort_wildcard}/{wildcard}_per_umi.tsv"
 	threads: 12
 	conda: 
 		"envs/umi_tools.yaml"
 	shell:
-		"umi_tools dedup -I {input} --output-stats={output.DEDUP_metrics} -S {output.DEDUP_bam}"
+		"umi_tools dedup -I {input} --output-stats={params.DEDUP_metrics_general} -S {output.DEDUP_bam}"
 
-# run complexity estimates after removing duplicates
-# rule PICARD_complexity_markDup:
-# 	input: 
-# 		MARKDUP_bam = DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam"
-# 	output: 
-# 		complexity_metrics = DIR_complexity_metrics + "/{cohort_wildcard}/PICARD_complexity_markDup/{wildcard}.txt"
-# 	threads: 12
-# 	shell:
-# 		"picard -Xmx40g EstimateLibraryComplexity \
-# 					I={input} \
-# 					O={output}"
+# run complexity estimates after deduplication
+rule PICARD_complexity_dedup:
+	input: 
+		DEDUP_bam = DIR_bams + "/{cohort_wildcard}/dedup/{wildcard}.bam"
+	output: 
+		complexity_metrics = DIR_complexity_metrics + "/{cohort_wildcard}/dedup/{wildcard}.txt"
+	threads: 12
+	shell:
+		"picard -Xmx40g EstimateLibraryComplexity \
+					I={input} \
+					O={output}"
 
 # Add read groups after removing duplicates
 rule add_read_groups_PICARD: 
 	input:
-		# DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam"	
 		DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam"	
 	params: 
 		rglb = "library",
@@ -383,6 +376,15 @@ rule filter_clipped_reads:
 	shell:
 		"samtools view -h {input.BAM} | /home/amunzur/samclip --ref {input.PATH_hg38} --max {params.clipping_threshold} | samtools view -bh > {output.BAM}"
 		# "samtools index {output.BAM}"
+
+rule index_SC_penalty_bams: 
+	input: 
+		DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam"
+	output:
+		DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam.bai"
+	threads: 3
+	shell:
+		"samtools index {input}"
 
 rule PDF_to_PNG: 
 	input: 
@@ -520,7 +522,8 @@ rule run_ANNOVAR_indel:
 
 rule run_VarDict: 
 	input: 
-		RG_bam = DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam"
+		SC_bam = DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam",
+		SC_bam_index = DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam.bai" # helps make sure the bam was indexed before variant calling
 	output: 
 		DIR_Vardict + "/{cohort_wildcard}/{wildcard}.vcf" # snv and indel together
 	params: 
@@ -530,7 +533,7 @@ rule run_VarDict:
 		sample_name = "{wildcard}"
 	threads: 12
 	shell:
-		"/home/amunzur/VarDictJava/build/install/VarDict/bin/VarDict -G {params.PATH_hg38} -f {params.THRESHOLD_VarFreq} -N {params.sample_name} -b {input.RG_bam} \
+		"/home/amunzur/VarDictJava/build/install/VarDict/bin/VarDict -G {params.PATH_hg38} -f {params.THRESHOLD_VarFreq} -N {params.sample_name} -b {input.SC_bam} \
 		-c 1 -S 2 -E 3 -g 4 {params.PATH_bed} | /home/amunzur/VarDictJava/build/install/VarDict/bin/teststrandbias.R | /home/amunzur/VarDictJava/build/install/VarDict/bin/var2vcf_valid.pl \
 		-N {params.sample_name} -E -f {params.THRESHOLD_VarFreq} > {output}"
 
