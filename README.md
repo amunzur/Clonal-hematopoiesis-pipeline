@@ -26,6 +26,12 @@ It consists of the following steps:
 - **UTILITIES_filter_vardict.R**: Utilities functions for `filter_vardict.R`
 - **UTILITIES_filter_varscan.R**: Utilities functions for `filter_VarScan.R`
 - **UTILITIES.R**: Utilities functions for both `filter_vardict.R` and `filter_VarScan.R`
+- **seq_quality_metrics.py**: Combined sequencing quality metrics such as number of reads taken from raw FastQ files, average and median depth of aligned and processed bams and percentage of duplicates. Should be run for every cohort outside of the framework of Snakemake.
+
+### Before running the pipeline 
+The pipeline needs a couple files to be present before it can start processing the files. These files need to be present for each batch, and they are: 
+1. A text outlining the sample names, each sample name should be in a new line. 
+2. Dummy files for raw FastQs. Sometimes the files come already merged from the sequencer, but these empty dummy files need to be created so that Snakemake doesn't complain about missing input files. `workflow/scripts/analysis/create_dummy_files.py` uses the identifier excel sheets to create these files. 
 
 ### Renaming FastQ files
 Before we can do any analysis on the data, the raw FastQ files from the sequencer need to be renamed, that is the molecular identifiers in the file names need to be
