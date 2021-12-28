@@ -6,8 +6,8 @@ cohort_name = "batch3"
 PATH_to_samples = "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/" + cohort_name + ".tsv"
 configfile: "config/config.yaml"
 
-# samples = pd.read_csv(PATH_to_samples, sep = '\t')["sample_names"].tolist()
-samples = ["GUBB-18-029_gDNA_Baseline_IDT_2018Apr18"]
+samples = pd.read_csv(PATH_to_samples, sep = '\t')["sample_names"].tolist()
+# samples = ["GUBB-18-029_gDNA_Baseline_IDT_2018Apr18"]
 
 # samples = ["GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29", "GUBB-17-012-gDNA-Baseline-IDT-2017Jan17_S1", "GUBB-18-323-gDNA-Baseline-IDT-2018Jul31_S28"]
 
@@ -36,6 +36,7 @@ DIR_trimmed_fastqc = config["DIR_trimmed_fastqc"]
 # metrics files 
 DIR_insertsize_metrics = config["DIR_insertsize_metrics"]
 DIR_markdup_metrics = config["DIR_markdup_metrics"]
+DIR_markdup_perc_metrics = config["DIR_markdup_perc_metrics"]
 DIR_depth_metrics = config["DIR_depth_metrics"]
 DIR_mpileup = config["DIR_mpileup"]
 DIR_complexity_metrics = config["DIR_complexity_metrics"]
@@ -91,7 +92,8 @@ ADD_RG = expand(DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam", wildca
 INDEX_readGroup_bams = expand(DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam.bai", wildcard = samples, cohort_wildcard = cohort_name)
 INDEX_SC_penalty_bams = expand(DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam.bai", wildcard = samples, cohort_wildcard = cohort_name)
 run_complexity_metrics_markdup = expand(DIR_complexity_metrics + "/{cohort_wildcard}/PICARD_complexity_dedup/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name)
-RUN_fastq_read_counts = expand(DIR_readcounts_metrics + "/{cohort_wildcard}/{wildcard}.txt", wildcard = all_pairs, cohort_wildcard = cohort_name)
+RUN_fastq_read_counts = expand(DIR_readcounts_metrics + "/raw/{cohort_wildcard}/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name)
+RUN_extract_markdup_perc = expand(DIR_markdup_perc_metrics + "/{cohort_wildcard}/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name)
 
 RUN_mpileup = expand(DIR_mpileup + "/{cohort_wildcard}/{wildcard}.mpileup", wildcard = samples, cohort_wildcard = cohort_name)
 RUN_varscan_snv = expand(VarScan_snv + "/{cohort_wildcard}/{wildcard}.vcf", wildcard = samples, cohort_wildcard = cohort_name)
@@ -119,37 +121,38 @@ run_depth = expand(DIR_depth_metrics + "/{cohort_wildcard}/{wildcard}.txt", wild
 # only use expansion here
 rule all:
 	input:
-		# MERGE_R1,
-		# MERGE_R2,
-		# RUN_FastQC_merged,
-		# MASK_FastQ,
-		# EXTRACT_FastQ_R1,
-		# EXTRACT_FastQ_R2,
-		# TRIM_FastQ,
-		# ALIGN_and_SORT,
-		# INDEX_sorted_bams, 
-		# INDEX_readGroup_bams,
-		# INDEX_SC_penalty_bams,
-		# DEDUP_umitools,
-		# FIXMATE,
-		# MARKDUP,
-		# SC_PENALTY,
-		# ADD_RG,
-		# RUN_mpileup,
+		MERGE_R1,
+		MERGE_R2,
+		RUN_FastQC_merged,
+		MASK_FastQ,
+		EXTRACT_FastQ_R1,
+		EXTRACT_FastQ_R2,
+		TRIM_FastQ,
+		ALIGN_and_SORT,
+		INDEX_sorted_bams, 
+		INDEX_readGroup_bams,
+		INDEX_SC_penalty_bams,
+		DEDUP_umitools,
+		FIXMATE,
+		MARKDUP,
+		SC_PENALTY,
+		ADD_RG,
+		RUN_mpileup,
 		RUN_fastq_read_counts, 
-		# RUN_varscan_snv, 
-		# RUN_VarScan_indel, 
-		# RUN_Vardict,
-		# REFORMAT_vardict_results,
-		# make_ANNOVAR_snv_input,
-		# make_ANNOVAR_indel_input,
-		# make_ANNOVAR_vardict_input,
-		# run_ANNOVAR_snv,
-		# run_ANNOVAR_indel, 
-		# run_ANNOVAR_vardict,
-		# run_insert_size, 
-		# PDF_to_PNG,
-		# run_depth
+		RUN_extract_markdup_perc,
+		RUN_varscan_snv, 
+		RUN_VarScan_indel, 
+		RUN_Vardict,
+		REFORMAT_vardict_results,
+		make_ANNOVAR_snv_input,
+		make_ANNOVAR_indel_input,
+		make_ANNOVAR_vardict_input,
+		run_ANNOVAR_snv,
+		run_ANNOVAR_indel, 
+		run_ANNOVAR_vardict,
+		run_insert_size, 
+		PDF_to_PNG,
+		run_depth
 
 rule MERGE_R1: 
 	input: 
@@ -191,7 +194,7 @@ rule fastq_read_counts:
 	params:
 		sample_name = "{wildcard}"
 	output:
-		DIR_readcounts_metrics + "/{cohort_wildcard}/{wildcard}.txt"
+		DIR_readcounts_metrics + "/raw/{cohort_wildcard}/{wildcard}.txt"
 	shell:
 		"paste <(echo {params}) <(echo $(cat {input}|wc -l)/4|bc) > {output}"
 		
@@ -309,6 +312,16 @@ rule mark_duplicates_PICARD:
 	shell:
 		"picard -Xmx40g MarkDuplicates I={input} O={output.MARKDUP_bam} M={output.MARKDUP_metrics}"
 
+rule extract_duplicate_percentage: 
+	input: 		
+		DIR_markdup_metrics + "/{cohort_wildcard}/{wildcard}.txt"
+	params: 
+		sample_name = "{wildcard}"
+	output: 
+		DIR_markdup_perc_metrics + "/{cohort_wildcard}/{wildcard}.txt"
+	shell: 
+		"paste <(echo {params}) <(head {input} | grep Library | cut -f9) > {output}"
+
 # Deduplication using UMI tools
 rule dedup_UMITOOLS: 
 	input:
@@ -415,7 +428,7 @@ rule run_depth:
 		BAM = DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam",
 		PATH_bed = PATH_bed 
 	output:
-		metrics = DIR_depth_metrics + "/{cohort_wildcard}/{wildcard}.txt"
+		DIR_depth_metrics + "/{cohort_wildcard}/{wildcard}.txt"
 	threads: 12
 	shell:
 		"samtools depth -b {input.PATH_bed} {input.BAM} > {output}"
