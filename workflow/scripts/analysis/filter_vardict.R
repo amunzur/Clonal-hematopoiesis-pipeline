@@ -3,8 +3,9 @@
 library(tidyverse)
 library(stringr)
 library(janitor)
+library(pkgcond)
 
-cohort_name <- "new_chip_panel"
+cohort_name <- "batch2"
 variant_caller <- "vardict"
 
 THRESHOLD_ExAC_ALL <- 0.005
@@ -30,7 +31,7 @@ PATH_filter_tnvstats_script <- "/groups/wyattgrp/users/amunzur/pipeline/workflow
 PATH_validated_variants <- "/groups/wyattgrp/users/amunzur/pipeline/resources/validated_variants/chip_muts_locations.tsv"
 PATH_SAVE_chip_variants <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Vardict/finalized", cohort_name, "chip_variants.csv")
 DIR_finland_bams <- "/groups/wyattgrp/data/bam/kidney"
-0
+
 PATH_utilities_file_vardict <- "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/UTILITIES_filter_vardict.R"
 PATH_utilities_file <- "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/UTILITIES.R"
 
