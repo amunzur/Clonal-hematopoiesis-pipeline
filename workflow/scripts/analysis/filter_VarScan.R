@@ -4,6 +4,7 @@ library(tidyverse)
 library(stringr)
 library(epitools) # use conda activate r_env_v1
 library(janitor)
+library(pkgcond)
 
 cohort_name <- "new_chip_panel"
 variant_caller <- "varscan"
@@ -81,7 +82,7 @@ indel <- MAIN(cohort_name,
 				bg,
 				PATH_bets_somatic,
 				PATH_bets_germline,
-				PATH_PCa_panel_2017,
+				PATH_panel_genes,
 				PATH_bed,
 				DIR_depth_metrics,
 				PATH_collective_depth_metrics,
