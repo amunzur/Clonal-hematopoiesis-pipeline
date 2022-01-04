@@ -2,7 +2,7 @@ import pandas as pd
 
 # snakemake --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch --exclude=cn[01-05] -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 40
 
-cohort_name = "batch3"
+cohort_name = "batch2"
 PATH_to_samples = "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/" + cohort_name + ".tsv"
 configfile: "config/config.yaml"
 
@@ -121,8 +121,8 @@ run_depth = expand(DIR_depth_metrics + "/{cohort_wildcard}/{wildcard}.txt", wild
 # only use expansion here
 rule all:
 	input:
-		MERGE_R1,
-		MERGE_R2,
+		# MERGE_R1,
+		# MERGE_R2,
 		RUN_FastQC_merged,
 		MASK_FastQ,
 		EXTRACT_FastQ_R1,
@@ -452,7 +452,7 @@ rule run_VarScan_snv:
 	params:
 		min_coverage = 8,
 		min_reads = 2, 
-		min_avg_base_qual = 30, 
+		min_avg_base_qual = 20, 
 		min_var_freq = 0.001,
 		p_value = 0.05
 	threads: 12
