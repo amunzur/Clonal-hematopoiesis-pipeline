@@ -13,20 +13,26 @@ It consists of the following steps:
 - Variant calling using VarScan2 and VarDict
 - Visualization and generating patient reports
 
-`workflow/scripts/analysis` contains the following scripts to further process the called variants:
+`workflow/scripts/analysis` contains the following scripts to further process the called variants. They should be run in the given order after processing the individual samples through the pipeline:
 - **compute_averaged_depth.sh**: Computes the average depth of the BAM files, only considers regions in the panel.
-- **filter_tnvstats.sh**: Filters the tnvstats to only retain the regions in the panel.
+- **seq_quality_metrics.py**: Combined sequencing quality metrics such as number of reads taken from raw FastQ files, average and median depth of aligned and processed bams and percentage of duplicates. Should be run for every cohort outside of the framework of Snakemake.
 - **filter_vardict.R**: Combines and filters the variants called by VarDict across all samples in cohort based on the user defined parameters and thresholds.
 - **filter_VarScan.R**: Combines and filters the variants called by VarScan across all samples in cohort based on the user defined parameters and thresholds
+- **combine_variant_callers.R**: Combines the output of both variant callers and adds a new column to indicate which variant caller identified a given variant.
+- **compare_with_tumor.R**: In the cases where both WBC and tumor samples are available, outputs a table only with variants with read support in both sample types. 
+
+Utilities functions used by some scripts above are found here:
+- **UTILITIES_filter_vardict.R**: Utilities functions for `filter_vardict.R`
+- **UTILITIES_filter_varscan.R**: Utilities functions for `filter_VarScan.R`
+- **UTILITIES.R**: Utilities functions for both `filter_vardict.R` and `filter_VarScan.R`
+
+These scripts are used in various steps of the pipeline:
 - **make_anno_input_indel.R**: Modifies the indel outputs to put in a format acceptable by ANNOVAR.
 - **make_anno_input_vardict.R**: Modifies the outputs by VarDict to put in a format acceptable by ANNOVAR.
 - **pdf_to_png.sh**: Converts the PDF images to PNG, mainly used for visuzalizing the insert size plots.
 - **process_bets.R**: Cleans up and melts the betastasis tables to retain only the called variants.
 - **reformat_vardict.R**: Minor reformatting
-- **UTILITIES_filter_vardict.R**: Utilities functions for `filter_vardict.R`
-- **UTILITIES_filter_varscan.R**: Utilities functions for `filter_VarScan.R`
-- **UTILITIES.R**: Utilities functions for both `filter_vardict.R` and `filter_VarScan.R`
-- **seq_quality_metrics.py**: Combined sequencing quality metrics such as number of reads taken from raw FastQ files, average and median depth of aligned and processed bams and percentage of duplicates. Should be run for every cohort outside of the framework of Snakemake.
+- **filter_tnvstats.sh**: Filters the tnvstats to only retain the regions in the panel.
 
 ### Before running the pipeline 
 The pipeline needs a couple files to be present before it can start processing the files. These files need to be present for each batch, and they are: 
@@ -37,5 +43,3 @@ The pipeline needs a couple files to be present before it can start processing t
 Before we can do any analysis on the data, the raw FastQ files from the sequencer need to be renamed, that is the molecular identifiers in the file names need to be
 match with the sample names. We use the identifier sheets found in `workflow/results/identifiers`. Scripts that are not a part of the pipeline (yet!) process the 
 molecular IDs and rename the files accordingly. This process consists of finding the reverse compliment of the second barcode and matching it with the sequencing id. 
-
-
