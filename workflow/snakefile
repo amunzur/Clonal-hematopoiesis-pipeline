@@ -2,7 +2,7 @@ import pandas as pd
 
 # snakemake --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch --exclude=cn[01-05] -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 40
 
-cohort_name = "batch2"
+cohort_name = "batch5"
 PATH_to_samples = "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/" + cohort_name + ".tsv"
 configfile: "config/config.yaml"
 
@@ -141,20 +141,20 @@ rule all:
 		# RUN_mpileup,
 		# RUN_fastq_read_counts, 
 		# RUN_extract_markdup_perc,
-		# RUN_varscan_snv, 
-		# RUN_VarScan_indel, 
+		RUN_varscan_snv, 
+		RUN_VarScan_indel, 
 		# RUN_Vardict,
 		# REFORMAT_vardict_results,
-		# make_ANNOVAR_snv_input,
-		# make_ANNOVAR_indel_input,
+		make_ANNOVAR_snv_input,
+		make_ANNOVAR_indel_input,
 		# make_ANNOVAR_vardict_input,
-		# run_ANNOVAR_snv,
-		# run_ANNOVAR_indel, 
+		run_ANNOVAR_snv,
+		run_ANNOVAR_indel, 
 		# run_ANNOVAR_vardict,
 		# run_insert_size, 
 		# PDF_to_PNG,
 		# run_depth, 
-		run_depth_umi
+		# run_depth_umi
 
 ##### Modules #####
 include: "rules/process_fastq.smk"
