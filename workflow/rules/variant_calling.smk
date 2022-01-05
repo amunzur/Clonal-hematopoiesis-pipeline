@@ -54,7 +54,7 @@ rule make_ANNOVAR_indel_input:
 	output: 
 		ANNOVAR_indel_input + "/{cohort_wildcard}/{wildcard}_anno.tsv"
 	conda: 
-		"envs/r_env_v2.yaml"
+		"../envs/r_env_v2.yaml"
 	shell:
 		'Rscript --silent --slave /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/make_anno_input_indel.R\
 			--PATH_VarScan_indel {input} \
@@ -124,7 +124,7 @@ rule make_ANNOVAR_Vardict_input:
 	output: 
 		ANNOVAR_Vardict_input + "/{cohort_wildcard}/{wildcard}_anno.tsv"
 	conda: 
-		"envs/r_env_v2.yaml"
+		"../envs/r_env_v2.yaml"
 	shell:
 		'Rscript --silent --slave /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/make_anno_input_vardict.R\
 			--PATH_Vardict_output {input} \
@@ -152,7 +152,7 @@ rule reformat_vardict_results:
 	output: 
 		DIR_Vardict + "/{cohort_wildcard}_reformatted/{wildcard}.tsv"
 	conda: 
-		"envs/r_env_v2.yaml"
+		"../envs/r_env_v2.yaml"
 	shell:
 		'Rscript --silent --slave /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/reformat_vardict.R\
 			--PATH_Vardict_output {input} \
