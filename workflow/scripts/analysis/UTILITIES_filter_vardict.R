@@ -1,6 +1,6 @@
 return_vardict_output <- function(DIR_vardict) {
 
-	df_main <- as.data.frame(read_delim(DIR_vardict, delim = "\t")) 
+	df_main <- as.data.frame(suppress_messages((read_delim(DIR_vardict, delim = "\t")))) 
 	df <- df_main %>% 
 		mutate(Sample_name = gsub(".tsv", "", basename(DIR_vardict))) %>%
 		filter(!str_detect(Alt, 'N')) 	# Drop variants if the called variant has an "N" in it. 
@@ -100,25 +100,23 @@ MAIN <- function(cohort_name,
 
 	variant_caller = variant_caller # just so the function doesn't complain about us not using this argument
 	combined <- combine_anno_vardict(DIR_vardict, DIR_ANNOVAR) # add annovar annots to the varscan outputs
-
-	# add patient id
-	x <- str_split(combined$Sample_name, "-") # split the sample name
-	combined$patient_id <- paste(lapply(x, "[", 1), lapply(x, "[", 2), lapply(x, "[", 3), sep = "-") # paste 2nd and 3rd elements to create the sample name 
-
+	combined <- add_patient_id(combined, cohort_name)
 	combined <- add_bg_error_rate(combined, bg) # background error rate
 	combined <- add_AAchange_effect(combined) # protein annot and the effects
+	combined$Cohort_name <- cohort_name
+	combined <- add_sample_type(combined)
 
 	combined <- combined %>%
 						mutate(Total_reads = Reads1 + Reads2, 
 								VAF_bg_ratio = VarFreq/error_rate) %>%
-						select(Sample_name, patient_id, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, REF_Fw, REF_Rv, ALT_Fw, ALT_Rv, Func.refGene, Gene.refGene, AAChange.refGene, Protein_annotation, Effects, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads) %>%
+						select(Sample_name, Sample_type, patient_id, Cohort_name, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, REF_Fw, REF_Rv, ALT_Fw, ALT_Rv, Func.refGene, Gene.refGene, AAChange.refGene, Protein_annotation, Effects, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads) %>%
 						filter(ExAC_ALL <= THRESHOLD_ExAC_ALL, 
 								Func.refGene != VALUE_Func_refGene,
 								VAF_bg_ratio >= THRESHOLD_VAF_bg_ratio, # vaf should be at least 15 times more than the bg error rate
 								StrandBias_Fisher_pVal > 0.05) 
 
 	# a common naming convention i will be sticking to from now on
-	names(combined) <- c("Sample_name", "Patient_ID", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
+	names(combined) <- c("Sample_name", "Sample_type", "Patient_ID", "Cohort_name", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
 
 	idx <- grep("splicing", combined$Function)
 	combined$Effects[idx] <- "splicing"
@@ -164,6 +162,9 @@ MAIN <- function(cohort_name,
 
 		combined <- add_finland_readcounts(combined, filtered_tnvstats, variant_caller)
 
+	# Check for duplicated rows just before returning the object.
+	combined <- check_duplicated_rows(combined, TRUE)
+
 	}
 
 	return(combined)
@@ -174,6 +175,9 @@ combine_and_save <- function(variants, PATH_validated_variants, PATH_SAVE_chip_v
 
 	validated_vars <- compare_with_jacks_figure(PATH_validated_variants, variants)
 	# variants$detected <- variants$Position %in% validated_vars$Position # add a new col to show if the same var was detected in jacks figure
+
+	dir.create(dirname(PATH_validated_variants))
+	dir.create(dirname(PATH_SAVE_chip_variants))
 
 	# PATH_SAVE_chip_variants <- "/groups/wyattgrp/users/amunzur/chip_project/variant_lists/chip_variants.csv"
 	write_csv(variants, PATH_SAVE_chip_variants) # snv + indel, csv
