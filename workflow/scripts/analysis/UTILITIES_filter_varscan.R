@@ -1,6 +1,6 @@
 return_varscan_output <- function(PATH_varscan) {
 
-	df_main <- as.data.frame(read_delim(PATH_varscan, delim = "\t")) 
+	df_main <- as.data.frame(suppress_messages(read_delim(PATH_varscan, delim = "\t"))) 
 	df <- df_main %>%
 			mutate(Sample_name = gsub(".vcf", "", basename(PATH_varscan))) %>%
 			rename(Chr = Chrom, Start = Position, Alt = VarAllele) %>%
@@ -132,13 +132,11 @@ MAIN <- function(cohort_name,
 		combined$variant <- "snv"
 	}
 
-	# add patient id
-	x <- str_split(combined$Sample_name, "-") # split the sample name
-	combined$patient_id <- paste(lapply(x, "[", 1), lapply(x, "[", 2), lapply(x, "[", 3), sep = "-") # paste 2nd and 3rd elements to create the sample name 
+	combined <- add_patient_id(combined, cohort_name)
+	combined <- add_bg_error_rate(combined, bg) 
+	combined <- add_sample_type(combined)
+	combined$Cohort_name <- cohort_name
 
-	combined <- add_bg_error_rate(combined, bg) # background error rate
-
-	# some filtering based on some criteria
 	combined <- combined %>%
 						mutate(VarFreq = as.numeric(gsub("%", "", VarFreq))/100, 
 								Total_reads = Reads1 + Reads2, 
@@ -152,9 +150,9 @@ MAIN <- function(cohort_name,
 
 	combined <- combined %>%
 						filter(StrandBias_Fisher_pVal > 0.05) %>%
-						select(Sample_name, patient_id, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, Reads1Plus, Reads1Minus, Reads2Plus, Reads2Minus, Func.refGene, Gene.refGene, AAChange.refGene, Protein_annotation, Effects, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads)
+						select(Sample_name, Sample_type, patient_id, Cohort_name, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, Reads1Plus, Reads1Minus, Reads2Plus, Reads2Minus, Func.refGene, Gene.refGene, AAChange.refGene, Protein_annotation, Effects, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads)
 
-	names(combined) <- c("Sample_name", "Patient_ID", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
+	names(combined) <- c("Sample_name", "Sample_type", "Patient_ID", "Cohort_name", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
 
 	# add for splicing variants, make sure both the "Function" and "Effects" column have the string splicing
 	idx <- grep("splicing", combined$Function)
@@ -203,6 +201,9 @@ MAIN <- function(cohort_name,
 	
 		combined <- add_finland_readcounts(combined, filtered_tnvstats, variant_caller)
 
+	# Check for duplicated rows just before returning the object.
+	combined <- check_duplicated_rows(combined, TRUE)
+
 	}
 
 	return(combined)
@@ -211,15 +212,10 @@ MAIN <- function(cohort_name,
 combine_and_save <- function(snv, indel, PATH_validated_variants, PATH_SAVE_chip_variants){
 
 	variants_chip <- as.data.frame(rbind(snv, indel))
-
-	# variants_documentation <- add_documentation(THRESHOLD_ExAC_ALL, VALUE_Func_refGene, THRESHOLD_VarFreq, THRESHOLD_Reads2, THRESHOLD_VAF_bg_ratio)
-	# comment(variants_chip) <- variants_documentation
-
-	# PATH_to_jack <- "/groups/wyattgrp/users/amunzur/chip_project/validated_kidney_variants/chip_muts_locations.tsv" # compare with previously validated variants
 	validated_vars <- compare_with_jacks_figure(PATH_validated_variants, variants_chip)
-	# variants_chip$detected <- variants_chip$Position %in% validated_vars$Position # add a new col to show if the same var was detected in jacks figure
 
-	# PATH_SAVE_chip_variants <- "/groups/wyattgrp/users/amunzur/chip_project/variant_lists/chip_variants.csv"
+	dir.create(dirname(PATH_SAVE_chip_variants))
+	
 	write_csv(variants_chip, PATH_SAVE_chip_variants) # snv + indel, csv
 	write_delim(variants_chip, gsub(".csv", ".tsv", PATH_SAVE_chip_variants), delim = "\t") # snv + indel, tsv
 
