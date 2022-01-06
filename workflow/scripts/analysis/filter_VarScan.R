@@ -2,16 +2,16 @@
 
 library(tidyverse)
 library(stringr)
-library(epitools) # use conda activate r_env_v1
+library(epitools)
 library(janitor)
 library(pkgcond)
 
-cohort_name <- "batch3"
+cohort_name <- "batch2"
 variant_caller <- "varscan"
 
 THRESHOLD_ExAC_ALL <- 0.005
 VALUE_Func_refGene <- "intronic"
-THRESHOLD_VarFreq <- 0.30
+THRESHOLD_VarFreq <- 0.40
 THRESHOLD_Reads2 <- 5
 THRESHOLD_VAF_bg_ratio <- 10
 DIR_varscan_snv <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/VarScan2/snv", cohort_name)

@@ -10,7 +10,7 @@ variant_caller <- "vardict"
 
 THRESHOLD_ExAC_ALL <- 0.005
 VALUE_Func_refGene <- "intronic"
-THRESHOLD_VarFreq <- 0.30
+THRESHOLD_VarFreq <- 0.40
 THRESHOLD_Reads2 <- 5
 THRESHOLD_VAF_bg_ratio <- 10
 DIR_vardict <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Vardict", paste0(cohort_name, "_reformatted"))
