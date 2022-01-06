@@ -331,5 +331,7 @@ check_duplicated_rows <- function(variants_df, drop_dups) {
 	} else {
 		message("No duplicates. All good!")
 	}
+
+	return(variants_df)
 }
 
