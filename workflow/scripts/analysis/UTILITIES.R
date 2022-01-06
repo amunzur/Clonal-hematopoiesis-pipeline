@@ -10,6 +10,37 @@ return_anno_output <- function(DIR_ANNOVAR) {
 
 }
 
+# based on the cohort_name, add the patient id
+add_patient_id <- function(variant_df, cohort_name){
+
+	if (cohort_name == "new_chip_panel"){
+
+		x <- str_split(variant_df$Sample_name, "-") # split the sample name
+		variant_df$patient_id <- paste(lapply(x, "[", 1), lapply(x, "[", 2), lapply(x, "[", 3), sep = "-") # paste 2nd and 3rd elements to create the sample name 
+
+	} else {
+
+		x <- str_split(variant_df$Sample_name, "_gDNA|_WBC|_cfDNA")
+		variant_df$patient_id <- unlist(lapply(x, "[", 1))
+	}
+
+	return(variant_df)
+
+}
+
+# add a new column to indicate sample type, WBC or tumor. 
+add_sample_type <- function(variant_df){
+
+	x <- str_split(variant_df$Sample_name, "_") # splitted strings as a list
+	y <- unlist(lapply(x, "[", 2)) # gDNA or cfDNA
+
+	my_map <- c("gDNA" = "WBC", "gdna" = "WBC", "cfDNA" = "Tumor")
+	variant_df$Sample_type <- unname(my_map[y])
+
+	return(variant_df)
+
+}
+
 # compare with the somatic bets and germline bets list, add an extra col to show if the vars we called also appear in either one of them bets
 compare_with_bets <- function(PATH_bets_somatic, PATH_bets_germline, PATH_panel_genes, variant_df){
 
@@ -72,10 +103,9 @@ subset_to_panel <- function(PATH_bed, variant_df) {
 	i <- 1 
 	print(i)
 	while (i <= dim(variant_df)[1]){
-		chrom_subsetted <- variant_df[i, 3] # pick the chrom we are at 
-		location <- variant_df[i, 4] # pick the location we are at 
+		chrom_subsetted <- variant_df[i, 5] # pick the chrom we are at 
+		location <- variant_df[i, 6] # pick the location we are at 
 		bed_subsetted <- bed %>% filter(chrom == chrom_subsetted) # subset the bed by chrom
-		message(c("position:", i))
 
 		j <- 1
 		while(j <= dim(bed_subsetted)[1]) {
@@ -284,5 +314,22 @@ add_documentation <- function(THRESHOLD_ExAC_ALL, VALUE_Func_refGene, THRESHOLD_
 
 	return(docs)
 
+}
+
+# Checks for any duplicated variants in the finalized output. Helpful to notice any errors.
+check_duplicated_rows <- function(variants_df, drop_dups) {
+
+	idx <- which(duplicated(variants_df))
+	
+	if (length(idx) > 0){
+		warning_message <- paste("Duplicated rows detected at", idx)
+		message(warning_message)
+
+		if (drop_dups == TRUE){
+			variants_df <- variants_df[!duplicated(variants_df), ]
+		}
+	} else {
+		message("No duplicates. All good!")
+	}
 }
 
