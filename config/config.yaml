@@ -32,6 +32,8 @@ DIR_varscan: "results/variant_calling/VarScan2"
 VarScan_snv: "results/variant_calling/VarScan2/snv"
 VarScan_indel: "results/variant_calling/VarScan2/indel"
 
+DIR_Mutect: "results/variant_calling/Mutect2"
+
 DIR_Vardict: "results/variant_calling/Vardict"
 # VarDict_snv_output: "results/variant_calling/Vardict/snv"
 # VarDict_indel_output: "results/variant_calling/Vardict/indel"
