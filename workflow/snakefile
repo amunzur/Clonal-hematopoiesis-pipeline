@@ -2,7 +2,7 @@ import pandas as pd
 
 # snakemake --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch --exclude=cn[01-05] -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 40
 
-cohort_name = "batch5"
+cohort_name = "batch3"
 PATH_to_samples = "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/" + cohort_name + ".tsv"
 configfile: "config/config.yaml"
 
@@ -49,6 +49,7 @@ DIR_varscan = config["DIR_varscan"]
 VarScan_snv = config["VarScan_snv"]
 VarScan_indel = config["VarScan_indel"]
 DIR_Vardict = config["DIR_Vardict"]
+DIR_Mutect = config["DIR_Mutect"]
 
 # annotating variants from varscan
 ANNOVAR_snv_input = config["ANNOVAR_snv_input"]
@@ -102,6 +103,9 @@ RUN_VarScan_indel = expand(VarScan_indel + "/{cohort_wildcard}/{wildcard}.vcf", 
 RUN_Vardict = expand(DIR_Vardict + "/{cohort_wildcard}/{wildcard}.vcf", wildcard = samples, cohort_wildcard = cohort_name)
 REFORMAT_vardict_results = expand(DIR_Vardict + "/{cohort_wildcard}_reformatted/{wildcard}.tsv", wildcard = samples, cohort_wildcard = cohort_name)
 
+RUN_Mutect2 = expand(DIR_Mutect + "/raw/{cohort_wildcard}/{wildcard}_vcf.gz", wildcard = samples, cohort_wildcard = cohort_name)
+FILTER_Mutect2 = expand(DIR_Mutect + "/filtered/{cohort_wildcard}/{wildcard}_vcf.gz", wildcard = samples, cohort_wildcard = cohort_name)
+
 make_ANNOVAR_snv_input = expand(ANNOVAR_snv_input + "/{cohort_wildcard}/{wildcard}_anno.tsv", wildcard = samples, cohort_wildcard = cohort_name)
 make_ANNOVAR_indel_input = expand(ANNOVAR_indel_input + "/{cohort_wildcard}/{wildcard}_anno.tsv", wildcard = samples, cohort_wildcard = cohort_name)
 make_ANNOVAR_vardict_input = expand(ANNOVAR_Vardict_input + "/{cohort_wildcard}/{wildcard}_anno.tsv", wildcard = samples, cohort_wildcard = cohort_name)
@@ -141,15 +145,17 @@ rule all:
 		# RUN_mpileup,
 		# RUN_fastq_read_counts, 
 		# RUN_extract_markdup_perc,
-		RUN_varscan_snv, 
-		RUN_VarScan_indel, 
+		# RUN_varscan_snv, 
+		# RUN_VarScan_indel, 
+		RUN_Mutect2,
+		# FILTER_Mutect2,
 		# RUN_Vardict,
 		# REFORMAT_vardict_results,
-		make_ANNOVAR_snv_input,
-		make_ANNOVAR_indel_input,
+		# make_ANNOVAR_snv_input,
+		# make_ANNOVAR_indel_input,
 		# make_ANNOVAR_vardict_input,
-		run_ANNOVAR_snv,
-		run_ANNOVAR_indel, 
+		# run_ANNOVAR_snv,
+		# run_ANNOVAR_indel, 
 		# run_ANNOVAR_vardict,
 		# run_insert_size, 
 		# PDF_to_PNG,
