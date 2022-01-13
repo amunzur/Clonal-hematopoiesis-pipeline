@@ -48,6 +48,9 @@ ANNOVAR_snv_output: "results/data/annovar_outputs/snv"
 ANNOVAR_indel_output: "results/data/annovar_outputs/indel"
 ANNOVAR_Vardict_input: "results/data/annovar_inputs/vardict"
 ANNOVAR_Vardict_output: "results/data/annovar_outputs/vardict"
+ANNOVAR_GATK_input: "results/data/annovar_inputs/haplotype_caller"
+ANNOVAR_GATK_output: "results/data/annovar_outputs/haplotype_caller"
+
 
 # filtering varscan2 results using R, based on thresholds etc
 # PATH_SAVE_chip_variants: "results/variant_calling/VarScan2/finalized/{cohort_wildcard}/chip_variants.csv"
