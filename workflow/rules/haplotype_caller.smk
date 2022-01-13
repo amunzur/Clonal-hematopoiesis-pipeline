@@ -57,38 +57,11 @@ rule Genotype_vcf:
 			--read-filter AllowAllReadsReadFilter \
 			--output {output}'
 
-# Parse the vcf output to a tab delim file
-rule Genotype_vcf_to_table:
-	input:
-		DIR_Haplotype + "/GenotypeGVCFs/{wildcard}_genotyped.vcf.gz"
-	output: 
-		DIR_Haplotype + "/GenotypeGVCFs_table/{wildcard}.tsv"
-	shell:
-		'/home/amunzur/gatk-4.2.0.0/gatk VariantsToTable \
-			--variant {input} \
-			--output {output} \
-			-F CHROM -F POS -F REF -F ALT -F TYPE -GF GT -GF AD -GF DP -GF GQ -GF PL'
-
-# cleanup gatk output and output a annovar input file as well. 
-rule process_GATK: 
-	input:
-		DIR_Haplotype + "/GenotypeGVCFs_table/{wildcard}.tsv"
-	output: 
-		variants_reformatted = DIR_Haplotype + "/variants_reformatted/{wildcard}.tsv",
-		ANNOVAR_input = ANNOVAR_GATK_input + "/{wildcard}.tsv"
-	conda: 
-		"../envs/r_env_v2.yaml"
-	shell:
-		'Rscript /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/reformat_gatk.R \
-			--variants_table {input} \
-			--variants_reformatted {output.variants_reformatted} \
-			--ANNOVAR_GATK_input {output.ANNOVAR_input}'
-
 rule run_ANNOVAR_GATK: 
 	input: 
 		DIR_Haplotype + "/GenotypeGVCFs/{wildcard}_genotyped.vcf.gz"
 	output: 
-		ANNOVAR_GATK_output + "/{wildcard}.hg38_multianno.txt"
+		ANNOVAR_GATK_output + "/{wildcard}/anno.hg38_multianno.txt"
 	params: 
 		actual_output_file = ANNOVAR_GATK_output + "/{wildcard}"		
 	shell:
