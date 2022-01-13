@@ -3,7 +3,7 @@ import pandas as pd
 # snakemake --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch --exclude=cn[01-05] -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 40
 
 # single cohort approach
-cohort_name = "batch4"
+cohort_name = "batch5"
 PATH_to_samples = "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/" + cohort_name + ".tsv"
 configfile: "config/config.yaml"
 
@@ -67,8 +67,8 @@ ANNOVAR_indel_output = config["ANNOVAR_indel_output"]
 ANNOVAR_Vardict_input = config["ANNOVAR_Vardict_input"]
 ANNOVAR_Vardict_output = config["ANNOVAR_Vardict_output"]
 
-ANNOVAR_GATK_input: config["ANNOVAR_GATK_input"]
-ANNOVAR_GATK_output: config["ANNOVAR_GATK_output"]
+ANNOVAR_GATK_input = config["ANNOVAR_GATK_input"]
+ANNOVAR_GATK_output = config["ANNOVAR_GATK_output"]
 
 # figures 
 DIR_insertsize_figures = config["DIR_insertsize_figures"]
@@ -119,9 +119,7 @@ FILTER_Mutect2 = expand(DIR_Mutect + "/filtered/{cohort_wildcard}/{wildcard}_vcf
 RUN_Haplotype_caller = expand(DIR_Haplotype + "/GVCFs/{cohort_wildcard}/{wildcard}.g.vcf.gz", wildcard = samples, cohort_wildcard = cohort_name)
 RUN_genomics_DB = expand(DIR_Haplotype + "/Genomics_DB/{cohort_wildcard}", cohort_wildcard = cohort_name)
 RUN_genotype_vcfs = expand(DIR_Haplotype + "/GenotypeGVCFs/{cohort_wildcard}_genotyped.vcf.gz", cohort_wildcard = cohort_name)
-VCF_to_table = expand(DIR_Haplotype + "/GenotypeGVCFs_table/{cohort_wildcard}.tsv", cohort_wildcard = cohort_name)
-REFORMAT_GATK_results = [expand(DIR_Haplotype + "/variants_reformatted/{cohort_wildcard}.tsv", cohort_wildcard = cohort_name), \
-						 expand(ANNOVAR_GATK_input + "/{cohort_wildcard}.tsv", cohort_wildcard = cohort_name)]
+RUN_ANNOVAR_GATK = expand(ANNOVAR_GATK_output + "/{cohort_wildcard}/anno.hg38_multianno.txt", cohort_wildcard = cohort_name)
 
 make_ANNOVAR_snv_input = expand(ANNOVAR_snv_input + "/{cohort_wildcard}/{wildcard}_anno.tsv", wildcard = samples, cohort_wildcard = cohort_name)
 make_ANNOVAR_indel_input = expand(ANNOVAR_indel_input + "/{cohort_wildcard}/{wildcard}_anno.tsv", wildcard = samples, cohort_wildcard = cohort_name)
@@ -166,11 +164,10 @@ rule all:
 		# RUN_VarScan_indel, 
 		# RUN_Mutect2,
 		# FILTER_Mutect2,
-		# RUN_Haplotype_caller,
-		# RUN_genomics_DB,
-		# RUN_genotype_vcfs,
-		# VCF_to_table,
-		REFORMAT_GATK_results
+		RUN_Haplotype_caller,
+		RUN_genomics_DB,
+		RUN_genotype_vcfs,
+		RUN_ANNOVAR_GATK,
 		# RUN_Vardict,
 		# REFORMAT_vardict_results,
 		# make_ANNOVAR_snv_input,
