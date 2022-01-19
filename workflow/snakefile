@@ -176,7 +176,6 @@ rule all:
 		# REFORMAT_GATK_results,
 		# RUN_ANNOVAR_GATK,
 		# RUN_Vardict,
-		# REFORMAT_vardict_results,
 		MAKE_ANNOVAR_GATK_input,
 		# make_ANNOVAR_snv_input,
 		# make_ANNOVAR_indel_input,
