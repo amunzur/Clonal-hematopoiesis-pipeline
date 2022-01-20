@@ -10,6 +10,21 @@ parser$add_argument('--PATH_ANNOVAR_input', metavar='FILE', type='character', he
 
 args <- parser$parse_args()
 
+# Use the system command to unzip the haplotype caller vcf files into a new dir
+unzip_vcf <- function(PATH_vcf){
+
+	unzipped_dir <- paste0(dirname(PATH_vcf), "_unzipped")
+	command_to_copy <- paste("cp", dirname(PATH_vcf), unzipped_dir)
+	command_to_unzip <- paste("gunzip -r", unzipped_dir)
+
+	# Only run if the dir doesn't exist
+	if (!dir.exists(unzipped_dir)) {
+
+		system(command_to_copy)
+		system(command_to_unzip)
+	}
+}
+
 # reorganize such that in each row there is only one variant reported
 parse_locus_info <- function(PATH_vcf){
 	
@@ -26,7 +41,7 @@ parse_locus_info <- function(PATH_vcf){
 	vars <- tmp_vcf_data %>%
 		rename(CHROM = "#CHROM") %>%
 			select(CHROM, POS, REF, ALT)
-			
+
 	# find which rows have more than one variant, do separate_rows on them
 	idx <- grep(",", vars$ALT)
 	x <- vars[idx, ]
