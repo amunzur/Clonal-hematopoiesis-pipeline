@@ -1,6 +1,8 @@
 library(tidyverse)
 library(argparse)
 
+setwd("/groups/wyattgrp/users/amunzur/pipeline")
+
 parser <- ArgumentParser(description = "Make the input files for running ANNOVAR on files from GATK.")
 
 # passed from Snakemake into the script
@@ -13,9 +15,12 @@ args <- parser$parse_args()
 # Use the system command to unzip the haplotype caller vcf files into a new dir
 unzip_vcf <- function(PATH_vcf){
 
-	unzipped_dir <- paste0(dirname(PATH_vcf), "_unzipped")
-	command_to_copy <- paste("cp", dirname(PATH_vcf), unzipped_dir)
+	unzipped_dir <- file.path("/groups/wyattgrp/users/amunzur/pipeline", paste0(dirname(PATH_vcf), "_unzipped"))
+	command_to_copy <- paste("cp -r", file.path("/groups/wyattgrp/users/amunzur/pipeline", dirname(PATH_vcf)), unzipped_dir)
 	command_to_unzip <- paste("gunzip -r", unzipped_dir)
+
+	unzipped_vcf <- gsub(".gz", "", PATH_vcf)
+	unzipped_vcf <- gsub("GenotypeGVCFs", "GenotypeGVCFs_unzipped", unzipped_vcf)
 
 	# Only run if the dir doesn't exist
 	if (!dir.exists(unzipped_dir)) {
@@ -23,6 +28,8 @@ unzip_vcf <- function(PATH_vcf){
 		system(command_to_copy)
 		system(command_to_unzip)
 	}
+
+	return(unzipped_vcf)
 }
 
 # reorganize such that in each row there is only one variant reported
@@ -69,10 +76,20 @@ parse_variant_info <- function(PATH_vcf_table){
 
 	df <- df %>%
 			gather("sample_names", "read_depth", ends_with(".AD")) %>%
-			mutate(read_depth = sub(",", "_", read_depth), ALT = gsub("\\*", 0, ALT), sample_names = gsub("\\.AD", "", sample_names)) %>%
-			separate(col = read_depth, into = c("Ref_reads", "Alt_reads"), sep = "_") %>%
-			separate_rows(ALT, Alt_reads) %>%
-			mutate(Alt_reads = as.numeric(Alt_reads), Ref_reads = as.numeric(Ref_reads), VAF = Alt_reads/(Alt_reads + Ref_reads))
+			mutate(
+				read_depth = sub(",", "_", read_depth), 
+				ALT = gsub("\\*", 0, ALT), 
+				sample_names = gsub("\\.AD", "", sample_names)) %>%
+			separate(
+				col = read_depth, 
+				into = c("Ref_reads", "Alt_reads"), sep = "_") %>%
+			separate_rows(
+				ALT, 
+				Alt_reads) %>%
+			mutate(
+				Alt_reads = as.numeric(Alt_reads), 
+				Ref_reads = as.numeric(Ref_reads), 
+				VAF = Alt_reads/(Alt_reads + Ref_reads))
 
 	return(df)
 }
@@ -80,7 +97,7 @@ parse_variant_info <- function(PATH_vcf_table){
 # Parse the locus info to make ANNOVAR inputs 
 make_anno_input <- function(locus_info, ANNOVAR_input) {
 
-		locus_info$POS <- as.numeric(locus_info$POS)
+		# locus_info$POS <- as.numeric(locus_info$POS)
 		df <- locus_info %>%
 			mutate(
 				nchar_REF = nchar(REF), 
@@ -115,9 +132,11 @@ make_anno_input <- function(locus_info, ANNOVAR_input) {
 	write.table(df, ANNOVAR_input, sep="\t",  col.names = FALSE, row.names = FALSE, quote = FALSE)
 }
 
+
 MAIN <- function(PATH_ANNOVAR_input, PATH_vcf, PATH_vcf_table){
 
-	locus_info <- parse_locus_info(PATH_vcf) # each row is a variant 
+	unzipped_vcf <- unzip_vcf(PATH_vcf)
+	locus_info <- parse_locus_info(unzipped_vcf) # each row is a variant 
 	sample_info <- parse_variant_info(PATH_vcf_table) # each row is a sample
 
 	locus_info <- inner_join(locus_info, sample_info[, c("CHROM", "POS", "REF", "ALT", "TYPE")]) # add the type col to locus info
@@ -128,11 +147,11 @@ MAIN <- function(PATH_ANNOVAR_input, PATH_vcf, PATH_vcf_table){
 
 # INPUTS
 # cohort_name <- "batch4"
-# PATH_vcf <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Haplotype_caller/GenotypeGVCFs/test") # unzipped results
-# PATH_vcf_table <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Haplotype_caller/GenotypeGVCFs_table/batch4_OLD.tsv" # HaplotypeCaller results in table format
+# PATH_vcf <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Haplotype_caller/GenotypeGVCFs/batch5_genotyped.vcf.gz") # unzipped results
+# PATH_vcf_table <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Haplotype_caller/GenotypeGVCFs_table/batch4.tsv" # HaplotypeCaller results in table format
 # DIR_ANNOVAR_input <- "/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_inputs/haplotype_caller/"
 
 MAIN(
 	PATH_vcf = args$PATH_vcf, 
 	PATH_vcf_table = args$PATH_vcf_table, 
-	PATH_ANNOVAR_input = args$PATH_ANNOVAR_input){
+	PATH_ANNOVAR_input = args$PATH_ANNOVAR_input)
