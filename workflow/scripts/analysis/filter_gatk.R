@@ -1,7 +1,13 @@
 library(janitor)
 library(tidyverse)
+library(argparse)
 
-cohort_name <- "batch4"
+parser <- ArgumentParser(description = "Clean up the ANNOVAR results for GATK's HaplotypeCaller.")
+parser$add_argument('--cohort_name', metavar='FILE', type='character', help="Which batch are you trying to analyze?")
+args <- parser$parse_args()
+
+cohort_name <- args$cohort_name
+# cohort_name <- "batch5"
 variant_caller <- "gatk"
 
 THRESHOLD_ExAC_ALL <- 0.005
