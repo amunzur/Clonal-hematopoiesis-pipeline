@@ -102,7 +102,7 @@ subset_to_panel <- function(PATH_bed, variant_df) {
 
 	to_keep <- list() # list of positions to remove
 
-	print("Started subsetting to the panel.")
+	message("Started subsetting to the panel.")
 	i <- 1 
 	while (i <= dim(variant_df)[1]){
 		chrom_subsetted <- as.character(variant_df[i, 5]) # pick the chrom we are at 
