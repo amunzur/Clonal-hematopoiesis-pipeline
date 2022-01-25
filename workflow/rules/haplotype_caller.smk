@@ -57,16 +57,44 @@ rule Genotype_vcf:
 			--read-filter AllowAllReadsReadFilter \
 			--output {output}'
 
-rule run_ANNOVAR_GATK: 
-	input: 
+# Parse the vcf output to a tab delim file
+rule Genotype_vcf_to_table:
+	input:
 		DIR_Haplotype + "/GenotypeGVCFs/{wildcard}_genotyped.vcf.gz"
 	output: 
-		ANNOVAR_GATK_output + "/{wildcard}/anno.hg38_multianno.txt"
+		DIR_Haplotype + "/GenotypeGVCFs_table/{wildcard}.tsv"
+	shell:
+		'/home/amunzur/gatk-4.2.0.0/gatk VariantsToTable \
+			--variant {input} \
+			--output {output} \
+			-F CHROM -F POS -F REF -F ALT -F TYPE -GF GT -GF AD -GF DP -GF GQ -GF PL'
+
+# cleanup gatk output and output a annovar input file as well. Wildcard here represents the cohort
+rule make_ANNOVAR_gatk_input: 
+	input:
+		PATH_vcf = DIR_Haplotype + "/GenotypeGVCFs/{wildcard}_genotyped.vcf.gz",
+		PATH_vcf_table = DIR_Haplotype + "/GenotypeGVCFs_table/{wildcard}.tsv", 
+	output: 
+		PATH_ANNOVAR_input = ANNOVAR_GATK_input + "/{wildcard}.tsv"
+	conda: 
+		"../envs/r_env_v2.yaml"
+	shell:
+		'Rscript /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/make_anno_input_gatk.R \
+			--PATH_vcf {input.PATH_vcf} \
+			--PATH_vcf_table {input.PATH_vcf_table} \
+			--PATH_ANNOVAR_input {output}'
+
+rule run_ANNOVAR_GATK: 
+	input: 
+		ANNOVAR_GATK_input + "/{wildcard}.tsv"
+	output: 
+		ANNOVAR_GATK_output + "/{wildcard}/{wildcard}.hg38_multianno.txt"
 	params: 
-		actual_output_file = ANNOVAR_GATK_output + "/{wildcard}"		
+		actual_output_file = ANNOVAR_GATK_output + "/{wildcard}/{wildcard}"	
+	threads: 16	
 	shell:
 		'perl /groups/wyattgrp/software/annovar/annovar/table_annovar.pl {input} /groups/wyattgrp/software/annovar/annovar/humandb/ \
-			-vcfinput \
+			-thread {threads} \
 			-buildver hg38 \
 			-out {params.actual_output_file} \
 			-remove \
