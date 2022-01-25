@@ -93,19 +93,21 @@ add_depth <- function(DIR_depth_metrics, PATH_collective_depth_metrics, variant_
 
 subset_to_panel <- function(PATH_bed, variant_df) {
 	
+	variant_df$Chrom <- as.character(variant_df$Chrom)
+
 	bed <- as.data.frame(read.delim(PATH_bed, header = FALSE, sep = "\t"))
 
 	if (ncol(bed) == 4) {names(bed) <- c("chrom", "start", "stop", "gene")} else {names(bed) <- c("chrom", "start", "stop")}
+	bed$chrom <- as.character(bed$chrom)
 
 	to_keep <- list() # list of positions to remove
 
-	print("Subsetting to the panel.")
+	print("Started subsetting to the panel.")
 	i <- 1 
-	print(i)
 	while (i <= dim(variant_df)[1]){
-		chrom_subsetted <- variant_df[i, 5] # pick the chrom we are at 
-		location <- variant_df[i, 6] # pick the location we are at 
-		bed_subsetted <- bed %>% filter(chrom == chrom_subsetted) # subset the bed by chrom
+		chrom_subsetted <- as.character(variant_df[i, 5]) # pick the chrom we are at 
+		location <- as.character(variant_df[i, 6]) # pick the location we are at 
+		bed_subsetted <- bed %>% dplyr::filter(chrom == chrom_subsetted) # subset the bed by chrom
 
 		j <- 1
 		while(j <= dim(bed_subsetted)[1]) {
@@ -123,7 +125,9 @@ subset_to_panel <- function(PATH_bed, variant_df) {
 	i <- i + 1 # next identified variant
 
 	} # end of outer while loop - looping through identified variants
-
+	
+	to_print <- paste("Out of", nrow(variant_df), "variants", length(to_keep), "is retained as a part of the panel.")
+	message(to_print)
 	variant_df <- variant_df[unlist(to_keep), ]
 
 	return(variant_df)
