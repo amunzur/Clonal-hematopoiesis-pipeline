@@ -44,7 +44,6 @@ source(PATH_utilities_file) # functions shared between vardict and varscan
 source(PATH_utilities_file_gatk)
 
 bg <- read_delim(PATH_bg, delim = "\t") # background error rate file
-variant_caller <- "gatk"
 
 variants <- main(
             PATH_vcf_table, 
