@@ -1,61 +1,81 @@
 library(tidyverse)
 library(stringr)
+library(matrixStats)
 
-cohort_name <- "batch5"
+# To help with the joins later on
+identify_varcaller <- function(combined, varcaller_df, varcaller_name){
+
+	# select cols to avoid duplication after merge
+	varcaller_df <- varcaller_df %>%
+					select(
+						Sample_name,
+						Sample_type, 
+						Patient_ID, 
+						Cohort_name, 
+						Chrom, 
+						Position, 
+						Ref, 
+						Alt, 
+						Gene) %>%
+					mutate(variant_caller = TRUE)
+
+	names(varcaller_df)[ncol(varcaller_df)] <- paste(varcaller_name)
+	combined <- left_join(combined, varcaller_df)
+
+	return(combined)
+}
+
+cohort_name <- "batch2"
 varscan_PATH <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/VarScan2/finalized", cohort_name, "chip_variants.csv")
 vardict_PATH <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Vardict/finalized", cohort_name, "chip_variants.csv")
+gatk_PATH <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Haplotype_caller/finalized", cohort_name, "chip_variants.csv")
 
 varscan <- read_csv(varscan_PATH)
 vardict <- read_csv(vardict_PATH)
+gatk <- read_csv(gatk_PATH)
 
 varscan$variant_caller <- "Varscan"
 vardict$variant_caller <- "Vardict"
+gatk$variant_caller <- "gatk"
 
-# variants identified by both tools 
-vardict$Position <- as.character(vardict$Position)
-varscan$Position <- as.character(varscan$Position)
-both <- inner_join(varscan, vardict, by = c("Sample_name", "Chrom", "Position"))
-# both$variant_caller <- "Both"
+# subset to cols in gatk, that one doesn't have the extra columns
+varscan <- varscan[, colnames(gatk)]
+vardict <- vardict[, colnames(gatk)]
 
-both_varscan <- both[, -grep("\\.y", names(both))]
-names(both_varscan) <- names(varscan)
-varscan_only <- anti_join(varscan, vardict, by = c("Sample_name", "Chrom", "Position"))
-varscan_only$variant_caller <- "Varscan"
-both_varscan$variant_caller <- "Both"
+# rbind and drop duplicates, this helps curate a list of unique variants
+combined <- rbind(varscan, vardict, gatk)
+combined <- combined %>%
+			distinct(
+				Sample_name,
+				Sample_type, 
+				Patient_ID, 
+				Cohort_name, 
+				Chrom, 
+				Position, 
+				Ref, 
+				Alt, 
+				Gene,
+				.keep_all= TRUE) %>%
+			select(-variant_caller)
 
-both_vardict <- both[, -grep("\\.x", names(both))]
-names(both_vardict) <- gsub("\\.y", "", names(both_vardict))
-both_vardict <- select(both_vardict, names(both_varscan))
+combined <- identify_varcaller(combined, varscan, "varscan")
+combined <- identify_varcaller(combined, vardict, "vardict")
+combined <- identify_varcaller(combined, gatk, "gatk")
 
-# if dealing with batch1, consider a few more steps: 
-if (cohort_name == "new_chip_panel") {
+# further modifications
+counts_df <- as.matrix(combined[, (ncol(combined)-2):ncol(combined)])
+combined <- select(combined, -varscan, -vardict, -gatk)
 
-	both_vardict <- both_vardict %>% relocate(Sample_name_finland.y, .after = Sample_name)
-	both_vardict <- both_vardict %>% relocate(Patient_ID.y, .after = Sample_name_finland.y)
+counts_df <- replace_na(counts_df, FALSE)
+counts_vector <- as.vector(rowCounts(counts_df, value = TRUE)) # number of variant callers that called the variant
 
-} else {
+combined <- cbind(combined, as.data.frame(counts_df))
+combined$n_callers <- counts_vector
 
-	# both_vardict <- both_vardict %>% relocate(Patient_ID.y, .after = Sample_name)
+# to save
+PATH_to_save_csv <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined", cohort_name, "combined.csv")
+PATH_to_save_tsv <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined", cohort_name, "combined.tsv")
 
-}
-
-names(both_vardict) <- names(vardict)
-vardict_only <- anti_join(vardict, varscan, by = c("Sample_name", "Chrom", "Position"))
-vardict_only$variant_caller <- "Vardict"
-both_vardict$variant_caller <- "Both"
-
-varscan <- rbind(both_varscan, varscan_only)
-vardict <- rbind(both_vardict, vardict_only)
-combined <- rbind(both_varscan, varscan_only, vardict_only)
-
-varscan_tosave <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined", cohort_name, "varscan.csv")
-vardict_tosave <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined", cohort_name, "vardict.csv")
-combined_tosave <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined", cohort_name, "combined.csv")
-
-dir.create(dirname(varscan_tosave))
-dir.create(dirname(vardict_tosave))
-dir.create(dirname(combined_tosave))
-
-write_csv(varscan, varscan_tosave)
-write_csv(vardict, vardict_tosave)
-write_csv(combined, combined_tosave)
+dir.create(dirname(PATH_to_save_csv))
+write_csv(combined, PATH_to_save_csv)
+write_delim(combined, PATH_to_save_tsv, delim = "\t")
