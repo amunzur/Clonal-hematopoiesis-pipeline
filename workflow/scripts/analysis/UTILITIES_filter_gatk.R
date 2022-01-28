@@ -77,7 +77,7 @@ normalize_ref_alt <- function(variant_df, sample_info){
 	
 	variant_df <- variant_df[, -which(names(variant_df) %in% c("Ref", "Alt"))]
 	variant_df <- variant_df %>% 
-						inner_join(sample_info) %>%
+						left_join(sample_info) %>%
 						select(
 							"Sample_name", 
 							"Sample_type", 
@@ -99,7 +99,9 @@ normalize_ref_alt <- function(variant_df, sample_info){
 							"Variant", 
 							"Error_rate", 
 							"VAF_bg_ratio", 
-							"Total_reads")
+							"Total_reads", 
+							"Duplicate", 
+							"Depth")
 
 	return(variant_df)
 }
@@ -149,7 +151,9 @@ main <- function(
 
 	combined <- combined %>%
 						mutate(Total_reads = Ref_reads + Alt_reads, 
-								VAF_bg_ratio = VAF/error_rate) %>%
+								VAF_bg_ratio = VAF/error_rate, 
+								ExAC_ALL = replace_na(as.numeric(ExAC_ALL), 0), 
+								gnomAD_exome_ALL = replace_na(as.numeric(gnomAD_exome_ALL), 0)) %>%
 						select(Sample_name, Sample_type, patient_id, Cohort_name, Chr, Start, Ref, Alt, VAF, Ref_reads, Alt_reads, Func.refGene, Gene.refGene, AAChange.refGene, Protein_annotation, Effects, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads) %>%
 						filter(ExAC_ALL <= THRESHOLD_ExAC_ALL, 
 								Func.refGene != VALUE_Func_refGene,
