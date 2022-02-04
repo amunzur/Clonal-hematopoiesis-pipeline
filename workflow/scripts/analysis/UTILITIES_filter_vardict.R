@@ -9,12 +9,50 @@ return_vardict_output <- function(DIR_vardict) {
 
 }
 
+return_anno_output_vardict <- function(PATH_ANNOVAR) {
+
+	df_scrap <- as.data.frame(read_delim(PATH_ANNOVAR, delim = "\t"))
+	col_names_vector <- c(names(df_scrap)[1:118], "x1", "x2", "x3", "CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", gsub(".hg38_multianno.txt", "", basename(PATH_ANNOVAR)))
+
+	info_col_names <- c("SAMPLE", "TYPE", "DP", "VD", "AF", "BIAS", "REFBIAS", "VARBIAS", "PMEAN", "PSTD", "QUAL", "QSTD", "SBF", "ODDRATIO", "MQ", "SN", "HIAF", "ADJAF", "SHIFT3", "MSI", "MSILEN", "NM", "HICNT", "HICOV", "LSEQ", "RSEQ", "DUPRATE", "SPLITREAD", "SPANPAIR")
+	format_col_names <- c("GT", "DP", "VD", "AD", "AF", "RD", "ALD")
+
+	df_main <- read_delim(
+					PATH_ANNOVAR, 
+					delim = "\t", 
+					col_names = col_names_vector) %>%
+			   select(Chr, Start, Ref, Alt, Func.refGene, Gene.refGene, Func.knownGene, Gene.knownGene, AAChange.refGene, ExAC_ALL, FILTER, gnomAD_exome_ALL, INFO, gsub(".hg38_multianno.txt", "", basename(PATH_ANNOVAR))) %>%
+				rename(
+					FORMAT_values = gsub(".hg38_multianno.txt", "", 
+					basename(PATH_ANNOVAR))) %>%
+				separate(
+					col = INFO, 
+					sep = ";",	
+					into = info_col_names, 
+					remove = FALSE) %>%
+				separate(
+					col = FORMAT_values, 
+					sep = ":",	
+					into = format_col_names, 
+					remove = FALSE) %>%
+				mutate(across(info_col_names, gsub, pattern = ".*=", replacement = "")) %>%
+				separate(col = RD, sep = ",", into = c("REF_Fw", "REF_Rv"), remove = TRUE) %>%
+				separate(col = ALD, sep = ",", into = c("ALT_Fw", "ALT_Rv"), remove = TRUE) %>%
+  			    select(SAMPLE, Chr, Start, Ref, Alt, AF, DP, VD, MQ, TYPE, FILTER, SBF, ODDRATIO, Func.refGene, Gene.refGene, Func.knownGene, Gene.knownGene, AAChange.refGene, ExAC_ALL, gnomAD_exome_ALL, REF_Fw, REF_Rv, ALT_Fw, ALT_Rv)
+
+	names(df_main) <- c("Sample_name", "Chr", "Start", "Ref", "Alt", "VarFreq", "Reads1", "Reads2", "Mapping_quality", "variant", "FILTER", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "Func.refGene", "Gene.refGene", "Func.knownGene", "Gene.knownGene", "AAChange.refGene", "ExAC_ALL", "gnomAD_exome_ALL", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv")
+	df_main$variant <- tolower(df_main$variant)
+
+	return(df_main)
+
+}
+
 # do a merge based on column to combine metadata 
-combine_anno_vardict <- function(DIR_vardict, DIR_ANNOVAR) {
+parse_anno_output <- function(DIR_ANNOVAR) {
 
 	# determine which dir to scan based on the cariant_type given
 
-	anno_df_list <- lapply(as.list(list.files(DIR_ANNOVAR, full.names = TRUE, pattern = "\\.hg38_multianno.txt$")), return_anno_output)
+	anno_df_list <- lapply(as.list(list.files(DIR_ANNOVAR, full.names = TRUE, pattern = "\\.hg38_multianno.txt$")), return_anno_output_vardict)
 	anno_df <- as.data.frame(do.call(rbind, anno_df_list)) %>%
 				mutate(Sample_name = gsub(".hg38_multianno.txt", "", Sample_name), 
 						Start = as.character(Start)) 
@@ -23,7 +61,7 @@ combine_anno_vardict <- function(DIR_vardict, DIR_ANNOVAR) {
 	vardict_df <- do.call(rbind, vardict_df_list) %>%
 				mutate(Start = as.character(Start)) 
 
-	combined <- left_join(vardict_df, anno_df, by = c("Sample_name", "Chr", "Start")) %>%
+	combined <- left_join(vardict_df, anno_df, by = c("Sample_name", "Chr", "Start", "Ref", "Alt")) %>%
 					mutate(Ref = vardict_df$Ref, 
 						Alt = vardict_df$Alt,
 						ExAC_ALL = replace_na(as.numeric(ExAC_ALL), 0), 
