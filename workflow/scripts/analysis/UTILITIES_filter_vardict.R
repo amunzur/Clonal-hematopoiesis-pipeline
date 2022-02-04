@@ -57,22 +57,7 @@ parse_anno_output <- function(DIR_ANNOVAR) {
 				mutate(Sample_name = gsub(".hg38_multianno.txt", "", Sample_name), 
 						Start = as.character(Start)) 
 
-	vardict_df_list <- lapply(as.list(list.files(DIR_vardict, full.names = TRUE, pattern = "\\.tsv$")), return_vardict_output)
-	vardict_df <- do.call(rbind, vardict_df_list) %>%
-				mutate(Start = as.character(Start)) 
-
-	combined <- left_join(vardict_df, anno_df, by = c("Sample_name", "Chr", "Start", "Ref", "Alt")) %>%
-					mutate(Ref = vardict_df$Ref, 
-						Alt = vardict_df$Alt,
-						ExAC_ALL = replace_na(as.numeric(ExAC_ALL), 0), 
-						gnomAD_exome_ALL = replace_na(as.numeric(gnomAD_exome_ALL), 0))
-
-	combined$Ref.x <- NULL
-	combined$Alt.x <- NULL
-	combined$Ref.y <- NULL
-	combined$Alt.y <- NULL
-
-	return(combined)
+	return(anno_df)
 
 }
 
