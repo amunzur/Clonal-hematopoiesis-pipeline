@@ -62,7 +62,7 @@ rule extract_UMIs:
 		R1_extracted = DIR_extracted_fastq + "/{cohort_wildcard}/{wildcard}_R1_extracted.fastq",
 		R2_extracted = DIR_extracted_fastq + "/{cohort_wildcard}/{wildcard}_R2_extracted.fastq"
 	conda: 
-		"envs/umi_tools.yaml"
+		"../envs/umi_tools.yaml" # two dots here because it starts in the workflow/rules directory. To go to envs we need to jump up one directory first.
 	shell:
 		"umi_tools extract \
 							--ignore-read-pair-suffixes \
