@@ -37,9 +37,10 @@ These scripts are used in various steps of the pipeline:
 ### Before running the pipeline
 The pipeline needs a couple files to be present before it can start processing the files. These files need to be present for each batch, and they are: 
 1. A text outlining the sample names, each sample name should be in a new line. 
-2. Dummy files for raw FastQs. Sometimes the files come already merged from the sequencer, but these empty dummy files need to be created so that Snakemake doesn't complain about missing input files. `workflow/scripts/analysis/create_dummy_files.py` uses the identifier excel sheets to create these files. 
+2. Dummy files for raw FastQs. Sometimes the files come already merged from the sequencer, but these empty dummy files need to be created so that Snakemake doesn't complain about missing input files. `workflow/scripts/analysis/create_dummy_files.py` uses the identifier excel sheets to create these files. NOTE TO SELF: This is no longer needed.
+3. The raw FastQs from the sequencer MUST BE UNZIPPED and placed into the `results/data/fastq/raw/batch#` directory. The first step of the pipeline, renaming the fastq files and later on merging, treats them as regular text files. 
 
 ### Renaming FastQ files
 Before we can do any analysis on the data, the raw FastQ files from the sequencer need to be renamed, that is the molecular identifiers in the file names need to be
 match with the sample names. We use the identifier sheets found in `workflow/results/identifiers`. Scripts that are not a part of the pipeline (yet!) process the 
-molecular IDs and rename the files accordingly. This process consists of finding the reverse compliment of the second barcode and matching it with the sequencing id. 
+molecular IDs and rename the files accordingly. This process consists of finding the reverse compliment of the second barcode and matching it with the sequencing id. The FastQ files with modified names are saved to `results/data/fastq/raw/batch#` for further processing. 
