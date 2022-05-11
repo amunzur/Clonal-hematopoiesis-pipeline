@@ -9,12 +9,12 @@ rule align_sort:
 		min_mapping_quality = 20,
 		bitwise_flag = 12, # remove if the read and the mate is unmapped
 	output:
-		SORTED_bam = DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam",
+		DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam"
 	threads: 12
 	shell:
 		"bwa mem -t {threads} {input.PATH_hg38} {input.pair1} {input.pair2} | \
 		samtools view -h -q {params.min_mapping_quality} -F {params.bitwise_flag} - | \
-		samtools sort -o {output.SORTED_bam}"
+		samtools sort -o {output}"
 
 rule PICARD_fixmate:
 	input: 
@@ -53,9 +53,19 @@ rule dedup_UMITOOLS:
 		DEDUP_metrics3 = DIR_dedup_metrics + "/{cohort_wildcard}/{wildcard}_per_umi.tsv"
 	threads: 12
 	conda: 
-		"envs/umi_tools.yaml"
+		"../envs/umi_tools.yaml" # two dots here because it starts in the workflow/rules directory. To go to envs we need to jump up one directory first.
 	shell:
 		"umi_tools dedup -I {input} --output-stats={params.DEDUP_metrics_general} -S {output.DEDUP_bam}"
+
+# runs matti's sam_mark_duplicates tool on the sorted bams
+rule dedup_sam_mark_duplicates: 
+	input:
+		DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam"
+	output: 
+		DIR_bams + "/{cohort_wildcard}/sam_mark_duplicates/{wildcard}.bam"
+	threads: 12
+	shell: 
+		"sam_mark_duplicates {input} > {output}"
 
 # Add read groups after removing duplicates
 rule add_read_groups_PICARD: 
