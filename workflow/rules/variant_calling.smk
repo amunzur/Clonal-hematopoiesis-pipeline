@@ -96,7 +96,7 @@ rule run_ANNOVAR_indel:
 			-remove \
 			-protocol refGene,knownGene,avsnp147,exac03,cosmic70,clinvar_20170130,kaviar_20150923,gnomad_exome,dbnsfp33a,dbscsnv11,hrcr1,mcap,revel \
 			-operation g,g,f,f,f,f,f,f,f,f,f,f,f \
-			-nastring . && paste <(cut -f1-4 {output.ANNOVAR_indel_output}) <(cut -f19 {input.VarScan_indel}) <(cut -f6- {output.ANNOVAR_indel_output}) > {params.temp_output_file} && \
+			-nastring . && \
 			rm {output.ANNOVAR_indel_output} && \
 			mv {params.temp_output_file} {output.ANNOVAR_indel_output} && \
 			perl -pi -e s/VarAllele/Alt/g {output.ANNOVAR_indel_output}'
@@ -132,13 +132,14 @@ rule make_ANNOVAR_Vardict_input:
 
 rule run_ANNOVAR_vardict: 
 	input: 
-		ANNOVAR_Vardict_input + "/{cohort_wildcard}/{wildcard}_anno.tsv"
+		DIR_Vardict + "/{cohort_wildcard}/{wildcard}.vcf"
 	output: 
 		ANNOVAR_Vardict_output + "/{cohort_wildcard}/{wildcard}.hg38_multianno.txt"
 	params: 
 		actual_output_file = ANNOVAR_Vardict_output + "/{cohort_wildcard}/{wildcard}"		
 	shell:
 		'perl /groups/wyattgrp/software/annovar/annovar/table_annovar.pl {input} /groups/wyattgrp/software/annovar/annovar/humandb/ \
+			-vcfinput \
 			-buildver hg38 \
 			-out {params.actual_output_file} \
 			-remove \
@@ -157,6 +158,51 @@ rule reformat_vardict_results:
 		'Rscript --silent --slave /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/reformat_vardict.R\
 			--PATH_Vardict_output {input} \
 			--PATH_Vardict_reformatted {output}'
+
+rule run_Mutect:
+	input:
+		SC_bam = DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam"
+	output: 
+		vcf = DIR_Mutect + "/raw/{cohort_wildcard}/{wildcard}_vcf.gz",
+		stats = DIR_Mutect + "/raw/{cohort_wildcard}/{wildcard}_vcf.gz.stats",
+		index = DIR_Mutect + "/raw/{cohort_wildcard}/{wildcard}_vcf.gz.tbi"
+	params: 
+		PATH_hg38 = PATH_hg38
+	threads: 12
+	shell:
+		"/home/amunzur/gatk-4.2.0.0/gatk Mutect2 \
+        -R {params.PATH_hg38} \
+        -I {input} \
+        -O {output.vcf} \
+    	-max-af 0.00001 \
+    	--f1r2-median-mq 10 \
+    	--f1r2-min-bq 10 \
+    	--read-filter AllowAllReadsReadFilter"
+
+rule filter_Mutect:
+	input:
+		vcf = DIR_Mutect + "/raw/{cohort_wildcard}/{wildcard}_vcf.gz",
+		PATH_hg38 = PATH_hg38
+	output: 
+		vcf_fil = DIR_Mutect + "/filtered/{cohort_wildcard}/{wildcard}_vcf.gz",
+		stats_fil = DIR_Mutect + "/filtered/{cohort_wildcard}/{wildcard}_vcf.gz.stats",
+		index_fil = DIR_Mutect + "/filtered/{cohort_wildcard}/{wildcard}_vcf.gz.idx"
+	params: 
+		DIR_Mutect + "/{cohort_wildcard}/{wildcard}"
+	threads: 12
+	shell:
+		"/home/amunzur/gatk-4.2.0.0/gatk FilterMutectCalls \
+    	-R {input.PATH_hg38} \
+    	-V {input.vcf} \
+    	-O {output.vcf_fil} \
+    	--min-median-base-quality 10 \
+    	--min-median-mapping-quality 10 \
+    	--min-slippage-length 15 \
+    	--verbosity INFO"
+
+
+
+
 
 # rule make_IGV_snapshot_script:
 # 	input: 
