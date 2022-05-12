@@ -17,11 +17,27 @@ args <- parser$parse_args()
 # works on only one path. parallelize using lapply.
 make_anno_input <- function(PATH_VarScan_indel, ANNOVAR_indel_input) {
 
+# come back to this later to make this piece of code more readable
+	df_main <- varscan_df %>%
+		mutate(
+			Var_type = case_when(
+				grepl("-", Alt) ~ "DEL", 
+				grepl("+", Alt) ~ "INS",
+				TRUE ~ "FUCK"), 
+			Alt = gsub("\\+|-", "", Alt), # remove - and + signs
+			Alt = ifelse(Var_type == "DEL", "-", Alt), # if DEL, alt allele must be -. Otherwise (insertion) alt column doesnt change
+			Ref = ifelse(Var_type == "INS", "-", Ref), # if INS the ref becomes -. Otherwise (DEL) it stays the same.
+			Start = ifelse(Var_type == "DEL", as.numeric(Start) + 1, as.numeric(Start)), # if DEL, add 1 to pos
+			End = ifelse(Var_type == "DEL", as.numeric(Start) + nchar(Alt) - 1, as.numeric(Start))) %>% # if DEL we add 1 to the start  
+		rename(Chrom = Chr) %>%
+		select(Chrom, Start, End, Ref, Alt)
+
+	
 	df_main <- as.data.frame(read.delim(PATH_VarScan_indel)) %>%
 			mutate(
 				Var_type = case_when(
-					grepl("-", VarAllele) ~ "DEL", 
-					grepl("+", VarAllele) ~ "INS",
+					grepl("\\-", VarAllele) ~ "DEL", 
+					grepl("\\+", VarAllele) ~ "INS",
 					TRUE ~ "FUCK"), 
 				VarAllele = gsub("\\+|-", "", VarAllele))
 
