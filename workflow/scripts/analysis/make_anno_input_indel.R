@@ -23,9 +23,9 @@ make_anno_input <- function(PATH_VarScan_indel, ANNOVAR_indel_input) {
 				grepl("-", VarAllele) ~ "DEL", 
 				grepl("+", VarAllele) ~ "INS",
 				TRUE ~ "FUCK"), 
-			VarAllele = gsub("\\+|-", "", VarAllele), # remove - and + signs
-			VarAllele = ifelse(Var_type == "DEL", "-", VarAllele), # if DEL, alt allele must be -. Otherwise (insertion) alt column doesnt change
-			Ref = ifelse(Var_type == "INS", "-", Ref), # if INS the ref becomes -. Otherwise (DEL) it stays the same.
+			VarAllele = gsub("\\+|-", "", VarAllele), # remove - and + signs from the Alt allele
+			VarAllele = ifelse(Var_type == "DEL", "-", VarAllele), # if DEL, alt allele must be -. Otherwise (insertion) alt column doesn't change
+			Ref = ifelse(Var_type == "INS", "-", as.character(Ref)), # if INS the ref becomes -. Otherwise (DEL) it stays the same.
 			Start = Position, 
 			Start = ifelse(Var_type == "DEL", as.numeric(Position) + 1, as.numeric(Position)), # if DEL, add 1 to pos
 			End = ifelse(Var_type == "DEL", as.numeric(Start) + nchar(VarAllele) - 1, as.numeric(Start))) %>% # if DEL we add 1 to the start  
