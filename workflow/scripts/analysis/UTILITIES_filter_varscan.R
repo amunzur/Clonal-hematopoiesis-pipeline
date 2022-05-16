@@ -10,6 +10,24 @@ return_varscan_output <- function(PATH_varscan) {
 
 }
 
+# This helps put the varscan output for indels in the same format as vardict so that they are consistent. 
+# This also helps when merging the annovar outputs with the varscan indels
+modify_varscan_output <- function(varscan_df) {
+
+	df_main <- varscan_df %>%
+			mutate(
+				Var_type = case_when(
+					grepl("-", Alt) ~ "DEL", 
+					grepl("+", Alt) ~ "INS",
+					TRUE ~ "FUCK"), 
+				Alt = gsub("\\+|-", "", Alt), 
+				Alt = ifelse(Var_type == "DEL", "-", Alt),
+				Start = as.numeric(Start) + 1, 
+				Ref = ifelse(Var_type == "INS", "-", Ref))
+
+	return(df_main)
+}
+ 
 # do a merge based on column to combine metadata 
 combine_anno_varscan <- function(DIR_varscan_snv, DIR_varscan_indel, ANNOVAR_snv_output, ANNOVAR_indel_output, variant_type) {
 
@@ -23,11 +41,15 @@ combine_anno_varscan <- function(DIR_varscan_snv, DIR_varscan_indel, ANNOVAR_snv
 	anno_df_list <- lapply(as.list(list.files(DIR_ANNOVAR, full.names = TRUE, pattern = "\\.hg38_multianno.txt$")), return_anno_output)
 	anno_df <- as.data.frame(do.call(rbind, anno_df_list)) %>%
 				mutate(Sample_name = gsub(".hg38_multianno.txt", "", Sample_name), 
-						Start = as.character(Start)) 
+						Start = as.character(Start))
+
+	# anno_df <- anno_df[complete.cases(anno_df[, c('Chr')]), ]
 
 	varscan_df_list <- lapply(as.list(list.files(DIR_varscan, full.names = TRUE, pattern = "\\.vcf$")), return_varscan_output)
 	varscan_df <- do.call(rbind, varscan_df_list) %>%
 				mutate(Start = as.character(Start)) 
+
+	varscan_df <- modify_varscan_output(varscan_df)
 
 	# if (variant_type == "indel"){
 	# 	varscan_df$Alt <- gsub("\\+", "", varscan_df$Alt)
