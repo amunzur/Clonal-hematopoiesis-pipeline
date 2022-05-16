@@ -18,19 +18,22 @@ args <- parser$parse_args()
 make_anno_input <- function(PATH_VarScan_indel, ANNOVAR_indel_input) {
 
 	df_main <- as.data.frame(read.delim(PATH_VarScan_indel)) %>%
+		select(Chrom, Position, Cons) %>%
+		rename(
+			Ref = Cons, 
+			Start = Position) %>%
 		mutate(
 			Var_type = case_when(
-				grepl("-", VarAllele) ~ "DEL", 
-				grepl("+", VarAllele) ~ "INS",
+				grepl("-", Ref) ~ "DEL", 
+				grepl("+", Ref) ~ "INS",
 				TRUE ~ "FUCK"), 
-			VarAllele = gsub("\\+|-", "", VarAllele), # remove - and + signs from the Alt allele
-			VarAllele = ifelse(Var_type == "DEL", "-", VarAllele), # if DEL, alt allele must be -. Otherwise (insertion) alt column doesn't change
-			Ref = ifelse(Var_type == "INS", "-", as.character(Ref)), # if INS the ref becomes -. Otherwise (DEL) it stays the same.
-			Start = Position, 
-			Start = ifelse(Var_type == "DEL", as.numeric(Position) + 1, as.numeric(Position)), # if DEL, add 1 to pos
-			End = ifelse(Var_type == "DEL", as.numeric(Start) + nchar(VarAllele) - 1, as.numeric(Start))) %>% # if DEL we add 1 to the start  
-		rename(Alt = VarAllele) %>%
-		select(Chrom, Start, End, Ref, Alt)
+			Start = as.numeric(Start) + 1,
+			Ref = gsub("[[:punct:]]", "", Ref), 
+			Alt = Ref,
+			Alt = ifelse(Var_type == "DEL", "-", Alt), 
+			Ref = ifelse(Var_type == "INS", "-", Ref), 
+			End = Start + nchar(Ref) - 1) %>%
+		select(Chrom, Start, End, Ref, Alt)			
 
 	write.table(df_main, ANNOVAR_indel_input, sep="\t", col.names=FALSE, row.names=FALSE, quote = FALSE)
 }
