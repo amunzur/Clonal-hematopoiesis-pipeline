@@ -44,3 +44,6 @@ The pipeline needs a couple files to be present before it can start processing t
 Before we can do any analysis on the data, the raw FastQ files from the sequencer need to be renamed, that is the molecular identifiers in the file names need to be
 match with the sample names. We use the identifier sheets found in `workflow/results/identifiers`. Scripts that are not a part of the pipeline (yet!) process the 
 molecular IDs and rename the files accordingly. This process consists of finding the reverse compliment of the second barcode and matching it with the sequencing id. The FastQ files with modified names are saved to `results/data/fastq/raw/batch#` for further processing. 
+
+### Log files
+Logs from Snakemake are saved to `results/logs_slurm`. The subdirectories here are the names of the rules, and the name of the actual text file is the name of the sample. Before running Snakemake through Slurm, make a new directory here manually with the name of the rule.
