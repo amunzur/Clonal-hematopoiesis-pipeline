@@ -3,27 +3,33 @@ return_varscan_output <- function(PATH_varscan) {
 	df_main <- as.data.frame(suppress_messages(read_delim(PATH_varscan, delim = "\t"))) 
 	df <- df_main %>%
 			mutate(Sample_name = gsub(".vcf", "", basename(PATH_varscan))) %>%
-			rename(Chr = Chrom, Start = Position, Alt = VarAllele) %>%
-			filter(!str_detect(Alt, 'N')) 	# Drop variants if the called variant has an "N" in it. 
-
+			rename(Chr = Chrom, Start = Position, Alt = VarAllele)
+			
 	return(df)
 
 }
 
 # This helps put the varscan output for indels in the same format as vardict so that they are consistent. 
 # This also helps when merging the annovar outputs with the varscan indels
+# Very similar to the make anno indel function.
 modify_varscan_output <- function(varscan_df) {
 
 	df_main <- varscan_df %>%
-			mutate(
-				Var_type = case_when(
-					grepl("-", Alt) ~ "DEL", 
-					grepl("+", Alt) ~ "INS",
-					TRUE ~ "FUCK"), 
-				Alt = gsub("\\+|-", "", Alt), 
-				Alt = ifelse(Var_type == "DEL", "-", Alt),
-				Start = as.numeric(Start) + 1, 
-				Ref = ifelse(Var_type == "INS", "-", Ref))
+		select(-Ref) %>% # we remove this, to regenerate it based on the Cons column
+		rename(Ref = Cons) %>%
+		mutate(
+			variant_type = case_when(
+				grepl("-", Ref) ~ "deletion", 
+				grepl("+", Ref) ~ "insertion",
+				TRUE ~ "FUCK"), # a little moment of frustration
+			Start = ifelse(variant_type == "deletion", as.numeric(Start) + 1, as.numeric(Start)), # if DELETION, add 1 to the position. INS positions stay the way they are.
+			Ref = basename(as.character(Ref)), # to remove everything before the slash
+			Ref = gsub("[[:punct:]]", "", Ref), # consider everything but the punctuation, this one removes + and - signs from the ALT allele
+			Alt = Ref,
+			Alt = ifelse(variant_type == "deletion", "-", Alt), 
+			Ref = ifelse(variant_type == "insertion", "-", Ref), 
+			End = Start + nchar(Ref) - 1, 
+			Start = as.character(Start))
 
 	return(df_main)
 }
@@ -43,11 +49,8 @@ combine_anno_varscan <- function(DIR_varscan_snv, DIR_varscan_indel, ANNOVAR_snv
 				mutate(Sample_name = gsub(".hg38_multianno.txt", "", Sample_name), 
 						Start = as.character(Start))
 
-	# anno_df <- anno_df[complete.cases(anno_df[, c('Chr')]), ]
-
 	varscan_df_list <- lapply(as.list(list.files(DIR_varscan, full.names = TRUE, pattern = "\\.vcf$")), return_varscan_output)
-	varscan_df <- do.call(rbind, varscan_df_list) %>%
-				mutate(Start = as.character(Start)) 
+	varscan_df <- do.call(rbind, varscan_df_list)
 
 	varscan_df <- modify_varscan_output(varscan_df)
 
@@ -55,7 +58,7 @@ combine_anno_varscan <- function(DIR_varscan_snv, DIR_varscan_indel, ANNOVAR_snv
 	# 	varscan_df$Alt <- gsub("\\+", "", varscan_df$Alt)
 	# 	varscan_df$Alt[grep("-", varscan_df$Alt)] <- "-"}
 
-	combined <- left_join(varscan_df, anno_df, by = c("Sample_name", "Chr", "Start", "Alt")) %>%
+	combined <- left_join(varscan_df, anno_df, by = c("Sample_name", "Chr", "Start", "Ref", "Alt")) %>%
 					mutate(ExAC_ALL = replace_na(as.numeric(ExAC_ALL), 0), 
 						gnomAD_exome_ALL = replace_na(as.numeric(gnomAD_exome_ALL), 0))
 					
@@ -101,10 +104,11 @@ evaluate_strandBias <- function(variants_df){
 
 	minifunction <- function(some_row) {
 		
-		dat <- matrix(c(as.numeric(some_row[15]), 
-						as.numeric(some_row[17]), 
-						as.numeric(some_row[16]), 
-						as.numeric(some_row[18])), nrow = 2, ncol = 2, byrow = FALSE)
+		dat <- matrix(c(as.numeric(some_row[14]), #Reads1Plus
+						as.numeric(some_row[16]), #Reads2Plus
+						as.numeric(some_row[15]), #Reads1Minus
+						as.numeric(some_row[17])),#Reads2Minus
+						nrow = 2, ncol = 2, byrow = FALSE)
 
 		dimnames(dat) <- list(c("Ref", "Alt"), c("Forward", "Reverse"))
 
@@ -149,10 +153,8 @@ MAIN <- function(cohort_name,
 	variant_caller = variant_caller # so that the function doesnt complain this argument isn't used
 	combined <- combine_anno_varscan(DIR_varscan_snv, DIR_varscan_indel, ANNOVAR_snv_output, ANNOVAR_indel_output, variant_type) # add annovar annots to the varscan outputs
 
-	# add a new col to show if we have an indel or an snv
-	if (variant_type == "indel") {combined$variant <- ifelse(unlist(str_match(combined$Alt, "\\-|\\+")[, 1]) == "-", "deletion", "insertion")} else {
-		combined$variant <- "snv"
-	}
+	# add a new col to show if we have an snv, for indels we add this annotation in the modify_varscan_output function
+	if (variant_type == "snv") {combined$variant <- "snv"} 
 
 	combined <- add_patient_id(combined, cohort_name)
 	combined <- add_bg_error_rate(combined, bg) 
