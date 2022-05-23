@@ -209,32 +209,8 @@ MAIN <- function(cohort_name,
 										TRUE ~ "OK"), 
 								Position = as.numeric(Position))
 
-	# if (cohort_name == "new_chip_panel") {
-
-	# 	# add the sample ID from the finland bams
-	# 	finland_sample_IDs <- gsub(".bam", "", grep("*.bam$", list.files(DIR_finland_bams), value = TRUE))
-	# 	combined$Sample_name_finland <- unlist(lapply(as.list(gsub("GUBB", "GU", combined$Patient_ID)), function(x) grep(x, finland_sample_IDs, value = TRUE)))
-	# 	combined <- combined %>% relocate(Sample_name_finland, .after = Sample_name)
-	
-		# write_csv(combined, "/groups/wyattgrp/users/amunzur/pipeline/results/temp/snv_varscan_combined.csv")
-		# write_csv(combined, "/groups/wyattgrp/users/amunzur/pipeline/results/temp/indel_varscan_combined.csv")
-		# combined <- read_csv("/groups/wyattgrp/users/amunzur/pipeline/results/temp/snv_varscan_combined.csv")
-		# combined <- read_csv("/groups/wyattgrp/users/amunzur/pipeline/results/temp/indel_varscan_combined.csv")
-	
-		# message("Filtering tnvstats right now.")
-		# filtered_tnvstats <- filter_tnvstats_by_variants(
-		# 						variants_df = combined, 
-		# 						DIR_tnvstats = DIR_tnvstats, 
-		# 						PATH_temp = file.path(DIR_temp, paste(variant_caller, paste0(var_type, ".tsv"), sep = "_")), 
-		# 						PATH_filter_tnvstats_script = PATH_filter_tnvstats_script, 
-		# 						identifier = paste(variant_caller, var_type, sep = "_"))
-	
-		# combined <- add_finland_readcounts(combined, filtered_tnvstats, variant_caller)
-
 	# Check for duplicated rows just before returning the object.
 	combined <- check_duplicated_rows(combined, TRUE)
-
-	}
 
 	return(combined)
 } # end of function
