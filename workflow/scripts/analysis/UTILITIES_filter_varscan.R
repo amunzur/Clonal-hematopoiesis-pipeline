@@ -12,26 +12,34 @@ return_varscan_output <- function(PATH_varscan) {
 # This helps put the varscan output for indels in the same format as vardict so that they are consistent. 
 # This also helps when merging the annovar outputs with the varscan indels
 # Very similar to the make anno indel function.
-modify_varscan_output <- function(varscan_df) {
+modify_varscan_output <- function(varscan_df, variant_type) {
 
-	df_main <- varscan_df %>%
+	if (variant_type == "indel") {
+		
+		varscan_df <- varscan_df %>%
 		select(-Ref) %>% # we remove this, to regenerate it based on the Cons column
 		rename(Ref = Cons) %>%
 		mutate(
-			variant_type = case_when(
+			variant = case_when(
 				grepl("-", Ref) ~ "deletion", 
 				grepl("+", Ref) ~ "insertion",
 				TRUE ~ "FUCK"), # a little moment of frustration
-			Start = ifelse(variant_type == "deletion", as.numeric(Start) + 1, as.numeric(Start)), # if DELETION, add 1 to the position. INS positions stay the way they are.
+			Start = ifelse(variant == "deletion", as.numeric(Start) + 1, as.numeric(Start)), # if DELETION, add 1 to the position. INS positions stay the way they are.
 			Ref = basename(as.character(Ref)), # to remove everything before the slash
 			Ref = gsub("[[:punct:]]", "", Ref), # consider everything but the punctuation, this one removes + and - signs from the ALT allele
 			Alt = Ref,
-			Alt = ifelse(variant_type == "deletion", "-", Alt), 
-			Ref = ifelse(variant_type == "insertion", "-", Ref), 
+			Alt = ifelse(variant == "deletion", "-", Alt), 
+			Ref = ifelse(variant == "insertion", "-", Ref), 
 			End = Start + nchar(Ref) - 1, 
 			Start = as.character(Start))
 
-	return(df_main)
+	} else {
+
+		varscan_df$Start <- as.character(varscan_df$Start)
+
+	}
+
+	return(varscan_df)
 }
  
 # do a merge based on column to combine metadata 
@@ -52,11 +60,7 @@ combine_anno_varscan <- function(DIR_varscan_snv, DIR_varscan_indel, ANNOVAR_snv
 	varscan_df_list <- lapply(as.list(list.files(DIR_varscan, full.names = TRUE, pattern = "\\.vcf$")), return_varscan_output)
 	varscan_df <- do.call(rbind, varscan_df_list)
 
-	varscan_df <- modify_varscan_output(varscan_df)
-
-	# if (variant_type == "indel"){
-	# 	varscan_df$Alt <- gsub("\\+", "", varscan_df$Alt)
-	# 	varscan_df$Alt[grep("-", varscan_df$Alt)] <- "-"}
+	varscan_df <- modify_varscan_output(varscan_df, variant_type)
 
 	combined <- left_join(varscan_df, anno_df, by = c("Sample_name", "Chr", "Start", "Ref", "Alt")) %>%
 					mutate(ExAC_ALL = replace_na(as.numeric(ExAC_ALL), 0), 
@@ -80,9 +84,9 @@ add_bg_error_rate <- function(variants_df, bg) {
 	var_pos <- variants_df$Start
 	deletion_idx <- which(variants_df$variant == "deletion")
 	
-	if (length(deletion_idx) > 0) {
-		var_pos[deletion_idx] <- as.numeric(var_pos[deletion_idx]) + 1 # add 1 to the position of all the deletions
-		variants_df$Start <- var_pos}
+	# if (length(deletion_idx) > 0) {
+	# 	var_pos[deletion_idx] <- as.numeric(var_pos[deletion_idx]) + 1 # add 1 to the position of all the deletions
+	# 	variants_df$Start <- var_pos}
 
 	# now subset the bg based on the chr and position from the variants df 
 	bg$pos <- as.character(bg$pos)
@@ -102,12 +106,14 @@ evaluate_strandBias <- function(variants_df){
 
 	message("Evaluating strand bias.")
 
-	minifunction <- function(some_row) {
+	col_ids_list <- grep(c("Reads1Plus|Reads2Plus|Reads1Minus|Reads2Minus"), names(variants_df))
+
+	minifunction <- function(some_row, col_ids_list) {
 		
-		dat <- matrix(c(as.numeric(some_row[14]), #Reads1Plus
-						as.numeric(some_row[16]), #Reads2Plus
-						as.numeric(some_row[15]), #Reads1Minus
-						as.numeric(some_row[17])),#Reads2Minus
+		dat <- matrix(c(as.numeric(some_row[col_ids_list[1]]), #Reads1Plus
+						as.numeric(some_row[col_ids_list[2]]), #Reads2Plus
+						as.numeric(some_row[col_ids_list[3]]), #Reads1Minus
+						as.numeric(some_row[col_ids_list[4]])),#Reads2Minus
 						nrow = 2, ncol = 2, byrow = FALSE)
 
 		dimnames(dat) <- list(c("Ref", "Alt"), c("Forward", "Reverse"))
@@ -117,7 +123,7 @@ evaluate_strandBias <- function(variants_df){
 
 		return(list(fishers_pval = fishers_pval, odds_ratio = odds_ratio))}
 
-	values_list <- apply(variants_df, 1, minifunction) # contains both the pval from fishers test and the odds ratio
+	values_list <- apply(variants_df, 1, minifunction, col_ids_list) # contains both the pval from fishers test and the odds ratio
 	variants_df$StrandBias_Fisher_pVal <- unname(unlist(values_list)[seq(1, length(unlist(values_list)), 2)]) # select every odd element starting from 0 - fishers exact
 	variants_df$StrandBias_OddsRatio <- unname(unlist(values_list)[seq(2, length(unlist(values_list)), 2)]) # select every even element starting from 2 - odds ratio
 
@@ -147,14 +153,14 @@ MAIN <- function(cohort_name,
 					DIR_temp,
 					DIR_tnvstats,
 					PATH_filter_tnvstats_script,
-					variant_type,
+					var_type,
 					variant_caller){
 
 	variant_caller = variant_caller # so that the function doesnt complain this argument isn't used
-	combined <- combine_anno_varscan(DIR_varscan_snv, DIR_varscan_indel, ANNOVAR_snv_output, ANNOVAR_indel_output, variant_type) # add annovar annots to the varscan outputs
+	combined <- combine_anno_varscan(DIR_varscan_snv, DIR_varscan_indel, ANNOVAR_snv_output, ANNOVAR_indel_output, var_type) # add annovar annots to the varscan outputs
 
 	# add a new col to show if we have an snv, for indels we add this annotation in the modify_varscan_output function
-	if (variant_type == "snv") {combined$variant <- "snv"} 
+	if (var_type == "snv") {combined$variant <- "snv"} 
 
 	combined <- add_patient_id(combined, cohort_name)
 	combined <- add_bg_error_rate(combined, bg) 
@@ -203,27 +209,27 @@ MAIN <- function(cohort_name,
 										TRUE ~ "OK"), 
 								Position = as.numeric(Position))
 
-	if (cohort_name == "new_chip_panel") {
+	# if (cohort_name == "new_chip_panel") {
 
-		# add the sample ID from the finland bams
-		finland_sample_IDs <- gsub(".bam", "", grep("*.bam$", list.files(DIR_finland_bams), value = TRUE))
-		combined$Sample_name_finland <- unlist(lapply(as.list(gsub("GUBB", "GU", combined$Patient_ID)), function(x) grep(x, finland_sample_IDs, value = TRUE)))
-		combined <- combined %>% relocate(Sample_name_finland, .after = Sample_name)
+	# 	# add the sample ID from the finland bams
+	# 	finland_sample_IDs <- gsub(".bam", "", grep("*.bam$", list.files(DIR_finland_bams), value = TRUE))
+	# 	combined$Sample_name_finland <- unlist(lapply(as.list(gsub("GUBB", "GU", combined$Patient_ID)), function(x) grep(x, finland_sample_IDs, value = TRUE)))
+	# 	combined <- combined %>% relocate(Sample_name_finland, .after = Sample_name)
 	
 		# write_csv(combined, "/groups/wyattgrp/users/amunzur/pipeline/results/temp/snv_varscan_combined.csv")
 		# write_csv(combined, "/groups/wyattgrp/users/amunzur/pipeline/results/temp/indel_varscan_combined.csv")
 		# combined <- read_csv("/groups/wyattgrp/users/amunzur/pipeline/results/temp/snv_varscan_combined.csv")
 		# combined <- read_csv("/groups/wyattgrp/users/amunzur/pipeline/results/temp/indel_varscan_combined.csv")
 	
-		message("Filtering tnvstats right now.")
-		filtered_tnvstats <- filter_tnvstats_by_variants(
-								variants_df = combined, 
-								DIR_tnvstats = DIR_tnvstats, 
-								PATH_temp = file.path(DIR_temp, paste(variant_caller, paste0(variant_type, ".tsv"), sep = "_")), 
-								PATH_filter_tnvstats_script = PATH_filter_tnvstats_script, 
-								identifier = paste(variant_caller, variant_type, sep = "_"))
+		# message("Filtering tnvstats right now.")
+		# filtered_tnvstats <- filter_tnvstats_by_variants(
+		# 						variants_df = combined, 
+		# 						DIR_tnvstats = DIR_tnvstats, 
+		# 						PATH_temp = file.path(DIR_temp, paste(variant_caller, paste0(var_type, ".tsv"), sep = "_")), 
+		# 						PATH_filter_tnvstats_script = PATH_filter_tnvstats_script, 
+		# 						identifier = paste(variant_caller, var_type, sep = "_"))
 	
-		combined <- add_finland_readcounts(combined, filtered_tnvstats, variant_caller)
+		# combined <- add_finland_readcounts(combined, filtered_tnvstats, variant_caller)
 
 	# Check for duplicated rows just before returning the object.
 	combined <- check_duplicated_rows(combined, TRUE)
