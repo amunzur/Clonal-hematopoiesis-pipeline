@@ -25,7 +25,7 @@ identify_varcaller <- function(combined, varcaller_df, varcaller_name){
 	return(combined)
 }
 
-cohort_name <- "batch2"
+cohort_name <- "new_chip_panel"
 varscan_PATH <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/VarScan2/finalized", cohort_name, "chip_variants.csv")
 vardict_PATH <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Vardict/finalized", cohort_name, "chip_variants.csv")
 gatk_PATH <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Haplotype_caller/finalized", cohort_name, "chip_variants.csv")
