@@ -1,0 +1,37 @@
+May 12:
+Changes into making an input file for ANNOVAR
+Most important change is to add 1 to the reported positions of DELETIONS to be consistent with the Vardict outputs. 
+
+Make anno input for indels works OK.
+Running annovar on varscan indels also work OK.
+
+For future work on: 
+Combining the varscan and annovar outputs for varscan, make sure left join works ok and there are no NAs. 
+
+Check the number of rows in the varscan output and annovar output, they should be the same.
+Combining vardict and varscan for later. 
+
+MAY 16 2022 (Monday)
+Noticed that the input file for annovar indels (varscan) isn't correct. The addition doesn't work. Working on it now. - DONE.
+
+Now Annovar should work on VarScan indels, and its output should be the same as the Vardict results. Now running Annovar on indels on batch 5.
+
+Next steps:
+1. Check the filter_varscan script to see if the previously written code can handle new the indels. Annovar might be outputting them in a slightly different format.
+
+2. Change make_anno_indel file again to consider multiple indels that happen at the same location. previously i was excluding the indel with lower vaf.
+This change is added! Now Ref and Alt alleles are generated based on the Cons seq. Rerunning ANNOVAR on VarScan indels. IT WORKS. 
+
+MAY 18 (WEDNESDAY)
+Sometimes we have cases like this from varscan:
+chrX    44974800        C       +T/+T   87      298     75.25%  2       2       55      59      2.41754696291885
+chrX    44974800        C       */+TT   87      10      2.53%   2       2       55      56      7.65118343560819
+Same location with two different indels. The one with * is heterozygous, the other case above has both alleles impacted with the indel. I need to rewrite the ANNOVAR indel files to includes cases like this, which isn't many. I predict this is the final change I need to make in the ANNOVAR input files. I just finished editing, should work now. Rerunning making input files for ANNOVAR. YES IT WORKS OMG YAAAY. Running ANNOVAR in all batches now. 
+
+Now working on the filter varscan script. Indels work ok. Now working on combining SNVs - SNV calls from VarScan and ANNOVAR.
+VarScan analysis completed. SNVs and indels are classified correctly.
+Now need to work on combining VarScan results with GATK and VarDict. 
+And incorporating the WBC results - (CHIP must be present in both)
+
+FOR LATER:
+Working on combining results from variant callers.
