@@ -9,7 +9,8 @@ library(matrixStats)
 process_dfs <- function(path_df, varcaller_name){
 
 	cols_to_subset <- c(
-		"Sample_name", 
+		"Sample_name",
+		"Sample_type", 
 		"Patient_ID",
 		"Cohort_name", 
 		"Chrom", 
