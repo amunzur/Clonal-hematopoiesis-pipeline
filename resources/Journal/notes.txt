@@ -35,3 +35,12 @@ And incorporating the WBC results - (CHIP must be present in both)
 
 FOR LATER:
 Working on combining results from variant callers.
+
+MAY 24, 2022: 
+Worked on combining results from variant callers. Something isn't quite right with the varscan indels.
+I realized a while ago that varscan reports the position prior to the indel, for example if a base at position 1551 is deleted, varscan reports the position at 1550. 
+Vardict reports the actual position where indel happens though. To accomodate for this, I added 1 to all varscan deletions, and also updated the reference and alt bases at those positions. 
+However, scanning the compare_with_tumor.R results, it seems to me that even though the reference base is correct, the position isn't. The position just before the actual deletion is being reported. 
+This causes mistakes when trying to count how many variant callers picked up a certain variant. 
+I don't really have time to deal with this now, but it is worthwhile to go back to the UTILITIES_filter_varscan.R file and try to catch where the error happened.
+ACTION THAT I TOOK: Manually added 1 to all varscan deletions in the combine_variant_callers.R file. I know I know I'll deal with it later!
