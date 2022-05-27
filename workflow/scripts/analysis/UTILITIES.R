@@ -288,11 +288,11 @@ add_finland_readcounts <- function(variants_df, filtered_tnvstats, variant_calle
 	return(variants_df)
 }
 
-# Based on chrom, position, alt and ref, identify which variants are duplicates. Mark them as dups in the variants_df.
+# Based on the annotation, identify which variants are duplicates without filtering them out.
 identify_duplicates <- function(variants_df) {
 
 	dups <- variants_df %>% 
-			get_dupes(Chrom, Position, Ref, Alt) %>%
+			get_dupes(AAchange) %>%
 			select(names(variants_df))
 
 	dups$dupe_count <- NULL # drop an extra col that the function above adds
