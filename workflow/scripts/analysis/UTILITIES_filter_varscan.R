@@ -1,6 +1,6 @@
 return_varscan_output <- function(PATH_varscan) {
 
-	df_main <- as.data.frame(suppress_messages(read_delim(PATH_varscan, delim = "\t"))) 
+	df_main <- as.data.frame(suppressMessages(read_delim(PATH_varscan, delim = "\t")))
 	df <- df_main %>%
 			mutate(Sample_name = gsub(".vcf", "", basename(PATH_varscan))) %>%
 			rename(Chr = Chrom, Start = Position, Alt = VarAllele)
@@ -130,7 +130,8 @@ evaluate_strandBias <- function(variants_df){
 }
 
 # main function to run everything
-MAIN <- function(cohort_name, 
+MAIN <- function(
+					cohort_name, 
 					THRESHOLD_ExAC_ALL, 
 					VALUE_Func_refGene, 
 					THRESHOLD_VarFreq, 
@@ -139,13 +140,10 @@ MAIN <- function(cohort_name,
 					DIR_varscan, 
 					DIR_annovar, 
 					bg,
-					PATH_bets_somatic,
-					PATH_bets_germline,
 					PATH_panel_genes,
 					PATH_bed,
 					DIR_depth_metrics,
 					PATH_collective_depth_metrics,
-					DIR_finland_bams,
 					DIR_temp,
 					DIR_tnvstats,
 					PATH_filter_tnvstats_script,
@@ -157,6 +155,7 @@ MAIN <- function(cohort_name,
 	combined <- add_patient_id(combined, cohort_name)
 	combined <- add_bg_error_rate(combined, bg) 
 	combined <- add_sample_type(combined)
+	
 	combined <- combined %>%
 						mutate(
 							VarFreq = as.numeric(gsub("%", "", VarFreq))/100, 
@@ -173,7 +172,6 @@ MAIN <- function(cohort_name,
 	combined <- combined %>%
 						filter(StrandBias_Fisher_pVal > 0.05) %>%
 						select(Sample_name, Sample_type, patient_id, Cohort_name, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, Reads1Plus, Reads1Minus, Reads2Plus, Reads2Minus, Func.refGene, Gene.refGene, AAChange.refGene, Protein_annotation, Effects, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads)
-
 	names(combined) <- c("Sample_name", "Sample_type", "Patient_ID", "Cohort_name", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
 	
 	combined <- identify_duplicates(combined) # add a new col indicating if the variant is duplicated or not
@@ -186,7 +184,7 @@ MAIN <- function(cohort_name,
 	combined <- check_duplicated_rows(combined, TRUE) # Check for duplicated rows just before returning the object.
 
 	return(combined)
-} # end of function
+} 
 
 combine_and_save <- function(snv, indel, PATH_validated_variants, PATH_SAVE_chip_variants){
 
