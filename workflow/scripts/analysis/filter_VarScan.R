@@ -16,8 +16,8 @@ THRESHOLD_Reads2 <- 5
 THRESHOLD_VAF_bg_ratio <- 10
 DIR_varscan_snv <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/VarScan2/snv", cohort_name)
 DIR_varscan_indel <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/VarScan2/indel", cohort_name)
-ANNOVAR_snv_output <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/snv", cohort_name)
-ANNOVAR_indel_output <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/indel", cohort_name)
+DIR_ANNOVAR_snv <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/snv", cohort_name)
+DIR_ANNOVAR_indel <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/indel", cohort_name)
 PATH_bg <- "/groups/wyattgrp/users/amunzur/pipeline/resources/bg_error_rate/bg_error.tsv"
 
 PATH_bets_somatic <- "/groups/wyattgrp/users/amunzur/pipeline/resources/betastasis/CLEANED_mutations_kidney_cancer_somatic.tsv"
@@ -43,54 +43,42 @@ source(PATH_utilities_file) # functions shared between vardict and varscan
 
 bg <- read_delim(PATH_bg, delim = "\t")
 
-variant_type <- "snv"
-snv <- MAIN(cohort_name, 
-				THRESHOLD_ExAC_ALL, 
-				VALUE_Func_refGene,
-				THRESHOLD_VarFreq,
-				THRESHOLD_Reads2,
-				THRESHOLD_VAF_bg_ratio,
-				DIR_varscan_snv,
-				DIR_varscan_indel,
-				ANNOVAR_snv_output,
-				ANNOVAR_indel_output,
-				bg,
-				PATH_bets_somatic,
-				PATH_bets_germline,
-				PATH_panel_genes,
-				PATH_bed,
-				DIR_depth_metrics,
-				PATH_collective_depth_metrics,
-				DIR_finland_bams,
-				DIR_temp,
-				DIR_tnvstats,
-				PATH_filter_tnvstats_script,
-				variant_type, 
-				variant_caller)
-
-variant_type <- "indel"
-indel <- MAIN(cohort_name, 
+snv <- MAIN(	cohort_name, 
 				THRESHOLD_ExAC_ALL, 
 				VALUE_Func_refGene, 
 				THRESHOLD_VarFreq, 
 				THRESHOLD_Reads2, 
 				THRESHOLD_VAF_bg_ratio, 
-				DIR_varscan_snv,
-				DIR_varscan_indel,
-				ANNOVAR_snv_output,
-				ANNOVAR_indel_output,
+				DIR_varscan_snv, 
+				DIR_annovar_snv, 
 				bg,
-				PATH_bets_somatic,
-				PATH_bets_germline,
 				PATH_panel_genes,
 				PATH_bed,
 				DIR_depth_metrics,
 				PATH_collective_depth_metrics,
-				DIR_finland_bams,
 				DIR_temp,
 				DIR_tnvstats,
 				PATH_filter_tnvstats_script,
-				variant_type, 
+				"snv",
+				variant_caller)
+
+indel <- MAIN(  cohort_name, 
+				THRESHOLD_ExAC_ALL, 
+				VALUE_Func_refGene, 
+				THRESHOLD_VarFreq, 
+				THRESHOLD_Reads2, 
+				THRESHOLD_VAF_bg_ratio, 
+				DIR_varscan_indel,
+				ANNOVAR_indel_output,
+				bg,
+				PATH_panel_genes,
+				PATH_bed,
+				DIR_depth_metrics,
+				PATH_collective_depth_metrics,
+				DIR_temp,
+				DIR_tnvstats,
+				PATH_filter_tnvstats_script,
+				"indel", 
 				variant_caller)
 
 variants_chip <- combine_and_save(snv,
