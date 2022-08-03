@@ -175,30 +175,15 @@ MAIN <- function(cohort_name,
 						select(Sample_name, Sample_type, patient_id, Cohort_name, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, Reads1Plus, Reads1Minus, Reads2Plus, Reads2Minus, Func.refGene, Gene.refGene, AAChange.refGene, Protein_annotation, Effects, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads)
 
 	names(combined) <- c("Sample_name", "Sample_type", "Patient_ID", "Cohort_name", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
-
-
-	# add a new col indicating if the variant is duplicated or not
-	combined <- identify_duplicates(combined)
-
-	# now filtering based on vaf, read support and depth etc. 
+	
+	combined <- identify_duplicates(combined) # add a new col indicating if the variant is duplicated or not
 	combined <- combined %>%
 				filter((Total_reads >= 1000 & VAF >= 0.005) | (Total_reads <= 1000 & Alt_reads >= 5), 
 						VAF < THRESHOLD_VarFreq)
 				
 	combined <- subset_to_panel(PATH_bed, combined) # subset to panel 
 	combined <- add_depth(DIR_depth_metrics, PATH_collective_depth_metrics, combined) # add depth information at these positions
-	combined <- compare_with_bets(PATH_bets_somatic, PATH_bets_germline, PATH_panel_genes, combined) # adds 3 new columns
-
-	# add an extra col for alerting the user if the variant isn't found, despite gene being in the bets
-	combined <- combined %>% mutate(Status = case_when(
-										(In_germline_bets == FALSE & In_panel == TRUE) ~ "ALERT", 
-										(In_germline_bets == TRUE & In_panel == TRUE) ~ "Great",
-										(In_germline_bets == TRUE & In_panel == FALSE) ~ "Error",
-										TRUE ~ "OK"), 
-								Position = as.numeric(Position))
-
-	# Check for duplicated rows just before returning the object.
-	combined <- check_duplicated_rows(combined, TRUE)
+	combined <- check_duplicated_rows(combined, TRUE) # Check for duplicated rows just before returning the object.
 
 	return(combined)
 } # end of function
