@@ -16,8 +16,8 @@ THRESHOLD_Reads2 <- 5
 THRESHOLD_VAF_bg_ratio <- 10
 DIR_varscan_snv <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/VarScan2/snv", cohort_name)
 DIR_varscan_indel <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/VarScan2/indel", cohort_name)
-DIR_ANNOVAR_snv <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/snv", cohort_name)
-DIR_ANNOVAR_indel <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/indel", cohort_name)
+DIR_annovar_snv <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/snv", cohort_name)
+DIR_annovar_indel <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/indel", cohort_name)
 PATH_bg <- "/groups/wyattgrp/users/amunzur/pipeline/resources/bg_error_rate/bg_error.tsv"
 
 PATH_bets_somatic <- "/groups/wyattgrp/users/amunzur/pipeline/resources/betastasis/CLEANED_mutations_kidney_cancer_somatic.tsv"
