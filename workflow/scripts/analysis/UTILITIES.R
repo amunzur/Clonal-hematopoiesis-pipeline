@@ -182,8 +182,8 @@ add_AAchange_effect <- function(variants_df){
 	variants_df$Effects <- unlist(lapply(effects, function(x) paste(x, collapse = ":")))
 
 	# add for splicing variants, make sure both the "Function" and "Effects" column have the string splicing
-	idx <- grep("splicing", combined$Function)
-	combined$Effects[idx] <- "splicing"
+	idx <- grep("splicing", variants_df$Function)
+	variants_df$Effects[idx] <- "splicing"
 
 	return(variants_df)
 
@@ -324,22 +324,12 @@ add_documentation <- function(THRESHOLD_ExAC_ALL, VALUE_Func_refGene, THRESHOLD_
 
 }
 
-# Checks for any duplicated variants in the finalized output. Helpful to notice any errors.
-check_duplicated_rows <- function(variants_df, drop_dups) {
+# Removes variants if they are found in more than n_times (appears multiple times)
+remove_duplicated_variants <- function(variants_df, n_times) {
 
-	idx <- which(duplicated(variants_df))
+	tab <- table(variants_df$AAchange)s
+	variants_df_filtered <- variants_df[variants_df$AAchange %in% names(tab[tab < n_times]), ]
 	
-	if (length(idx) > 0){
-		warning_message <- paste("Duplicated rows detected at", idx)
-		message(warning_message)
-
-		if (drop_dups == TRUE){
-			variants_df <- variants_df[!duplicated(variants_df), ]
-		}
-	} else {
-		message("No duplicates. All good!")
-	}
-
-	return(variants_df)
+	return(variants_df_filtered)
 }
 
