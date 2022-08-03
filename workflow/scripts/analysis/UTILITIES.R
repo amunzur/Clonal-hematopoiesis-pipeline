@@ -181,6 +181,10 @@ add_AAchange_effect <- function(variants_df){
 	variants_df$Protein_annotation <- unlist(lapply(p_list, function(x) paste(x, collapse = ":")))
 	variants_df$Effects <- unlist(lapply(effects, function(x) paste(x, collapse = ":")))
 
+	# add for splicing variants, make sure both the "Function" and "Effects" column have the string splicing
+	idx <- grep("splicing", combined$Function)
+	combined$Effects[idx] <- "splicing"
+
 	return(variants_df)
 
 } # end of function
