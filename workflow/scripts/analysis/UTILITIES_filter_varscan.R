@@ -43,29 +43,27 @@ modify_varscan_output <- function(varscan_df, variant_type) {
 }
  
 # do a merge based on column to combine metadata 
-combine_anno_varscan <- function(DIR_varscan_snv, DIR_varscan_indel, ANNOVAR_snv_output, ANNOVAR_indel_output, variant_type) {
+combine_anno_varscan <- function(DIR_varscan, DIR_annovar, variant_type, cohort_name) {
 
-	# determine which dir to scan based on the cariant_type given
-	if (variant_type == "snv") {
-		DIR_varscan <- DIR_varscan_snv
-		DIR_ANNOVAR <- ANNOVAR_snv_output
-	} else {DIR_varscan <- DIR_varscan_indel
-		DIR_ANNOVAR <- ANNOVAR_indel_output}
+	# Save all annovar results in one file, rbind causes duplicate colnames
+	annovar_df_list <- lapply(as.list(list.files(DIR_annovar, full.names = TRUE, pattern = "\\.hg38_multianno.txt$")), return_anno_output)
+	annovar_df <- as.data.frame(do.call(rbind, annovar_df_list)) %>%
+				mutate(
+					Sample_name = gsub(".hg38_multianno.txt", "", Sample_name), 
+					Start = as.character(Start))
 
-	anno_df_list <- lapply(as.list(list.files(DIR_ANNOVAR, full.names = TRUE, pattern = "\\.hg38_multianno.txt$")), return_anno_output)
-	anno_df <- as.data.frame(do.call(rbind, anno_df_list)) %>%
-				mutate(Sample_name = gsub(".hg38_multianno.txt", "", Sample_name), 
-						Start = as.character(Start))
-
+	# Save all varscan results in one file
 	varscan_df_list <- lapply(as.list(list.files(DIR_varscan, full.names = TRUE, pattern = "\\.vcf$")), return_varscan_output)
 	varscan_df <- do.call(rbind, varscan_df_list)
-
 	varscan_df <- modify_varscan_output(varscan_df, variant_type)
 
-	combined <- left_join(varscan_df, anno_df, by = c("Sample_name", "Chr", "Start", "Ref", "Alt")) %>%
-					mutate(ExAC_ALL = replace_na(as.numeric(ExAC_ALL), 0), 
-						gnomAD_exome_ALL = replace_na(as.numeric(gnomAD_exome_ALL), 0))
-					
+	combined <- left_join(varscan_df, annovar_df, by = c("Sample_name", "Chr", "Start", "Ref", "Alt")) %>%
+					mutate(
+						ExAC_ALL = replace_na(as.numeric(ExAC_ALL), 0), 
+						gnomAD_exome_ALL = replace_na(as.numeric(gnomAD_exome_ALL), 0), 
+						variant = paste(variant_type), 
+						Cohort_name = cohort_name)
+
 	return(combined)
 
 }
@@ -138,10 +136,8 @@ MAIN <- function(cohort_name,
 					THRESHOLD_VarFreq, 
 					THRESHOLD_Reads2, 
 					THRESHOLD_VAF_bg_ratio, 
-					DIR_varscan_snv, 
-					DIR_varscan_indel, 
-					ANNOVAR_snv_output, 
-					ANNOVAR_indel_output,
+					DIR_varscan, 
+					DIR_annovar, 
 					bg,
 					PATH_bets_somatic,
 					PATH_bets_germline,
@@ -157,26 +153,22 @@ MAIN <- function(cohort_name,
 					variant_caller){
 
 	variant_caller = variant_caller # so that the function doesnt complain this argument isn't used
-	combined <- combine_anno_varscan(DIR_varscan_snv, DIR_varscan_indel, ANNOVAR_snv_output, ANNOVAR_indel_output, var_type) # add annovar annots to the varscan outputs
-
-	# add a new col to show if we have an snv, for indels we add this annotation in the modify_varscan_output function
-	if (var_type == "snv") {combined$variant <- "snv"} 
-
+	combined <- combine_anno_varscan(DIR_varscan, DIR_annovar, var_type, cohort_name) # add annovar annotations to the varscan outputs
 	combined <- add_patient_id(combined, cohort_name)
 	combined <- add_bg_error_rate(combined, bg) 
 	combined <- add_sample_type(combined)
-	combined$Cohort_name <- cohort_name
-
 	combined <- combined %>%
-						mutate(VarFreq = as.numeric(gsub("%", "", VarFreq))/100, 
-								Total_reads = Reads1 + Reads2, 
-								VAF_bg_ratio = VarFreq/error_rate) %>%
-						filter(ExAC_ALL <= THRESHOLD_ExAC_ALL, 
-								Func.refGene != VALUE_Func_refGene,
-								VAF_bg_ratio >= THRESHOLD_VAF_bg_ratio) # vaf should be at least 15 times more than the bg error rate
+						mutate(
+							VarFreq = as.numeric(gsub("%", "", VarFreq))/100, 
+							Total_reads = Reads1 + Reads2, 
+							VAF_bg_ratio = VarFreq/error_rate) %>%
+						filter(
+							ExAC_ALL <= THRESHOLD_ExAC_ALL, 
+							Func.refGene != VALUE_Func_refGene,
+							VAF_bg_ratio >= THRESHOLD_VAF_bg_ratio) # vaf should be at least 15 times more than the bg error rate
 	
-	combined <- evaluate_strandBias(combined) # add strand bias
-	combined <- add_AAchange_effect(combined) # Add protein annot and the effect of the mutations as two separate columns 
+	combined <- evaluate_strandBias(combined)
+	combined <- add_AAchange_effect(combined)
 
 	combined <- combined %>%
 						filter(StrandBias_Fisher_pVal > 0.05) %>%
@@ -184,17 +176,13 @@ MAIN <- function(cohort_name,
 
 	names(combined) <- c("Sample_name", "Sample_type", "Patient_ID", "Cohort_name", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
 
-	# add for splicing variants, make sure both the "Function" and "Effects" column have the string splicing
-	idx <- grep("splicing", combined$Function)
-	combined$Effects[idx] <- "splicing"
 
 	# add a new col indicating if the variant is duplicated or not
 	combined <- identify_duplicates(combined)
 
 	# now filtering based on vaf, read support and depth etc. 
 	combined <- combined %>%
-				filter((Total_reads >= 1000 & VAF >= 0.005) | 
-						(Total_reads <= 1000 & Alt_reads >= 5), 
+				filter((Total_reads >= 1000 & VAF >= 0.005) | (Total_reads <= 1000 & Alt_reads >= 5), 
 						VAF < THRESHOLD_VarFreq)
 				
 	combined <- subset_to_panel(PATH_bed, combined) # subset to panel 
