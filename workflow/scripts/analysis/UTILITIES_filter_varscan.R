@@ -179,9 +179,9 @@ MAIN <- function(
 				filter((Total_reads >= 1000 & VAF >= 0.005) | (Total_reads <= 1000 & Alt_reads >= 5), 
 						VAF < THRESHOLD_VarFreq)
 				
-	combined <- subset_to_panel(PATH_bed, combined) # subset to panel 
-	combined <- add_depth(DIR_depth_metrics, PATH_collective_depth_metrics, combined) # add depth information at these positions
-	combined <- check_duplicated_rows(combined, TRUE) # Check for duplicated rows just before returning the object.
+	combined <- subset_to_panel(PATH_bed, combined) # Subset to panel 
+	combined <- add_depth(DIR_depth_metrics, PATH_collective_depth_metrics, combined) # Add depth information at these positions
+	combined <- remove_duplicated_variants(combined, 3) # Remove duplicated variants
 
 	return(combined)
 } 
