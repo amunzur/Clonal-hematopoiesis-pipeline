@@ -1,12 +1,14 @@
 # This R script filters and plots VarScan2 output. 
 
+args <- commandArgs(trailingOnly=TRUE) # right now only arg needed is the name of the cohort 
+
 library(tidyverse)
 library(stringr)
 library(epitools)
 library(janitor)
 library(pkgcond)
 
-cohort_name <- "batch2"
+cohort_name <- args[[1]]
 variant_caller <- "varscan"
 
 THRESHOLD_ExAC_ALL <- 0.005
@@ -69,7 +71,7 @@ indel <- MAIN(  cohort_name,
 				THRESHOLD_Reads2, 
 				THRESHOLD_VAF_bg_ratio, 
 				DIR_varscan_indel,
-				ANNOVAR_indel_output,
+				DIR_annovar_indel,
 				bg,
 				PATH_panel_genes,
 				PATH_bed,
