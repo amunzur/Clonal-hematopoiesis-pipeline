@@ -63,14 +63,14 @@ return_anno_output_vardict <- function(PATH_ANNOVAR) {
 }
 
 # do a merge based on column to combine metadata 
-parse_anno_output <- function(DIR_ANNOVAR) {
-
-	# determine which dir to scan based on the cariant_type given
+parse_anno_output <- function(DIR_ANNOVAR, cohort_name) {
 
 	anno_df_list <- lapply(as.list(list.files(DIR_ANNOVAR, full.names = TRUE, pattern = "\\.hg38_multianno.txt$")), return_anno_output_vardict)
 	anno_df <- as.data.frame(do.call(rbind, anno_df_list)) %>%
-				mutate(Sample_name = gsub(".hg38_multianno.txt", "", Sample_name), 
-						Start = as.character(Start)) 
+				mutate(
+					Sample_name = gsub(".hg38_multianno.txt", "", Sample_name), 
+					Start = as.character(Start), 
+					Cohort_name = cohort_name) 
 
 	return(anno_df)
 
@@ -138,7 +138,6 @@ MAIN <- function(cohort_name,
 	combined <- add_patient_id(combined, cohort_name)
 	combined <- add_bg_error_rate(combined, bg) # background error rate
 	combined <- add_AAchange_effect(combined) # protein annot and the effects
-	combined$Cohort_name <- cohort_name
 	combined <- add_sample_type(combined)
 
 	combined <- combined %>%
