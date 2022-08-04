@@ -148,14 +148,9 @@ MAIN <- function(cohort_name,
 								Func.refGene != VALUE_Func_refGene,
 								VAF_bg_ratio >= THRESHOLD_VAF_bg_ratio, # vaf should be at least 15 times more than the bg error rate
 								StrandBias_Fisher_pVal > 0.05) 
-
-	# a common naming convention i will be sticking to from now on
 	names(combined) <- c("Sample_name", "Sample_type", "Patient_ID", "Cohort_name", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
 
-	# add a new col indicating if the variant is duplicated or not
-	combined <- identify_duplicates(combined)
-
-	# now filtering based on vaf, read support and depth etc. 
+	combined <- identify_duplicates(combined) 	# add a new col indicating if the variant is duplicated or not
 	combined <- combined %>%
 				filter((Total_reads >= 1000 & VAF >= 0.005) | 
 						(Total_reads <= 1000 & Alt_reads >= 5), 
@@ -163,11 +158,7 @@ MAIN <- function(cohort_name,
 
 	combined <- subset_to_panel(PATH_bed, combined) # subset to panel
 	combined <- add_depth(DIR_depth_metrics, PATH_collective_depth_metrics, combined) # add depth information at these positions 
-
-	# Check for duplicated rows just before returning the object.
-	combined <- check_duplicated_rows(combined, TRUE)
-
-	}
+	combined <- remove_duplicated_variants(combined, 3) # Remove duplicated variants
 
 	return(combined)
 
