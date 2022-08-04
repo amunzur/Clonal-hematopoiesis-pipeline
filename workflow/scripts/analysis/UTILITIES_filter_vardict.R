@@ -38,7 +38,22 @@ return_anno_output_vardict <- function(PATH_ANNOVAR) {
 				mutate(across(info_col_names, gsub, pattern = ".*=", replacement = "")) %>%
 				separate(col = RD, sep = ",", into = c("REF_Fw", "REF_Rv"), remove = TRUE) %>%
 				separate(col = ALD, sep = ",", into = c("ALT_Fw", "ALT_Rv"), remove = TRUE) %>%
-  			    select(SAMPLE, Chr, Start, Ref, Alt, AF, DP, VD, MQ, TYPE, FILTER, SBF, ODDRATIO, Func.refGene, Gene.refGene, Func.knownGene, Gene.knownGene, AAChange.refGene, ExAC_ALL, gnomAD_exome_ALL, REF_Fw, REF_Rv, ALT_Fw, ALT_Rv)
+  			    select(SAMPLE, Chr, Start, Ref, Alt, AF, DP, VD, MQ, TYPE, FILTER, SBF, ODDRATIO, Func.refGene, Gene.refGene, Func.knownGene, Gene.knownGene, AAChange.refGene, ExAC_ALL, gnomAD_exome_ALL, REF_Fw, REF_Rv, ALT_Fw, ALT_Rv) %>%
+				slice(-1) %>%
+				mutate(
+					Start = as.numeric(Start),
+					AF = as.numeric(AF), 
+					DP = as.numeric(DP),
+					VD = as.numeric(VD),
+					MQ = as.numeric(MQ),
+					SBF = as.numeric(SBF),
+					ODDRATIO = as.numeric(ODDRATIO), 
+					REF_Fw = as.numeric(REF_Fw), 
+					REF_Rv = as.numeric(REF_Rv),
+					ALT_Fw = as.numeric(ALT_Fw), 
+					ALT_Rv = as.numeric(ALT_Rv), 
+					ExAC_ALL = as.numeric(gsub(".", 0, ExAC_ALL,, fixed = TRUE)), 
+					gnomAD_exome_ALL = as.numeric(gsub(".", 0, gnomAD_exome_ALL, fixed = TRUE)))
 
 	names(df_main) <- c("Sample_name", "Chr", "Start", "Ref", "Alt", "VarFreq", "Reads1", "Reads2", "Mapping_quality", "variant", "FILTER", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "Func.refGene", "Gene.refGene", "Func.knownGene", "Gene.knownGene", "AAChange.refGene", "ExAC_ALL", "gnomAD_exome_ALL", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv")
 	df_main$variant <- tolower(df_main$variant)
@@ -109,20 +124,17 @@ MAIN <- function(cohort_name,
 					DIR_vardict, 
 					DIR_ANNOVAR,
 					bg,
-					PATH_bets_somatic,
-					PATH_bets_germline,
 					PATH_panel_genes,
 					PATH_bed,
 					DIR_depth_metrics,
 					PATH_collective_depth_metrics,
-					DIR_finland_bams, 
 					DIR_temp,
 					DIR_tnvstats,
 					PATH_filter_tnvstats_script, 
 					variant_caller){
 
 	variant_caller = variant_caller # just so the function doesn't complain about us not using this argument
-	combined <- combine_anno_vardict(DIR_vardict, DIR_ANNOVAR) # add annovar annots to the varscan outputs
+	combined <- parse_anno_output(DIR_ANNOVAR) # add annovar annots to the varscan outputs
 	combined <- add_patient_id(combined, cohort_name)
 	combined <- add_bg_error_rate(combined, bg) # background error rate
 	combined <- add_AAchange_effect(combined) # protein annot and the effects
@@ -155,7 +167,6 @@ MAIN <- function(cohort_name,
 
 	combined <- subset_to_panel(PATH_bed, combined) # subset to panel
 	combined <- add_depth(DIR_depth_metrics, PATH_collective_depth_metrics, combined) # add depth information at these positions 
-	combined <- compare_with_bets(PATH_bets_somatic, PATH_bets_germline, PATH_panel_genes, combined) # adds three new columns
 
 	# add an extra col for alerting the user if the variant isn't found, despite gene being in the bets
 	combined <- combined %>% mutate(Status = case_when(
@@ -165,25 +176,6 @@ MAIN <- function(cohort_name,
 										TRUE ~ "OK"), 
 								Position = as.numeric(Position))
 
-	if (cohort_name == "new_chip_panel"){
-
-		# add the sample ID from the finland bams
-		finland_sample_IDs <- gsub(".bam", "", grep("*.bam$", list.files(DIR_finland_bams), value = TRUE))
-		combined$Sample_name_finland <- unlist(lapply(as.list(gsub("GUBB", "GU", combined$Patient_ID)), function(x) grep(x, finland_sample_IDs, value = TRUE)))
-		combined <- combined %>% relocate(Sample_name_finland, .after = Sample_name)
-
-		# write_csv(combined, "/groups/wyattgrp/users/amunzur/pipeline/results/temp/vardict_combined.csv")
-		# combined <- read_csv("/groups/wyattgrp/users/amunzur/pipeline/results/temp/vardict_combined.csv")
-
-		message("Filtering tnvstats right now.")
-		filtered_tnvstats <- filter_tnvstats_by_variants(
-								variants_df = combined, 
-								DIR_tnvstats = DIR_tnvstats, 
-								PATH_temp = file.path(DIR_temp, variant_caller), 
-								PATH_filter_tnvstats_script = PATH_filter_tnvstats_script, 
-								identifier = variant_caller)
-
-		combined <- add_finland_readcounts(combined, filtered_tnvstats, variant_caller)
 
 	# Check for duplicated rows just before returning the object.
 	combined <- check_duplicated_rows(combined, TRUE)
