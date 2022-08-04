@@ -134,11 +134,11 @@ MAIN <- function(cohort_name,
 					variant_caller){
 
 	variant_caller = variant_caller # just so the function doesn't complain about us not using this argument
-	combined <- parse_anno_output(DIR_ANNOVAR) # add annovar annots to the varscan outputs
+	combined <- parse_anno_output(DIR_ANNOVAR, cohort_name) # add annovar annots to the varscan outputs
 	combined <- add_patient_id(combined, cohort_name)
-	combined <- add_bg_error_rate(combined, bg) # background error rate
-	combined <- add_AAchange_effect(combined) # protein annot and the effects
-	combined <- add_sample_type(combined)
+	combined <- add_bg_error_rate(combined, bg)
+	combined <- add_AAchange_effect(combined)
+	combined <- add_sample_type(combined) # WBC or tumor
 
 	combined <- combined %>%
 						mutate(Total_reads = Reads1 + Reads2, 
@@ -151,9 +151,6 @@ MAIN <- function(cohort_name,
 
 	# a common naming convention i will be sticking to from now on
 	names(combined) <- c("Sample_name", "Sample_type", "Patient_ID", "Cohort_name", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
-
-	idx <- grep("splicing", combined$Function)
-	combined$Effects[idx] <- "splicing"
 
 	# add a new col indicating if the variant is duplicated or not
 	combined <- identify_duplicates(combined)
