@@ -164,15 +164,6 @@ MAIN <- function(cohort_name,
 	combined <- subset_to_panel(PATH_bed, combined) # subset to panel
 	combined <- add_depth(DIR_depth_metrics, PATH_collective_depth_metrics, combined) # add depth information at these positions 
 
-	# add an extra col for alerting the user if the variant isn't found, despite gene being in the bets
-	combined <- combined %>% mutate(Status = case_when(
-										(In_germline_bets == FALSE & In_panel == TRUE) ~ "ALERT", 
-										(In_germline_bets == TRUE & In_panel == TRUE) ~ "Great",
-										(In_germline_bets == TRUE & In_panel == FALSE) ~ "Error",
-										TRUE ~ "OK"), 
-								Position = as.numeric(Position))
-
-
 	# Check for duplicated rows just before returning the object.
 	combined <- check_duplicated_rows(combined, TRUE)
 
