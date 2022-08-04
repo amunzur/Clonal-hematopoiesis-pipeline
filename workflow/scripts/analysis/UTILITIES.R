@@ -136,10 +136,6 @@ subset_to_panel <- function(PATH_bed, variant_df) {
 
 add_AAchange_effect <- function(variants_df){
 
-	# Extract all annotations that start with "p." from each variant.
-	p_list <- lapply(str_split(variants_df$AAChange.refGene, ":"), function(x) grep("p.", x, value = TRUE))
-	p_list <- lapply(p_list, function(x) unique(gsub(",.*", "", x))) # gene name follows the annotation, remove it and subset to unique values
-	
 	add_effect <- function(pattern, effect_name, p_list){
 		
 		effects <- lapply(p_list, function(x) grepl(pattern, x)) # if it contains the string "fs" anywhere
@@ -147,6 +143,11 @@ add_AAchange_effect <- function(variants_df){
 
 		return(effects)
 	}
+
+	# Extract all annotations that start with "p." from each variant.
+	p_list <- lapply(str_split(variants_df$AAChange.refGene, ":"), function(x) grep("p.", x, value = TRUE))
+	p_list <- lapply(p_list, function(x) unique(gsub(",.*", "", x))) # gene name follows the annotation, remove it and subset to unique values
+	
 
 	# creating a list of first and second AA will help identify missense and synonymous mutations 
 	first_AA <- lapply(p_list, function(x) substr(x, 3, 3)) # first AA
@@ -184,6 +185,15 @@ add_AAchange_effect <- function(variants_df){
 	# add for splicing variants, make sure both the "Function" and "Effects" column have the string splicing
 	idx <- grep("splicing", variants_df$Function)
 	variants_df$Effects[idx] <- "splicing"
+
+	# Choosing the longest spicing variant from the protein_annotation column
+	# Index of the longest variant in Protein_annotation and Effects columns
+	idx_list <- lapply(variants_df$Protein_annotation, function(some_vector) which.max(str_extract(unlist(str_split(some_vector, ":")), "[[:digit:]]+")))
+	idx_list[lengths(idx_list) == 0] <- NA # if annotation is NA, set the index to 1
+	idx_list <- unlist(idx_list)
+
+	variants_df$Protein_annotation <- unlist(mapply("[", str_split(variants_df$Protein_annotation, ":"), idx_list))
+	variants_df$Effects <- unlist(mapply("[", str_split(variants_df$Effects, ":"), idx_list))
 
 	return(variants_df)
 
@@ -327,7 +337,7 @@ add_documentation <- function(THRESHOLD_ExAC_ALL, VALUE_Func_refGene, THRESHOLD_
 # Removes variants if they are found in more than n_times (appears multiple times)
 remove_duplicated_variants <- function(variants_df, n_times) {
 
-	tab <- table(variants_df$AAchange)s
+	tab <- table(variants_df$AAchange)
 	variants_df_filtered <- variants_df[variants_df$AAchange %in% names(tab[tab < n_times]), ]
 	
 	return(variants_df_filtered)
