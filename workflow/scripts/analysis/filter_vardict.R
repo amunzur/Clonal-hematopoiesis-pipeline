@@ -1,11 +1,13 @@
 # This R script filters and plots VarScan2 output. 
 
+args <- commandArgs(trailingOnly=TRUE) # right now only arg needed is the name of the cohort 
+
 library(tidyverse)
 library(stringr)
 library(janitor)
 library(pkgcond)
 
-cohort_name <- "batch2"
+cohort_name <- args[[1]]
 variant_caller <- "vardict"
 
 THRESHOLD_ExAC_ALL <- 0.005
@@ -23,7 +25,7 @@ PATH_panel_genes <- "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/kid
 
 PATH_bed  <- "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/1000012543_CHIP_Design_selection_results_Version2/capture_targets.bed"
 DIR_depth_metrics <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/metrics/depth", cohort_name)
-PATH_collective_depth_metrics <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/metrics/averaged_depth", cohort_name, "averaged_depths.txt")
+PATH_collective_depth_metrics <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/metrics/averaged_depth/PICARD_markdup", cohort_name, "averaged_depths.txt")
 DIR_tnvstats <- "/groups/wyattgrp/users/amunzur/pipeline/results/metrics/tnvstats/kidney_samples"
 DIR_temp <- "/groups/wyattgrp/users/amunzur/pipeline/results/temp"
 PATH_filter_tnvstats_script <- "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/filter_tnvstats.sh"
