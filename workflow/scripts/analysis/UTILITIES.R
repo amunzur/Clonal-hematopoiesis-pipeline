@@ -302,7 +302,16 @@ add_finland_readcounts <- function(variants_df, filtered_tnvstats, variant_calle
 	return(variants_df)
 }
 
-# Based on the annotation, identify which variants are duplicates without filtering them out.
+# Removes variants if they are found in more than n_times (appears multiple times)
+# For the remaining, add a new column to indicate if the variant occurs more than once
+find_and_filter_duplicated_variants <- function(variants_df, n_times) {
+
+	tab <- table(variants_df$AAchange)
+	variants_df_filtered <- variants_df[variants_df$AAchange %in% names(tab[tab < n_times]), ]
+	
+	return(variants_df_filtered)
+}
+
 identify_duplicates <- function(variants_df) {
 
 	dups <- variants_df %>% 
@@ -319,27 +328,3 @@ identify_duplicates <- function(variants_df) {
 
 	return(variants_df)
 }
-
-# This function generates a string of explanations to add to the final df as comments. 
-add_documentation <- function(THRESHOLD_ExAC_ALL, VALUE_Func_refGene, THRESHOLD_VarFreq, THRESHOLD_Reads2, THRESHOLD_VAF_bg_ratio){
-
-	docs <- paste(paste0("Exac score: less than or equal to ", THRESHOLD_ExAC_ALL),
-				paste0("Function: not ", VALUE_Func_refGene),
-				paste0("VAF: less than or equal to:", THRESHOLD_VarFreq),
-				paste0("Number of mutant reads:", THRESHOLD_Reads2), 
-				paste0("VAF_bg_ratio", THRESHOLD_VAF_bg_ratio), 
-				sep = "\n")
-
-	return(docs)
-
-}
-
-# Removes variants if they are found in more than n_times (appears multiple times)
-remove_duplicated_variants <- function(variants_df, n_times) {
-
-	tab <- table(variants_df$AAchange)
-	variants_df_filtered <- variants_df[variants_df$AAchange %in% names(tab[tab < n_times]), ]
-	
-	return(variants_df_filtered)
-}
-
