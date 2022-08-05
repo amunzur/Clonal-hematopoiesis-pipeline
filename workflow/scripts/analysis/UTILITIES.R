@@ -237,83 +237,16 @@ filter_tnvstats_by_variants <- function(variants_df, DIR_tnvstats, PATH_temp, PA
 
 }
 
-add_finland_readcounts <- function(variants_df, filtered_tnvstats, variant_caller){
-	# Add the number of reads supporting the variants in Matti's bams. This helps justify that the variant is real, but we weren't able to detect it.
-	
-	modify_pos <- function(variants_df, variant_caller, add_or_subtract) {
-
-		if (add_or_subtract == "add") {
-
-				variants_df <- variants_df %>% mutate(
-						Position = case_when(
-							Variant == "deletion" ~ Position + 1, 
-							TRUE ~ Position))
-
-		} else {
-
-				variants_df <- variants_df %>% mutate(
-						Position = case_when(
-							Variant == "deletion" ~ Position - 1, 
-							TRUE ~ Position))
-
-		} # end of if loop
-
-		return(variants_df)
-
-	} # end of function
-
-	# Add 1 to the pos for indels because varcallers report one base too early
-	variants_df <- modify_pos(variants_df, variant_caller, "add")
-	
-	variants_df_subsetted <- variants_df %>% 
-			select(Chrom, Position, Ref, Alt, Sample_name_finland, Variant)
-
-	# go through each variant and identify the correct position in the tnvstats file
-	finland_df <- left_join(variants_df_subsetted, filtered_tnvstats, by = c("Chrom" = "chrom", "Position" = "pos", "Sample_name_finland" = "sample_t")) # this allows for exact matches
-	
-	# Choose the corresponding mutant reads based on what the alt is
-	finland_df <- finland_df %>%
-		mutate(
-		F_tumor_alt_reads = case_when(
-			Variant == "snv" & Alt == "A" ~ A_t, 
-			Variant == "snv" & Alt == "C" ~ C_t, 
-			Variant == "snv" & Alt == "T" ~ T_t, 
-			Variant == "snv" & Alt == "G" ~ G_t,
-			Variant == "deletion" ~ deletions_t, 
-			Variant == "insertion" ~ insertions_t,
-			TRUE ~ NA_real_), 
-		F_tumor_vaf = case_when(
-			Variant == "snv" & Alt == "A" ~ AAF_t, 
-			Variant == "snv" & Alt == "C" ~ CAF_t, 
-			Variant == "snv" & Alt == "T" ~ TAF_t, 
-			Variant == "snv" & Alt == "G" ~ GAF_t, 
-			Variant == "deletion" ~ deletions_t/reads_all_t, 
-			Variant == "insertion" ~ insertions_t/reads_all_t,
-			TRUE ~ NA_real_)) %>%
-		select(Chrom, Position, Ref, Sample_name_finland, reads_all_t, F_tumor_alt_reads, F_tumor_vaf, N_t)
-
-	# combine with the variants_df
-	names(finland_df) <- c("Chrom", "Position", "Ref", "Sample_name_finland", "F_tumor_depth", "F_tumor_alt_reads", "F_tumor_vaf", "F_N_counts") # some renaming so that the merge happens with ease
-	variants_df <- left_join(variants_df, finland_df)
-
-	# revert back to the original position values 
-	variants_df <- modify_pos(variants_df, variant_caller, "subtract")
-
-	return(variants_df)
-}
 
 # Removes variants if they are found in more than n_times (appears multiple times)
 # For the remaining, add a new column to indicate if the variant occurs more than once
 find_and_filter_duplicated_variants <- function(variants_df, n_times) {
 
+	# Removing
 	tab <- table(variants_df$AAchange)
-	variants_df_filtered <- variants_df[variants_df$AAchange %in% names(tab[tab < n_times]), ]
-	
-	return(variants_df_filtered)
-}
+	variants_df <- variants_df[variants_df$AAchange %in% names(tab[tab < n_times]), ]
 
-identify_duplicates <- function(variants_df) {
-
+	# Adding a new column to indicate duplicates
 	dups <- variants_df %>% 
 			get_dupes(AAchange) %>%
 			select(names(variants_df))
