@@ -129,7 +129,7 @@ add_AAchange_effect <- function(variants_df){
 	}
 
 	# Extract all annotations that start with "p." from each variant.
-	p_list <- lapply(str_split(variants_df$AAChange.refGene, ",|:"), function(x) grep("p.", x, value = TRUE))
+	p_list <- lapply(str_split(variants_df$AAChange.refGene, ",|:"), function(x) grep("^p.", x, value = TRUE))
 	p_list <- lapply(p_list, function(x) unique(gsub(",.*", "", x))) # gene name follows the annotation, remove it and subset to unique values
 	
 	# creating a list of first and second AA will help identify missense and synonymous mutations 
