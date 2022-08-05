@@ -41,22 +41,6 @@ add_sample_type <- function(variant_df){
 
 }
 
-# compare with the somatic bets and germline bets list, add an extra col to show if the vars we called also appear in either one of them bets
-compare_with_bets <- function(PATH_bets_somatic, PATH_bets_germline, PATH_panel_genes, variant_df){
-
-	bets_somatic <- as.data.frame(read_delim(PATH_bets_somatic, delim = "\t"))
-	bets_germline <- as.data.frame(read_delim(PATH_bets_germline, delim = "\t"))
-
-	variant_df$In_germline_bets <- variant_df$Position %in% bets_germline$POSITION
-	variant_df$In_somatic_bets <- variant_df$Position %in% bets_somatic$POSITION
-
-	# add a new col to indicate if the gene of interest in each row was also found in the 2017 PCa panel design 	
-	panel <- read_csv(PATH_panel_genes)
-	variant_df$In_panel <- variant_df$Gene %in% panel$GENE
-
-	return(variant_df)
-}
-
 # this function compares variants to variants jack found. need a path to jack
 compare_with_jacks_figure <- function(PATH_validated_variants, variant_df){
 
@@ -148,7 +132,6 @@ add_AAchange_effect <- function(variants_df){
 	p_list <- lapply(str_split(variants_df$AAChange.refGene, ":"), function(x) grep("p.", x, value = TRUE))
 	p_list <- lapply(p_list, function(x) unique(gsub(",.*", "", x))) # gene name follows the annotation, remove it and subset to unique values
 	
-
 	# creating a list of first and second AA will help identify missense and synonymous mutations 
 	first_AA <- lapply(p_list, function(x) substr(x, 3, 3)) # first AA
 	second_AA <- lapply(p_list, function(x) substr(x, nchar(x), nchar(x))) # second AA that first one changes into
