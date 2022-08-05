@@ -61,7 +61,6 @@ combine_anno_varscan <- function(DIR_varscan, DIR_annovar, variant_type, cohort_
 					mutate(
 						ExAC_ALL = replace_na(as.numeric(ExAC_ALL), 0), 
 						gnomAD_exome_ALL = replace_na(as.numeric(gnomAD_exome_ALL), 0), 
-						variant = paste(variant_type), 
 						Cohort_name = cohort_name)
 
 	return(combined)
