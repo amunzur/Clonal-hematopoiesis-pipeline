@@ -174,14 +174,13 @@ MAIN <- function(
 						select(Sample_name, Sample_type, patient_id, Cohort_name, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, Reads1Plus, Reads1Minus, Reads2Plus, Reads2Minus, Func.refGene, Gene.refGene, AAChange.refGene, Protein_annotation, Effects, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads)
 	names(combined) <- c("Sample_name", "Sample_type", "Patient_ID", "Cohort_name", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
 	
-	combined <- identify_duplicates(combined) # add a new col indicating if the variant is duplicated or not
 	combined <- combined %>%
 				filter((Total_reads >= 1000 & VAF >= 0.005) | (Total_reads <= 1000 & Alt_reads >= 5), 
 						VAF < THRESHOLD_VarFreq)
 				
 	combined <- subset_to_panel(PATH_bed, combined) # Subset to panel 
 	combined <- add_depth(DIR_depth_metrics, PATH_collective_depth_metrics, combined) # Add depth information at these positions
-	combined <- remove_duplicated_variants(combined, 3) # Remove duplicated variants
+	combined <- find_and_filter_duplicated_variants(combined, 3) # Remove duplicated variants, and add a new column to mark duplicated variants
 
 	return(combined)
 } 
