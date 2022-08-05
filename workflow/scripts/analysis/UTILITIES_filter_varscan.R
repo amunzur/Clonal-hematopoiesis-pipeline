@@ -35,8 +35,10 @@ modify_varscan_output <- function(varscan_df, variant_type) {
 
 	} else {
 
-		varscan_df$Start <- as.character(varscan_df$Start)
-
+		varscan_df <- varscan_df %>%
+			mutate(
+				Start = as.character(Start),
+				variant = "snv")
 	}
 
 	return(varscan_df)
