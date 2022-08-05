@@ -44,3 +44,20 @@ However, scanning the compare_with_tumor.R results, it seems to me that even tho
 This causes mistakes when trying to count how many variant callers picked up a certain variant. 
 I don't really have time to deal with this now, but it is worthwhile to go back to the UTILITIES_filter_varscan.R file and try to catch where the error happened.
 ACTION THAT I TOOK: Manually added 1 to all varscan deletions in the combine_variant_callers.R file. I know I know I'll deal with it later!
+
+AUG 3rd 2022
+Made some changes to the varscan script that filters out the variants called by varscan. Nothing major, as a final filtering step I removed variants if they appear
+in more than n samples, n is set to 3. I am running the script on various batches now. Changes I made works well on both snvs and indels. Tomorrow will move onto the
+vardict script. 
+
+AUG 4th 2022
+Updated the files that parse vardict output, similar to the progress made yesterday on varscan. Rerunning all the batches to recompute vardict outputs. One thing to 
+check is that when I run only keep the variants in the panel, I get n-1 variants retained from the original number, judgin by the warning message on the terminal.
+Look into that. 
+- More general double checking is needed to make sure variants are merged correctly. 
+- Combining tumor and WBC outputs
+
+AUG 5th 2022
+- Previously done duplicate identification was incorrect, I was doing it before completing all filtering, so naturally even if some variants are lost after filtering
+some of them were being identified as duplicates. Now duplicate identification is done at the very end. 
+- A minor change to the AA identification,changed how I was splitting the string to make sure the protein annotation, starting with p. was correct. 
