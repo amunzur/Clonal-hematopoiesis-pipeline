@@ -29,8 +29,8 @@ def make_igv_batch_script(
 			end_position = str(int(position + given_range/2))
 			
 		# os.remove(IGV_script)
-		os.makedirs(DIR_snapshots, exist_ok =True) # make the snapshost dir if it doesnt exist already
-		output_file_name = row["Sample_name_t"] + "_" + str(row["Chrom"]) + "_" + str(position) + ".png" # one snapshot for each snv
+		os.makedirs(DIR_snapshots, exist_ok = True) # make the snapshost dir if it doesnt exist already
+		output_file_name = row["Sample_name_t"] + "_" + str(row["Chrom"]) + "_" + str(position) + "_" + str(row["Protein_annotation"]) + ".png" # one snapshot for each variant
 		
 		# Begin compiling the batch file
 		with open(PATH_batch, 'a') as the_file:
@@ -54,14 +54,14 @@ def make_igv_batch_script(
 
 
 PATH_variants_df = "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined/tumor_wbc.csv"
-PATH_batch = "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/IGV_batch_scripts/tumor_wbc/all.txt"
-DIR_snapshots = "/groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/tumor_wbc/all"
-given_range = 200
+PATH_batch = "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/IGV_batch_scripts/tumor_wbc/tumor_wbc.txt" # batch script
+DIR_snapshots = "/groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/tumor_wbc"
+given_range = 100
 add_prefix = ""
 add_suffix = ""
 
 variants_df = pd.read_csv(PATH_variants_df)
-variants_df.loc[(variants_df["Variant"] == "deletion") | (variants_df["Variant"] == "insertion"), "Position"] = variants_df.Position + 1 # must add 1 so that IGV sorts correctly
+# variants_df.loc[(variants_df["Variant"] == "deletion") | (variants_df["Variant"] == "insertion"), "Position"] = variants_df.Position + 1 # must add 1 so that IGV sorts correctly
 
 # Make sure an older version of the script doesnt exist 
 try:
@@ -72,4 +72,4 @@ except:
 make_igv_batch_script(variants_df, PATH_batch, DIR_snapshots, add_prefix, add_suffix, given_range)
 
 # to run this script execute on the terminal
-# /home/amunzur/IGV_Linux_2.11.3/igv.sh --batch /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/IGV_batch_scripts/tumor_wbc/all.txt
+# /home/amunzur/IGV_Linux_2.11.3/igv.sh --batch /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/IGV_batch_scripts/tumor_wbc/tumor_wbc.txt
