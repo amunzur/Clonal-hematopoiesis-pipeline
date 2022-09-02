@@ -3,7 +3,7 @@ import pandas as pd
 # snakemake --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch --exclude=cn[01-05] -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 40
 
 # single cohort approach
-cohort_name = "batch3"
+cohort_name = "B2P1"
 PATH_to_samples = "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/" + cohort_name + ".tsv"
 configfile: "config/config.yaml"
 
@@ -86,7 +86,8 @@ MASK_FastQ = expand(DIR_masked_fastq + "/{cohort_wildcard}/{wildcard}_masked.fas
 EXTRACT_FastQ_R1 = expand(DIR_extracted_fastq + "/{cohort_wildcard}/{wildcard}_R1_extracted.fastq", wildcard = samples, cohort_wildcard = cohort_name)
 EXTRACT_FastQ_R2 = expand(DIR_extracted_fastq + "/{cohort_wildcard}/{wildcard}_R2_extracted.fastq", wildcard = samples, cohort_wildcard = cohort_name)
 
-TRIM_FastQ = [expand(DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R1_extracted_val_1.fq", wildcard = samples, cohort_wildcard = cohort_name), \
+TRIM_FastQ = [
+	expand(DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R1_extracted_val_1.fq", wildcard = samples, cohort_wildcard = cohort_name), \
 	expand(DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R2_extracted_val_2.fq", wildcard = samples, cohort_wildcard = cohort_name), \
 	expand(DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R1_extracted_val_1_fastqc.html", wildcard = samples, cohort_wildcard = cohort_name), \
 	expand(DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R2_extracted_val_2_fastqc.html", wildcard = samples, cohort_wildcard = cohort_name)]
@@ -97,7 +98,8 @@ INDEX_sorted_bams = expand(DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam.
 DEDUP_umitools = expand(DIR_bams + "/{cohort_wildcard}/dedup/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
 
 FIXMATE = expand(DIR_bams + "/{cohort_wildcard}/fixmate/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
-MARKDUP = [expand(DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name), \
+MARKDUP = [
+	expand(DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name), \
 	expand(DIR_markdup_metrics + "/{cohort_wildcard}/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name)]
 SC_PENALTY = expand(DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
 ADD_RG = expand(DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
@@ -149,24 +151,24 @@ rule all:
 		# MERGE_R1,
 		# MERGE_R2,
 		# RUN_FastQC_merged,
-		# MASK_FastQ,
-		# EXTRACT_FastQ_R1,
-		# EXTRACT_FastQ_R2,
-		# TRIM_FastQ,
-		# ALIGN_and_SORT,
-		# INDEX_sorted_bams, 
-		# INDEX_readGroup_bams,
-		# INDEX_SC_penalty_bams,
-		# DEDUP_umitools,
-		# FIXMATE,
-		# MARKDUP,
-		# SC_PENALTY,
-		# ADD_RG,
-		# RUN_mpileup,
-		# RUN_fastq_read_counts, 
-		# RUN_extract_markdup_perc,
-		# RUN_varscan_snv, 
-		# RUN_VarScan_indel, 
+		MASK_FastQ,
+		EXTRACT_FastQ_R1,
+		EXTRACT_FastQ_R2,
+		TRIM_FastQ,
+		ALIGN_and_SORT,
+		INDEX_sorted_bams, 
+		INDEX_readGroup_bams,
+		INDEX_SC_penalty_bams,
+		DEDUP_umitools,
+		FIXMATE,
+		MARKDUP,
+		SC_PENALTY,
+		ADD_RG,
+		RUN_mpileup,
+		RUN_fastq_read_counts, 
+		RUN_extract_markdup_perc,
+		RUN_varscan_snv, 
+		RUN_VarScan_indel, 
 		# RUN_Mutect2,
 		# FILTER_Mutect2,
 		# RUN_Haplotype_caller,
@@ -175,18 +177,18 @@ rule all:
 		# VCF_to_table,
 		# REFORMAT_GATK_results,
 		# RUN_ANNOVAR_GATK,
-		# RUN_Vardict,
-		MAKE_ANNOVAR_GATK_input,
-		# make_ANNOVAR_snv_input,
-		# make_ANNOVAR_indel_input,
-		# make_ANNOVAR_vardict_input,
-		# run_ANNOVAR_snv,
-		# run_ANNOVAR_indel, 
-		# run_ANNOVAR_vardict,
-		# run_insert_size, 
-		# PDF_to_PNG,
-		# run_depth, 
-		# run_depth_umi
+		RUN_Vardict,
+		# MAKE_ANNOVAR_GATK_input,
+		make_ANNOVAR_snv_input,
+		make_ANNOVAR_indel_input,
+		make_ANNOVAR_vardict_input,
+		run_ANNOVAR_snv,
+		run_ANNOVAR_indel, 
+		run_ANNOVAR_vardict,
+		run_insert_size, 
+		PDF_to_PNG,
+		run_depth, 
+		run_depth_umi
 
 ##### Modules #####
 include: "rules/process_fastq.smk"
