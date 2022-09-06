@@ -21,9 +21,9 @@ rule fastq_read_counts:
 # mask low quality bases in fastq files
 rule mask_fastq:
 	input: 
-		DIR_merged_fastq + "/{cohort_wildcard}/{wildcard}.fastq"
+		DIR_merged_fastq + "/{wildcard}.fastq"
 	output:
-		DIR_masked_fastq + "/{cohort_wildcard}/{wildcard}_masked.fastq"
+		DIR_masked_fastq + "/{wildcard}_masked.fastq"
 	params: 
 		min_base_quality = 20
 	run:
