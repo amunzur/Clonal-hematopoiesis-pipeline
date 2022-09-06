@@ -1,26 +1,26 @@
 rule index_sorted_bams: 
 	input: 
-		DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam"
+		DIR_bams + "/sorted/{wildcard}.bam"
 	output:
-		DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam.bai"
+		DIR_bams + "/sorted/{wildcard}.bam.bai"
 	threads: 3
 	shell:
 		"samtools index {input}"
 
 rule index_readGroup_bams: 
 	input: 
-		DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam"
+		DIR_bams + "/readGroup/{wildcard}.bam"
 	output:
-		DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam.bai"
+		DIR_bams + "/readGroup/{wildcard}.bam.bai"
 	threads: 3
 	shell:
 		"samtools index {input}"
 		
 rule index_SC_penalty_bams: 
 	input: 
-		DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam"
+		DIR_bams + "/SC_penalty/{wildcard}.bam"
 	output:
-		DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam.bai"
+		DIR_bams + "/SC_penalty/{wildcard}.bam.bai"
 	threads: 3
 	shell:
 		"samtools index {input}"
