@@ -1,33 +1,9 @@
-rule MERGE_R1: 
-	input: 
-		lane1 = DIR_raw_fastq + "/{cohort_wildcard}/{wildcard}_L001_R1_001.fastq", 
-		lane2 = DIR_raw_fastq + "/{cohort_wildcard}/{wildcard}_L002_R1_001.fastq", 
-		lane3 = DIR_raw_fastq + "/{cohort_wildcard}/{wildcard}_L003_R1_001.fastq", 
-		lane4 = DIR_raw_fastq + "/{cohort_wildcard}/{wildcard}_L004_R1_001.fastq"
-	output:
-		DIR_merged_fastq +  "/{cohort_wildcard}/{wildcard}_R1.fastq"
-	threads: 5
-	shell:
-		"cat {input.lane1} {input.lane2} {input.lane3} {input.lane4} > {output}"
-
-rule MERGE_R2: 
-	input: 
-		lane1 = DIR_raw_fastq + "/{cohort_wildcard}/{wildcard}_L001_R2_001.fastq", 
-		lane2 = DIR_raw_fastq + "/{cohort_wildcard}/{wildcard}_L002_R2_001.fastq", 
-		lane3 = DIR_raw_fastq + "/{cohort_wildcard}/{wildcard}_L003_R2_001.fastq", 
-		lane4 = DIR_raw_fastq + "/{cohort_wildcard}/{wildcard}_L004_R2_001.fastq"
-	output:
-		DIR_merged_fastq +  "/{cohort_wildcard}/{wildcard}_R2.fastq"
-	threads: 5
-	shell:
-		"cat {input.lane1} {input.lane2} {input.lane3} {input.lane4} > {output}"
-
 rule run_fastqc_merged:
 	input:
-		DIR_merged_fastq + "/{cohort_wildcard}/{wildcard}.fastq"
+		DIR_merged_fastq + "/{wildcard}.fastq"
 	output:
-		output_zip = DIR_merged_fastqc + "/{cohort_wildcard}/{wildcard}_fastqc.zip",
-		output_html = DIR_merged_fastqc + "/{cohort_wildcard}/{wildcard}_fastqc.html"
+		output_zip = DIR_merged_fastqc + "/{wildcard}_fastqc.zip",
+		output_html = DIR_merged_fastqc + "/{wildcard}_fastqc.html"
 	threads: 5
 	shell:
 		"/home/amunzur/FastQC/fastqc {input} --outdir=`dirname {output.output_zip}`"
