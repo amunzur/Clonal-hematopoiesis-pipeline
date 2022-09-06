@@ -2,7 +2,6 @@ import pandas as pd
 
 # snakemake --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch --exclude=cn[01-05] -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 40
 
-# single cohort approach
 PATH_to_samples = "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/sample_list.tsv"
 configfile: "config/config.yaml"
 
@@ -86,54 +85,54 @@ TRIM_FastQ = [
 	expand(DIR_trimmed_fastqc + "/{wildcard}_R2_extracted_val_2_fastqc.html", wildcard = samples)]
 
 # Alignment, sorting, marking duplicates and adding read groups
-# ALIGN_and_SORT = expand(DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
-# INDEX_sorted_bams = expand(DIR_bams + "/{cohort_wildcard}/sorted/{wildcard}.bam.bai", wildcard = samples, cohort_wildcard = cohort_name)
-# DEDUP_umitools = expand(DIR_bams + "/{cohort_wildcard}/dedup/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
+ALIGN_and_SORT = expand(DIR_bams + "/sorted/{wildcard}.bam", wildcard = samples)
+INDEX_sorted_bams = expand(DIR_bams + "/sorted/{wildcard}.bam.bai", wildcard = samples)
+DEDUP_umitools = expand(DIR_bams + "/dedup/{wildcard}.bam", wildcard = samples)
 
-# FIXMATE = expand(DIR_bams + "/{cohort_wildcard}/fixmate/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
-# MARKDUP = [
-# 	expand(DIR_bams + "/{cohort_wildcard}/markdup/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name), \
-# 	expand(DIR_markdup_metrics + "/{cohort_wildcard}/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name)]
-# SC_PENALTY = expand(DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
-# ADD_RG = expand(DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam", wildcard = samples, cohort_wildcard = cohort_name)
-# INDEX_readGroup_bams = expand(DIR_bams + "/{cohort_wildcard}/readGroup/{wildcard}.bam.bai", wildcard = samples, cohort_wildcard = cohort_name)
-# INDEX_SC_penalty_bams = expand(DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam.bai", wildcard = samples, cohort_wildcard = cohort_name)
-# run_complexity_metrics_markdup = expand(DIR_complexity_metrics + "/{cohort_wildcard}/PICARD_complexity_dedup/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name)
-# RUN_fastq_read_counts = expand(DIR_readcounts_metrics + "/raw/{cohort_wildcard}/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name)
-# RUN_extract_markdup_perc = expand(DIR_markdup_perc_metrics + "/{cohort_wildcard}/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name)
+FIXMATE = expand(DIR_bams + "/fixmate/{wildcard}.bam", wildcard = samples)
+MARKDUP = [
+	expand(DIR_bams + "/markdup/{wildcard}.bam", wildcard = samples), \
+	expand(DIR_markdup_metrics + "/{wildcard}.txt", wildcard = samples)]
+SC_PENALTY = expand(DIR_bams + "/SC_penalty/{wildcard}.bam", wildcard = samples)
+ADD_RG = expand(DIR_bams + "/readGroup/{wildcard}.bam", wildcard = samples)
+INDEX_readGroup_bams = expand(DIR_bams + "/readGroup/{wildcard}.bam.bai", wildcard = samples)
+INDEX_SC_penalty_bams = expand(DIR_bams + "/SC_penalty/{wildcard}.bam.bai", wildcard = samples)
+run_complexity_metrics_markdup = expand(DIR_complexity_metrics + "/PICARD_complexity_dedup/{wildcard}.txt", wildcard = samples)
+RUN_fastq_read_counts = expand(DIR_readcounts_metrics + "/raw/{wildcard}.txt", wildcard = samples)
+RUN_extract_markdup_perc = expand(DIR_markdup_perc_metrics + "/{wildcard}.txt", wildcard = samples)
 
-# RUN_mpileup = expand(DIR_mpileup + "/{cohort_wildcard}/{wildcard}.mpileup", wildcard = samples, cohort_wildcard = cohort_name)
-# RUN_varscan_snv = expand(VarScan_snv + "/{cohort_wildcard}/{wildcard}.vcf", wildcard = samples, cohort_wildcard = cohort_name)
-# RUN_VarScan_indel = expand(VarScan_indel + "/{cohort_wildcard}/{wildcard}.vcf", wildcard = samples, cohort_wildcard = cohort_name)
-# RUN_Vardict = expand(DIR_Vardict + "/{cohort_wildcard}/{wildcard}.vcf", wildcard = samples, cohort_wildcard = cohort_name)
-# REFORMAT_vardict_results = expand(DIR_Vardict + "/{cohort_wildcard}_reformatted/{wildcard}.tsv", wildcard = samples, cohort_wildcard = cohort_name)
+# RUN_mpileup = expand(DIR_mpileup + "/{wildcard}.mpileup", wildcard = samples)
+# RUN_varscan_snv = expand(VarScan_snv + "/{wildcard}.vcf", wildcard = samples)
+# RUN_VarScan_indel = expand(VarScan_indel + "/{wildcard}.vcf", wildcard = samples)
+# RUN_Vardict = expand(DIR_Vardict + "/{wildcard}.vcf", wildcard = samples)
+# REFORMAT_vardict_results = expand(DIR_Vardict + "_reformatted/{wildcard}.tsv", wildcard = samples)
 
-# RUN_Mutect2 = expand(DIR_Mutect + "/raw/{cohort_wildcard}/{wildcard}_vcf.gz", wildcard = samples, cohort_wildcard = cohort_name)
-# FILTER_Mutect2 = expand(DIR_Mutect + "/filtered/{cohort_wildcard}/{wildcard}_vcf.gz", wildcard = samples, cohort_wildcard = cohort_name)
+# RUN_Mutect2 = expand(DIR_Mutect + "/raw/{wildcard}_vcf.gz", wildcard = samples)
+# FILTER_Mutect2 = expand(DIR_Mutect + "/filtered/{wildcard}_vcf.gz", wildcard = samples)
 
-# RUN_Haplotype_caller = expand(DIR_Haplotype + "/GVCFs/{cohort_wildcard}/{wildcard}.g.vcf.gz", wildcard = samples, cohort_wildcard = cohort_name)
-# RUN_genomics_DB = expand(DIR_Haplotype + "/Genomics_DB/{cohort_wildcard}", cohort_wildcard = cohort_name)
-# RUN_genotype_vcfs = expand(DIR_Haplotype + "/GenotypeGVCFs/{cohort_wildcard}_genotyped.vcf.gz", cohort_wildcard = cohort_name)
-# VCF_to_table = expand(DIR_Haplotype + "/GenotypeGVCFs_table/{cohort_wildcard}.tsv", cohort_wildcard = cohort_name)
-# # REFORMAT_GATK_results = [expand(DIR_Haplotype + "/variants_reformatted/{cohort_wildcard}.tsv", cohort_wildcard = cohort_name), \
-# # 						 expand(ANNOVAR_GATK_input + "/{cohort_wildcard}.tsv", cohort_wildcard = cohort_name)]
+# RUN_Haplotype_caller = expand(DIR_Haplotype + "/GVCFs/{wildcard}.g.vcf.gz", wildcard = samples)
+# RUN_genomics_DB = expand(DIR_Haplotype + "/Genomics_DB")
+# RUN_genotype_vcfs = expand(DIR_Haplotype + "/GenotypeGVCFs_genotyped.vcf.gz")
+# VCF_to_table = expand(DIR_Haplotype + "/GenotypeGVCFs_table.tsv")
+# # REFORMAT_GATK_results = [expand(DIR_Haplotype + "/variants_reformatted.tsv"), \
+# # 						 expand(ANNOVAR_GATK_input + ".tsv")]
 
-# MAKE_ANNOVAR_GATK_input = expand(ANNOVAR_GATK_input + "/{cohort_wildcard}.tsv", cohort_wildcard = cohort_name)
-# RUN_ANNOVAR_GATK = expand(ANNOVAR_GATK_output + "/{cohort_wildcard}/{cohort_wildcard}.hg38_multianno.txt", cohort_wildcard = cohort_name)
+# MAKE_ANNOVAR_GATK_input = expand(ANNOVAR_GATK_input + ".tsv")
+# RUN_ANNOVAR_GATK = expand(ANNOVAR_GATK_output + ".hg38_multianno.txt")
 
-# make_ANNOVAR_snv_input = expand(ANNOVAR_snv_input + "/{cohort_wildcard}/{wildcard}_anno.tsv", wildcard = samples, cohort_wildcard = cohort_name)
-# make_ANNOVAR_indel_input = expand(ANNOVAR_indel_input + "/{cohort_wildcard}/{wildcard}_anno.tsv", wildcard = samples, cohort_wildcard = cohort_name)
-# make_ANNOVAR_vardict_input = expand(ANNOVAR_Vardict_input + "/{cohort_wildcard}/{wildcard}_anno.tsv", wildcard = samples, cohort_wildcard = cohort_name)
+# make_ANNOVAR_snv_input = expand(ANNOVAR_snv_input + "/{wildcard}_anno.tsv", wildcard = samples)
+# make_ANNOVAR_indel_input = expand(ANNOVAR_indel_input + "/{wildcard}_anno.tsv", wildcard = samples)
+# make_ANNOVAR_vardict_input = expand(ANNOVAR_Vardict_input + "/{wildcard}_anno.tsv", wildcard = samples)
 
-# run_ANNOVAR_snv = expand(ANNOVAR_snv_output + "/{cohort_wildcard}/{wildcard}.hg38_multianno.txt", wildcard = samples, cohort_wildcard = cohort_name)
-# run_ANNOVAR_indel = expand(ANNOVAR_indel_output + "/{cohort_wildcard}/{wildcard}.hg38_multianno.txt", wildcard = samples, cohort_wildcard = cohort_name)
-# run_ANNOVAR_vardict = expand(ANNOVAR_Vardict_output + "/{cohort_wildcard}/{wildcard}.hg38_multianno.txt", wildcard = samples, cohort_wildcard = cohort_name)
+# run_ANNOVAR_snv = expand(ANNOVAR_snv_output + "/{wildcard}.hg38_multianno.txt", wildcard = samples)
+# run_ANNOVAR_indel = expand(ANNOVAR_indel_output + "/{wildcard}.hg38_multianno.txt", wildcard = samples)
+# run_ANNOVAR_vardict = expand(ANNOVAR_Vardict_output + "/{wildcard}.hg38_multianno.txt", wildcard = samples)
 
-# run_insert_size = [expand(DIR_insertsize_metrics + "/{cohort_wildcard}/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name), \
-# 	expand(DIR_insertsize_figures + "/{cohort_wildcard}/{wildcard}.pdf", wildcard = samples, cohort_wildcard = cohort_name)]
-# PDF_to_PNG = expand(DIR_insertsize_figures_PNG + "/{cohort_wildcard}/{wildcard}.png", wildcard = samples, cohort_wildcard = cohort_name)
-# run_depth = expand(DIR_depth_metrics + "/{cohort_wildcard}/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name) # depth at each position
-# run_depth_umi = expand(DIR_depth_metrics_dedup + "/{cohort_wildcard}/{wildcard}.txt", wildcard = samples, cohort_wildcard = cohort_name)
+# run_insert_size = [expand(DIR_insertsize_metrics + "/{wildcard}.txt", wildcard = samples), \
+# 	expand(DIR_insertsize_figures + "/{wildcard}.pdf", wildcard = samples)]
+# PDF_to_PNG = expand(DIR_insertsize_figures_PNG + "/{wildcard}.png", wildcard = samples)
+# run_depth = expand(DIR_depth_metrics + "/{wildcard}.txt", wildcard = samples) # depth at each position
+# run_depth_umi = expand(DIR_depth_metrics_dedup + "/{wildcard}.txt", wildcard = samples)
 ###################################################
 # TARGET RULES
 ###################################################
@@ -148,15 +147,15 @@ rule all:
 		EXTRACT_FastQ_R1,
 		EXTRACT_FastQ_R2,
 		TRIM_FastQ,
-		# ALIGN_and_SORT,
-		# INDEX_sorted_bams, 
-		# INDEX_readGroup_bams,
-		# INDEX_SC_penalty_bams,
-		# DEDUP_umitools,
-		# FIXMATE,
-		# MARKDUP,
-		# SC_PENALTY,
-		# ADD_RG,
+		ALIGN_and_SORT,
+		INDEX_sorted_bams, 
+		INDEX_readGroup_bams,
+		INDEX_SC_penalty_bams,
+		DEDUP_umitools,
+		FIXMATE,
+		MARKDUP,
+		SC_PENALTY,
+		ADD_RG,
 		# RUN_mpileup,
 		# RUN_fastq_read_counts, 
 		# RUN_extract_markdup_perc,
