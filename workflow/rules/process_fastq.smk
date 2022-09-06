@@ -32,11 +32,11 @@ rule mask_fastq:
 # extracts from the 5' end
 rule extract_UMIs:
 	input: 
-		R1 = DIR_masked_fastq + "/{cohort_wildcard}/{wildcard}_R1_masked.fastq",
-		R2 = DIR_masked_fastq + "/{cohort_wildcard}/{wildcard}_R2_masked.fastq"
+		R1 = DIR_masked_fastq + "/{wildcard}_R1_masked.fastq",
+		R2 = DIR_masked_fastq + "/{wildcard}_R2_masked.fastq"
 	output:
-		R1_extracted = DIR_extracted_fastq + "/{cohort_wildcard}/{wildcard}_R1_extracted.fastq",
-		R2_extracted = DIR_extracted_fastq + "/{cohort_wildcard}/{wildcard}_R2_extracted.fastq"
+		R1_extracted = DIR_extracted_fastq + "/{wildcard}_R1_extracted.fastq",
+		R2_extracted = DIR_extracted_fastq + "/{wildcard}_R2_extracted.fastq"
 	conda: 
 		"../envs/umi_tools.yaml" # two dots here because it starts in the workflow/rules directory. To go to envs we need to jump up one directory first.
 	shell:
@@ -53,15 +53,15 @@ rule extract_UMIs:
 # Trim fastq files using trim galore and run fastqc on them. R1 and R2 fastq files should be provided at the same time. 
 rule trim_fastq: 
 	input: 
-		R1_extracted = DIR_extracted_fastq + "/{cohort_wildcard}/{wildcard}_R1_extracted.fastq",
-		R2_extracted = DIR_extracted_fastq + "/{cohort_wildcard}/{wildcard}_R2_extracted.fastq"
+		R1_extracted = DIR_extracted_fastq + "/{wildcard}_R1_extracted.fastq",
+		R2_extracted = DIR_extracted_fastq + "/{wildcard}_R2_extracted.fastq"
 	output:
-		pair1_trimmed = DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R1_extracted_val_1.fq",
-		pair2_trimmed = DIR_trimmed_fastq + "/{cohort_wildcard}/{wildcard}_R2_extracted_val_2.fq",
-		pair1_trimmed_fastqc_html = DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R1_extracted_val_1_fastqc.html",
-		pair2_trimmed_fastqc_html = DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R2_extracted_val_2_fastqc.html",
-		pair1_trimmed_fastqc_zip = DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R1_extracted_val_1_fastqc.zip",
-		pair2_trimmed_fastqc_zip = DIR_trimmed_fastqc + "/{cohort_wildcard}/{wildcard}_R2_extracted_val_2_fastqc.zip"
+		pair1_trimmed = DIR_trimmed_fastq + "/{wildcard}_R1_extracted_val_1.fq",
+		pair2_trimmed = DIR_trimmed_fastq + "/{wildcard}_R2_extracted_val_2.fq",
+		pair1_trimmed_fastqc_html = DIR_trimmed_fastqc + "/{wildcard}_R1_extracted_val_1_fastqc.html",
+		pair2_trimmed_fastqc_html = DIR_trimmed_fastqc + "/{wildcard}_R2_extracted_val_2_fastqc.html",
+		pair1_trimmed_fastqc_zip = DIR_trimmed_fastqc + "/{wildcard}_R1_extracted_val_1_fastqc.zip",
+		pair2_trimmed_fastqc_zip = DIR_trimmed_fastqc + "/{wildcard}_R2_extracted_val_2_fastqc.zip"
 	params: 
 		min_base_quality = 20, 
 		clip_R1 = 0, 
