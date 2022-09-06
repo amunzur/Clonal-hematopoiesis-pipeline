@@ -10,11 +10,11 @@ rule run_fastqc_merged:
 
 rule fastq_read_counts:
 	input:
-		DIR_merged_fastq + "/{cohort_wildcard}/{wildcard}_R1.fastq"
+		DIR_merged_fastq + "/{wildcard}_R1.fastq"
 	params:
 		sample_name = "{wildcard}"
 	output:
-		DIR_readcounts_metrics + "/raw/{cohort_wildcard}/{wildcard}.txt"
+		DIR_readcounts_metrics + "/raw/{wildcard}.txt"
 	shell:
 		"paste <(echo {params}) <(echo $(cat {input}|wc -l)/4|bc) > {output}"
 		
