@@ -11,18 +11,10 @@ return_anno_output <- function(DIR_ANNOVAR) {
 }
 
 # based on the cohort_name, add the patient id
-add_patient_id <- function(variant_df, cohort_name){
+add_patient_id <- function(variant_df){
 
-	if (cohort_name == "new_chip_panel"){
-
-		x <- str_split(variant_df$Sample_name, "-") # split the sample name
-		variant_df$patient_id <- paste(lapply(x, "[", 1), lapply(x, "[", 2), lapply(x, "[", 3), sep = "-") # paste 2nd and 3rd elements to create the sample name 
-
-	} else {
-
-		x <- str_split(variant_df$Sample_name, "_gDNA|_WBC|_cfDNA")
-		variant_df$patient_id <- unlist(lapply(x, "[", 1))
-	}
+	x <- str_split(variant_df$Sample_name, "_gDNA|_WBC|_cfDNA")
+	variant_df$patient_id <- unlist(lapply(x, "[", 1))
 
 	return(variant_df)
 
@@ -89,8 +81,8 @@ subset_to_panel <- function(PATH_bed, variant_df) {
 	message("Started subsetting to the panel.")
 	i <- 1 
 	while (i <= dim(variant_df)[1]){
-		chrom_subsetted <- as.character(variant_df[i, 5]) # pick the chrom we are at 
-		location <- as.character(variant_df[i, 6]) # pick the location we are at 
+		chrom_subsetted <- as.character(variant_df[i, "Chrom"]) # pick the chrom we are at 
+		position <- as.character(variant_df[i, "Position"]) # pick the genomic we are at 
 		bed_subsetted <- bed %>% dplyr::filter(chrom == chrom_subsetted) # subset the bed by chrom
 
 		j <- 1
@@ -98,7 +90,7 @@ subset_to_panel <- function(PATH_bed, variant_df) {
 			start_pos <- bed_subsetted[j, 2]
 			end_pos <- bed_subsetted[j, 3]
 
-			if (all(location >= start_pos, location <= end_pos)) {
+			if (all(position >= start_pos, position <= end_pos)) {
 				to_keep <- append(to_keep, i) # saving the row index of muts we are keeping
 				break 
 				} else {j <- j + 1} # if the location isn't in the panel, go check out the next position in the bed file.
