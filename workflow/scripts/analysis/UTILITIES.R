@@ -47,7 +47,7 @@ compare_with_jacks_figure <- function(PATH_validated_variants, variant_df){
 # add the depth at each variant position
 add_depth <- function(DIR_depth_metrics, PATH_collective_depth_metrics, variant_df) {
 
-	file_name_list <- list.files(DIR_depth_metrics, full.names = TRUE)
+	file_name_list <- list.files(DIR_depth_metrics, full.names = TRUE, pattern = "\\.txt$")
 	depth_file_list <- lapply(file_name_list, read.delim, header = FALSE) # load the related files to a list
 	depth_file <- do.call(rbind, depth_file_list) # combine all depth files into one large one
 
@@ -211,7 +211,6 @@ filter_tnvstats_by_variants <- function(variants_df, DIR_tnvstats, PATH_temp, PA
 	return(filtered_tnvstats)
 
 }
-
 
 # Removes variants if they are found in more than n_times (appears multiple times)
 # For the remaining, add a new column to indicate if the variant occurs more than once
