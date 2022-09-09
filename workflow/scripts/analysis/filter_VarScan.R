@@ -44,7 +44,10 @@ source(PATH_utilities_file) # functions shared between vardict and varscan
 
 bg <- read_delim(PATH_bg, delim = "\t")
 
-snv <- MAIN(	cohort_name, 
+DIR_annovar <- DIR_annovar_snv
+DIR_varscan <- DIR_varscan_snv
+
+snv <- MAIN(
 				THRESHOLD_ExAC_ALL, 
 				VALUE_Func_refGene, 
 				THRESHOLD_VarFreq, 
@@ -63,7 +66,7 @@ snv <- MAIN(	cohort_name,
 				"snv",
 				variant_caller)
 
-indel <- MAIN(  cohort_name, 
+indel <- MAIN(
 				THRESHOLD_ExAC_ALL, 
 				VALUE_Func_refGene, 
 				THRESHOLD_VarFreq, 
