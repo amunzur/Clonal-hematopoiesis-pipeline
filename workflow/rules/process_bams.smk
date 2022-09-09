@@ -82,7 +82,7 @@ rule add_read_groups_PICARD:
 	shell:
 		"picard -Xmx40g AddOrReplaceReadGroups I={input} O={output} RGID=1 RGLB={params.rglb} RGPL={params.rgpl} RGPU={params.rgpu} RGSM={params.rgsm}"
 
-rule filter_clipped_reads:
+rule filter_clipped_reads_and_subset_to_panel:
 	input: 
 		BAM = DIR_bams + "/readGroup/{wildcard}.bam",
 		PATH_hg38 = PATH_hg38
@@ -91,7 +91,8 @@ rule filter_clipped_reads:
 		# BAM_index = DIR_bams + "/SC_penalty/{wildcard}.bam.bai"
 	threads: 12
 	params:
+		PATH_bed = PATH_bed,
 		clipping_threshold = 10
 	shell:
-		"samtools view -h {input.BAM} | /home/amunzur/samclip --ref {input.PATH_hg38} --max {params.clipping_threshold} | samtools view -bh > {output.BAM}"
+		"samtools view -h {input.BAM} | /home/amunzur/samclip --ref {input.PATH_hg38} --max {params.clipping_threshold} | samtools view -b -h -L {params.PATH_bed} > {output.BAM}"
 		# "samtools index {output.BAM}"
