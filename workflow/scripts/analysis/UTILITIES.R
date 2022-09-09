@@ -60,7 +60,7 @@ add_depth <- function(DIR_depth_metrics, PATH_collective_depth_metrics, variant_
 	combined <- left_join(variant_df, depth_file, by = c("Sample_name", "Chrom", "Position"))
 
 	# Add the median depth across all positions
-	depth_file <- as.data.frame(read_delim(PATH_collective_depth_metrics, delim = "\t"))
+	depth_file <- as.data.frame(read_delim(PATH_collective_depth_metrics, delim = " "))
 	combined <- left_join(combined, depth_file, by = "Sample_name")
 
 	return(combined)
