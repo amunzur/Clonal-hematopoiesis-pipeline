@@ -1,10 +1,10 @@
 rule Haplotype_Caller:
 	input:
-		SC_bam = DIR_bams + "/{cohort_wildcard}/SC_penalty/{wildcard}.bam",
+		SC_bam = DIR_bams + "/SC_penalty/{wildcard}.bam",
 		PATH_hg38 = PATH_hg38,
 		PATH_bed = PATH_bed
 	output: 
-		DIR_Haplotype + "/GVCFs/{cohort_wildcard}/{wildcard}.g.vcf.gz"
+		DIR_Haplotype + "/GVCFs/{wildcard}.g.vcf.gz"
 	priority: 1 # This allows haplotype caller to run before Create_Genomics_DB
 	threads: 12
 	shell:
@@ -24,7 +24,7 @@ rule Create_Genomics_DB:
 		PATH_bed = PATH_bed,
 		DIR_temp = DIR_temp
 	output: 
-		PATH_DB = directory(DIR_Haplotype + "/Genomics_DB/{wildcard}")
+		PATH_DB = directory(DIR_Haplotype + "/Genomics_DB")
 	params:
 		batch_size = 54
 	threads: 16
