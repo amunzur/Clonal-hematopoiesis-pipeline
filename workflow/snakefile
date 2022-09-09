@@ -1,6 +1,6 @@
 import pandas as pd
 
-# snakemake --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch --exclude=cn[01-05] -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 40
+# snakemake --reason --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch --exclude=cn[01-05] -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 50
 
 PATH_to_samples = "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/sample_list.tsv"
 configfile: "config/config.yaml"
@@ -101,38 +101,38 @@ run_complexity_metrics_markdup = expand(DIR_complexity_metrics + "/PICARD_comple
 RUN_fastq_read_counts = expand(DIR_readcounts_metrics + "/raw/{wildcard}.txt", wildcard = samples)
 RUN_extract_markdup_perc = expand(DIR_markdup_perc_metrics + "/{wildcard}.txt", wildcard = samples)
 
-# RUN_mpileup = expand(DIR_mpileup + "/{wildcard}.mpileup", wildcard = samples)
-# RUN_varscan_snv = expand(VarScan_snv + "/{wildcard}.vcf", wildcard = samples)
-# RUN_VarScan_indel = expand(VarScan_indel + "/{wildcard}.vcf", wildcard = samples)
-# RUN_Vardict = expand(DIR_Vardict + "/{wildcard}.vcf", wildcard = samples)
-# REFORMAT_vardict_results = expand(DIR_Vardict + "_reformatted/{wildcard}.tsv", wildcard = samples)
+RUN_mpileup = expand(DIR_mpileup + "/{wildcard}.mpileup", wildcard = samples)
+RUN_varscan_snv = expand(VarScan_snv + "/{wildcard}.vcf", wildcard = samples)
+RUN_VarScan_indel = expand(VarScan_indel + "/{wildcard}.vcf", wildcard = samples)
+RUN_Vardict = expand(DIR_Vardict + "/{wildcard}.vcf", wildcard = samples)
+REFORMAT_vardict_results = expand(DIR_Vardict + "_reformatted/{wildcard}.tsv", wildcard = samples)
 
-# RUN_Mutect2 = expand(DIR_Mutect + "/raw/{wildcard}_vcf.gz", wildcard = samples)
-# FILTER_Mutect2 = expand(DIR_Mutect + "/filtered/{wildcard}_vcf.gz", wildcard = samples)
+RUN_Mutect2 = expand(DIR_Mutect + "/raw/{wildcard}_vcf.gz", wildcard = samples)
+FILTER_Mutect2 = expand(DIR_Mutect + "/filtered/{wildcard}_vcf.gz", wildcard = samples)
 
-# RUN_Haplotype_caller = expand(DIR_Haplotype + "/GVCFs/{wildcard}.g.vcf.gz", wildcard = samples)
-# RUN_genomics_DB = expand(DIR_Haplotype + "/Genomics_DB")
-# RUN_genotype_vcfs = expand(DIR_Haplotype + "/GenotypeGVCFs_genotyped.vcf.gz")
-# VCF_to_table = expand(DIR_Haplotype + "/GenotypeGVCFs_table.tsv")
-# # REFORMAT_GATK_results = [expand(DIR_Haplotype + "/variants_reformatted.tsv"), \
-# # 						 expand(ANNOVAR_GATK_input + ".tsv")]
+RUN_Haplotype_caller = expand(DIR_Haplotype + "/GVCFs/{wildcard}.g.vcf.gz", wildcard = samples)
+RUN_genomics_DB = expand(DIR_Haplotype + "/Genomics_DB")
+RUN_genotype_vcfs = expand(DIR_Haplotype + "/GenotypeGVCFs_genotyped.vcf.gz")
+VCF_to_table = expand(DIR_Haplotype + "/GenotypeGVCFs_table.tsv")
+REFORMAT_GATK_results = [expand(DIR_Haplotype + "/variants_reformatted.tsv"), \
+						 expand(ANNOVAR_GATK_input + ".tsv")]
 
-# MAKE_ANNOVAR_GATK_input = expand(ANNOVAR_GATK_input + ".tsv")
-# RUN_ANNOVAR_GATK = expand(ANNOVAR_GATK_output + ".hg38_multianno.txt")
+MAKE_ANNOVAR_GATK_input = expand(ANNOVAR_GATK_input + ".tsv")
+RUN_ANNOVAR_GATK = expand(ANNOVAR_GATK_output + ".hg38_multianno.txt")
 
-# make_ANNOVAR_snv_input = expand(ANNOVAR_snv_input + "/{wildcard}_anno.tsv", wildcard = samples)
-# make_ANNOVAR_indel_input = expand(ANNOVAR_indel_input + "/{wildcard}_anno.tsv", wildcard = samples)
-# make_ANNOVAR_vardict_input = expand(ANNOVAR_Vardict_input + "/{wildcard}_anno.tsv", wildcard = samples)
+make_ANNOVAR_snv_input = expand(ANNOVAR_snv_input + "/{wildcard}_anno.tsv", wildcard = samples)
+make_ANNOVAR_indel_input = expand(ANNOVAR_indel_input + "/{wildcard}_anno.tsv", wildcard = samples)
+make_ANNOVAR_vardict_input = expand(ANNOVAR_Vardict_input + "/{wildcard}_anno.tsv", wildcard = samples)
 
-# run_ANNOVAR_snv = expand(ANNOVAR_snv_output + "/{wildcard}.hg38_multianno.txt", wildcard = samples)
-# run_ANNOVAR_indel = expand(ANNOVAR_indel_output + "/{wildcard}.hg38_multianno.txt", wildcard = samples)
-# run_ANNOVAR_vardict = expand(ANNOVAR_Vardict_output + "/{wildcard}.hg38_multianno.txt", wildcard = samples)
+run_ANNOVAR_snv = expand(ANNOVAR_snv_output + "/{wildcard}.hg38_multianno.txt", wildcard = samples)
+run_ANNOVAR_indel = expand(ANNOVAR_indel_output + "/{wildcard}.hg38_multianno.txt", wildcard = samples)
+run_ANNOVAR_vardict = expand(ANNOVAR_Vardict_output + "/{wildcard}.hg38_multianno.txt", wildcard = samples)
 
-# run_insert_size = [expand(DIR_insertsize_metrics + "/{wildcard}.txt", wildcard = samples), \
-# 	expand(DIR_insertsize_figures + "/{wildcard}.pdf", wildcard = samples)]
-# PDF_to_PNG = expand(DIR_insertsize_figures_PNG + "/{wildcard}.png", wildcard = samples)
-# run_depth = expand(DIR_depth_metrics + "/{wildcard}.txt", wildcard = samples) # depth at each position
-# run_depth_umi = expand(DIR_depth_metrics_dedup + "/{wildcard}.txt", wildcard = samples)
+run_insert_size = [expand(DIR_insertsize_metrics + "/{wildcard}.txt", wildcard = samples), \
+	expand(DIR_insertsize_figures + "/{wildcard}.pdf", wildcard = samples)]
+PDF_to_PNG = expand(DIR_insertsize_figures_PNG + "/{wildcard}.png", wildcard = samples)
+run_depth = expand(DIR_depth_metrics + "/{wildcard}.txt", wildcard = samples) # depth at each position
+run_depth_umi = expand(DIR_depth_metrics_dedup + "/{wildcard}.txt", wildcard = samples)
 ###################################################
 # TARGET RULES
 ###################################################
@@ -140,8 +140,6 @@ RUN_extract_markdup_perc = expand(DIR_markdup_perc_metrics + "/{wildcard}.txt", 
 # only use expansion here
 rule all:
 	input:
-		# MERGE_R1,
-		# MERGE_R2,
 		RUN_FastQC_merged,
 		MASK_FastQ,
 		EXTRACT_FastQ_R1,
@@ -156,11 +154,11 @@ rule all:
 		MARKDUP,
 		SC_PENALTY,
 		ADD_RG,
-		# RUN_mpileup,
-		# RUN_fastq_read_counts, 
-		# RUN_extract_markdup_perc,
-		# RUN_varscan_snv, 
-		# RUN_VarScan_indel, 
+		RUN_mpileup,
+		RUN_fastq_read_counts, 
+		RUN_extract_markdup_perc,
+		RUN_varscan_snv, 
+		RUN_VarScan_indel, 
 		# RUN_Mutect2,
 		# FILTER_Mutect2,
 		# RUN_Haplotype_caller,
@@ -169,18 +167,18 @@ rule all:
 		# VCF_to_table,
 		# REFORMAT_GATK_results,
 		# RUN_ANNOVAR_GATK,
-		# RUN_Vardict,
+		RUN_Vardict,
 		# MAKE_ANNOVAR_GATK_input,
-		# make_ANNOVAR_snv_input,
-		# make_ANNOVAR_indel_input,
-		# make_ANNOVAR_vardict_input,
-		# run_ANNOVAR_snv,
-		# run_ANNOVAR_indel, 
-		# run_ANNOVAR_vardict,
+		make_ANNOVAR_snv_input,
+		make_ANNOVAR_indel_input,
+		make_ANNOVAR_vardict_input,
+		run_ANNOVAR_snv,
+		run_ANNOVAR_indel, 
+		run_ANNOVAR_vardict,
 		# run_insert_size, 
 		# PDF_to_PNG,
-		# run_depth, 
-		# run_depth_umi
+		run_depth, 
+		run_depth_umi
 
 ##### Modules #####
 include: "rules/process_fastq.smk"
