@@ -2,6 +2,7 @@
 PATH_hg38: "/groups/wyattgrp/reference/hg38/hg38.fa"
 PATH_bed: "resources/panel/1000012543_CHIP_Design_selection_results_Version2/capture_targets.bed"
 PATH_bg: "resources/bg_error_rate/bg_error.tsv"
+PATH_adapters: "resources/references/adapters.fa"
 PATH_bets: "resources/betastasis/CLEANED_mutations_kidney_cancer_somatic.tsv"
 DIR_sample_maps: "resources/sample_maps"
 DIR_temp: "resources/TEMP"
