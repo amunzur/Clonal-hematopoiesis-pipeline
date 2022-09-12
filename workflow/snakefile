@@ -86,6 +86,8 @@ TRIM_FastQ = [
 
 # Alignment, sorting, marking duplicates and adding read groups
 ALIGN_and_SORT = expand(DIR_bams + "/sorted/{wildcard}.bam", wildcard = samples)
+INDEL_REALIGN = expand(DIR_bams + "/abra2_sorted/{wildcard}.bam", wildcard = samples)
+
 INDEX_sorted_bams = expand(DIR_bams + "/sorted/{wildcard}.bam.bai", wildcard = samples)
 DEDUP_umitools = expand(DIR_bams + "/dedup/{wildcard}.bam", wildcard = samples)
 
@@ -140,25 +142,26 @@ run_depth_umi = expand(DIR_depth_metrics_dedup + "/{wildcard}.txt", wildcard = s
 # only use expansion here
 rule all:
 	input:
-		RUN_FastQC_merged,
-		MASK_FastQ,
-		EXTRACT_FastQ_R1,
-		EXTRACT_FastQ_R2,
-		TRIM_FastQ,
-		ALIGN_and_SORT,
-		INDEX_sorted_bams, 
-		INDEX_readGroup_bams,
-		INDEX_SC_penalty_bams,
-		DEDUP_umitools,
-		FIXMATE,
-		MARKDUP,
-		SC_PENALTY,
-		ADD_RG,
-		RUN_mpileup,
-		RUN_fastq_read_counts, 
-		RUN_extract_markdup_perc,
-		RUN_varscan_snv, 
-		RUN_VarScan_indel, 
+		# RUN_FastQC_merged,
+		# MASK_FastQ,
+		# EXTRACT_FastQ_R1,
+		# EXTRACT_FastQ_R2,
+		# TRIM_FastQ,
+		# ALIGN_and_SORT,
+		INDEL_REALIGN,
+		# INDEX_sorted_bams, 
+		# INDEX_readGroup_bams,
+		# INDEX_SC_penalty_bams,
+		# DEDUP_umitools,
+		# FIXMATE,
+		# MARKDUP,
+		# SC_PENALTY,
+		# ADD_RG,
+		# RUN_mpileup,
+		# RUN_fastq_read_counts, 
+		# RUN_extract_markdup_perc,
+		# RUN_varscan_snv, 
+		# RUN_VarScan_indel, 
 		# RUN_Mutect2,
 		# FILTER_Mutect2,
 		# RUN_Haplotype_caller,
@@ -167,18 +170,18 @@ rule all:
 		# VCF_to_table,
 		# REFORMAT_GATK_results,
 		# RUN_ANNOVAR_GATK,
-		RUN_Vardict,
+		# RUN_Vardict,
 		# MAKE_ANNOVAR_GATK_input,
-		make_ANNOVAR_snv_input,
-		make_ANNOVAR_indel_input,
-		make_ANNOVAR_vardict_input,
-		run_ANNOVAR_snv,
-		run_ANNOVAR_indel, 
-		run_ANNOVAR_vardict,
+		# make_ANNOVAR_snv_input,
+		# make_ANNOVAR_indel_input,
+		# make_ANNOVAR_vardict_input,
+		# run_ANNOVAR_snv,
+		# run_ANNOVAR_indel, 
+		# run_ANNOVAR_vardict,
 		# run_insert_size, 
 		# PDF_to_PNG,
-		run_depth, 
-		run_depth_umi
+		# run_depth, 
+		# run_depth_umi
 
 ##### Modules #####
 include: "rules/process_fastq.smk"
