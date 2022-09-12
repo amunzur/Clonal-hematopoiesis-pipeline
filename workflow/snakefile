@@ -18,6 +18,7 @@ all_pairs = pair1 + pair2
 PATH_hg38 = config["PATH_hg38"]
 PATH_bed = config["PATH_bed"]
 PATH_bg = config["PATH_bg"]
+PATH_adapters = config["PATH_adapters"]
 PATH_bets = config["PATH_bets"]
 DIR_sample_maps = config["DIR_sample_maps"]
 DIR_temp = config["DIR_temp"]
@@ -86,7 +87,7 @@ TRIM_FastQ = [
 
 # Alignment, sorting, marking duplicates and adding read groups
 ALIGN_and_SORT = expand(DIR_bams + "/sorted/{wildcard}.bam", wildcard = samples)
-INDEL_REALIGN = expand(DIR_bams + "/abra2_sorted/{wildcard}.bam", wildcard = samples)
+INDEL_REALIGN = expand(DIR_bams + "/abra2/{wildcard}.bam", wildcard = samples)
 
 INDEX_sorted_bams = expand(DIR_bams + "/sorted/{wildcard}.bam.bai", wildcard = samples)
 DEDUP_umitools = expand(DIR_bams + "/dedup/{wildcard}.bam", wildcard = samples)
@@ -146,9 +147,9 @@ rule all:
 		# MASK_FastQ,
 		# EXTRACT_FastQ_R1,
 		# EXTRACT_FastQ_R2,
-		# TRIM_FastQ,
+		TRIM_FastQ,
 		# ALIGN_and_SORT,
-		INDEL_REALIGN,
+		# INDEL_REALIGN,
 		# INDEX_sorted_bams, 
 		# INDEX_readGroup_bams,
 		# INDEX_SC_penalty_bams,
