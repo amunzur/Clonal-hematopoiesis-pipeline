@@ -77,4 +77,4 @@ rule trim_fastq:
 			SLIDINGWINDOW:{params.sliding_window_size}:{params.sliding_window_quality} \
 			MINLEN:{params.minimum_read_length} \
 			ILLUMINACLIP:{input.PATH_adapters}:2:40:15 \
-			HEADCROP:{PARAMS.five_prime_clipping}')
+			HEADCROP:{params.five_prime_clipping}')
