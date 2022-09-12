@@ -80,10 +80,10 @@ EXTRACT_FastQ_R1 = expand(DIR_extracted_fastq + "/{wildcard}_R1_extracted.fastq"
 EXTRACT_FastQ_R2 = expand(DIR_extracted_fastq + "/{wildcard}_R2_extracted.fastq", wildcard = samples)
 
 TRIM_FastQ = [
-	expand(DIR_trimmed_fastq + "/{wildcard}_R1_extracted_val_1.fq", wildcard = samples), \
-	expand(DIR_trimmed_fastq + "/{wildcard}_R2_extracted_val_2.fq", wildcard = samples), \
-	expand(DIR_trimmed_fastqc + "/{wildcard}_R1_extracted_val_1_fastqc.html", wildcard = samples), \
-	expand(DIR_trimmed_fastqc + "/{wildcard}_R2_extracted_val_2_fastqc.html", wildcard = samples)]
+	expand(DIR_trimmed_fastq + "/{wildcard}_R1_P.fastq", wildcard = samples), \
+	expand(DIR_trimmed_fastq + "/{wildcard}_R1_U.fastq", wildcard = samples), \
+	expand(DIR_trimmed_fastq + "/{wildcard}_R2_P.fastq", wildcard = samples), \
+	expand(DIR_trimmed_fastq + "/{wildcard}_R2_U.fastq", wildcard = samples)]
 
 # Alignment, sorting, marking duplicates and adding read groups
 ALIGN_and_SORT = expand(DIR_bams + "/sorted/{wildcard}.bam", wildcard = samples)
