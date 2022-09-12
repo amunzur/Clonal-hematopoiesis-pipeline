@@ -70,11 +70,11 @@ rule trim_fastq:
 		shell('trimmomatic PE -threads {threads} \
 			{input.R1_extracted} \
 			{input.R2_extracted} \
-			{output.read1_P} \ 
-			{output.read1_U} \ 
-			{output.read2_P} \ 
+			{output.read1_P} \
+			{output.read1_U} \
+			{output.read2_P} \
 			{output.read2_U} \
 			SLIDINGWINDOW:{params.sliding_window_size}:{params.sliding_window_quality} \
 			MINLEN:{params.minimum_read_length} \
 			ILLUMINACLIP:{input.PATH_adapters}:2:40:15 \
-			HEADCROP:{PARAMS.five_prime_clipping}' )
+			HEADCROP:{PARAMS.five_prime_clipping}')
