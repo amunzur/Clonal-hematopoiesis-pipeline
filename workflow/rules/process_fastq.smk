@@ -50,22 +50,22 @@ rule extract_UMIs:
 		                    --read2-in={input.R2} \
 		                    --read2-out={output.R2_extracted}"
 
+# Outputs paired and unpaired reads in different directories.
 rule trim_fastq: 
 	input: 
 		R1_extracted = DIR_extracted_fastq + "/{wildcard}_R1_extracted.fastq",
 		R2_extracted = DIR_extracted_fastq + "/{wildcard}_R2_extracted.fastq",
 		PATH_adapters = PATH_adapters
 	output:
-		read1_P = DIR_trimmed_fastq + "/{wildcard}_R1_P.fq",
-		read1_U = DIR_trimmed_fastq + "/{wildcard}_R1_U.fq",
-		read2_P = DIR_trimmed_fastq + "/{wildcard}_R2_P.fq",
-		read2_U = DIR_trimmed_fastq + "/{wildcard}_R2_U.fq"
+		read1_P = DIR_trimmed_fastq + "/{wildcard}_R1.fastq",
+		read1_U = DIR_trimmed_unpaired_fastq + "/{wildcard}_R1_U.fastq",
+		read2_P = DIR_trimmed_fastq + "/{wildcard}_R2.fastq",
+		read2_U = DIR_trimmed_unpaired_fastq + "/{wildcard}_R2_U.fastq"
 	threads: 12
 	params: 
 		sliding_window_size = 4,
 		sliding_window_quality = 20,
 		minimum_read_length = 25,
-		five_prime_clipping = 5
 	run:
 		shell('trimmomatic PE -threads {threads} \
 			{input.R1_extracted} \
@@ -76,5 +76,20 @@ rule trim_fastq:
 			{output.read2_U} \
 			SLIDINGWINDOW:{params.sliding_window_size}:{params.sliding_window_quality} \
 			MINLEN:{params.minimum_read_length} \
-			ILLUMINACLIP:{input.PATH_adapters}:2:40:15 \
-			HEADCROP:{params.five_prime_clipping}')
+			ILLUMINACLIP:{input.PATH_adapters}:2:40:15')
+
+rule run_fastqc_trimmed:
+	input:
+		R1 = DIR_trimmed_fastq + "/{wildcard}_R1_P.fastq",
+		R2 = DIR_trimmed_fastq + "/{wildcard}_R2_P.fastq"
+	output:
+		output_zip_R1 = DIR_trimmed_fastqc + "/{wildcard}_R1_fastqc.zip",
+		output_html_R1 = DIR_trimmed_fastqc + "/{wildcard}_R1_fastqc.html",
+		output_zip_R2 = DIR_trimmed_fastqc + "/{wildcard}_R2_fastqc.zip",
+		output_html_R2 = DIR_trimmed_fastqc + "/{wildcard}_R2_fastqc.html"
+	threads: 5
+	shell:
+		"""
+		/home/amunzur/FastQC/fastqc {input.R1} --outdir=`dirname {output.output_zip_1}`
+		/home/amunzur/FastQC/fastqc {input.R2} --outdir=`dirname {output.output_zip_2}` 
+		"""
