@@ -111,7 +111,7 @@ RUN_mpileup = expand(DIR_mpileup + "/{wildcard}.mpileup", wildcard = samples)
 RUN_varscan_snv = expand(VarScan_snv + "/{wildcard}.vcf", wildcard = samples)
 RUN_VarScan_indel = expand(VarScan_indel + "/{wildcard}.vcf", wildcard = samples)
 RUN_Vardict = expand(DIR_Vardict + "/{wildcard}.vcf", wildcard = samples)
-REFORMAT_vardict_results = expand(DIR_Vardict + "_reformatted/{wildcard}.tsv", wildcard = samples)
+REFORMAT_vardict_results = expand(DIR_Vardict_reformatted + "/{wildcard}.tsv", wildcard = samples)
 
 RUN_Mutect2 = expand(DIR_Mutect + "/raw/{wildcard}_vcf.gz", wildcard = samples)
 FILTER_Mutect2 = expand(DIR_Mutect + "/filtered/{wildcard}_vcf.gz", wildcard = samples)
@@ -176,6 +176,7 @@ rule all:
 		# REFORMAT_GATK_results,
 		# RUN_ANNOVAR_GATK,
 		RUN_Vardict,
+		REFORMAT_vardict_results,
 		# MAKE_ANNOVAR_GATK_input,
 		make_ANNOVAR_snv_input,
 		make_ANNOVAR_indel_input,
