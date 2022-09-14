@@ -48,7 +48,7 @@ combine_variant_callers <- function(cohort_name, PATH_varscan, PATH_vardict){
 
 	dir.create(dirname(PATH_to_save_csv))
 	write_csv(combined, PATH_to_save_csv)
-	write_delim(combined, PATH_to_save_tsv, delim = "\t")
+	write_delim(combined, gsub("csv", "tsv", PATH_to_save_csv), delim = "\t")
 
 }
 
@@ -90,12 +90,11 @@ add_bam_path <- function(variant_df, DIR_bams){
 
 # COMBINE VAR CALLERS
 cohort_name <- "batch5"
-varscan_PATH <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/VarScan2/finalized", cohort_name, "chip_variants.csv")
-vardict_PATH <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Vardict/finalized", cohort_name, "chip_variants.csv")
-PATH_to_save_csv <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined", cohort_name, "combined_vars.csv")
-PATH_to_save_tsv <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined", cohort_name, "combined_vars.tsv")
+varscan_PATH <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/VarScan2/finalized/chip_variants.csv")
+vardict_PATH <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Vardict/finalized/chip_variants.csv")
+PATH_to_save_csv <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined/combined_vars.csv")
 
-combine_variant_callers(cohort_name, PATH_varscan, PATH_vardict, PATH_to_save_csv, PATH_to_save_tsv)
+combine_variant_callers(PATH_varscan, PATH_vardict, PATH_to_save_csv)
 
 # COMBINE TUMOR AND WBC
 DIR_vars <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined"
