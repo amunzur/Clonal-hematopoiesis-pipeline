@@ -52,6 +52,7 @@ DIR_varscan = config["DIR_varscan"]
 VarScan_snv = config["VarScan_snv"]
 VarScan_indel = config["VarScan_indel"]
 DIR_Vardict = config["DIR_Vardict"]
+DIR_Vardict_reformatted = config["DIR_Vardict_reformatted"]
 DIR_Mutect = config["DIR_Mutect"]
 DIR_Haplotype = config["DIR_Haplotype"]
 
