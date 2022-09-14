@@ -1,14 +1,3 @@
-return_vardict_output <- function(DIR_vardict) {
-
-	df_main <- as.data.frame(suppress_messages((read_delim(DIR_vardict, delim = "\t")))) 
-	df <- df_main %>% 
-		mutate(Sample_name = gsub(".tsv", "", basename(DIR_vardict))) %>%
-		filter(!str_detect(Alt, 'N')) 	# Drop variants if the called variant has an "N" in it. 
-
-	return(df)
-
-}
-
 return_anno_output_vardict <- function(PATH_ANNOVAR) {
 
 	df_scrap <- as.data.frame(read_delim(PATH_ANNOVAR, delim = "\t"))
@@ -23,8 +12,7 @@ return_anno_output_vardict <- function(PATH_ANNOVAR) {
 					col_names = col_names_vector) %>%
 			   select(Chr, Start, Ref, Alt, Func.refGene, Gene.refGene, Func.knownGene, Gene.knownGene, AAChange.refGene, ExAC_ALL, FILTER, gnomAD_exome_ALL, INFO, gsub(".hg38_multianno.txt", "", basename(PATH_ANNOVAR))) %>%
 				rename(
-					FORMAT_values = gsub(".hg38_multianno.txt", "", 
-					basename(PATH_ANNOVAR))) %>%
+					FORMAT_values = gsub(".hg38_multianno.txt", "", basename(PATH_ANNOVAR))) %>%
 				separate(
 					col = INFO, 
 					sep = ";",	
@@ -63,14 +51,13 @@ return_anno_output_vardict <- function(PATH_ANNOVAR) {
 }
 
 # do a merge based on column to combine metadata 
-parse_anno_output <- function(DIR_ANNOVAR, cohort_name) {
+parse_anno_output <- function(DIR_ANNOVAR) {
 
 	anno_df_list <- lapply(as.list(list.files(DIR_ANNOVAR, full.names = TRUE, pattern = "\\.hg38_multianno.txt$")), return_anno_output_vardict)
 	anno_df <- as.data.frame(do.call(rbind, anno_df_list)) %>%
 				mutate(
 					Sample_name = gsub(".hg38_multianno.txt", "", Sample_name), 
-					Start = as.character(Start), 
-					Cohort_name = cohort_name) 
+					Start = as.character(Start)) 
 
 	return(anno_df)
 
@@ -115,13 +102,12 @@ add_bg_error_rate <- function(variants_df, bg) {
 }
 
 # main function to run everything
-MAIN <- function(cohort_name,
+MAIN <- function(
 					THRESHOLD_ExAC_ALL, 
 					VALUE_Func_refGene, 
 					THRESHOLD_VarFreq, 
 					THRESHOLD_Reads2, 
 					THRESHOLD_VAF_bg_ratio, 
-					DIR_vardict, 
 					DIR_ANNOVAR,
 					bg,
 					PATH_panel_genes,
@@ -134,8 +120,9 @@ MAIN <- function(cohort_name,
 					variant_caller){
 
 	variant_caller = variant_caller # just so the function doesn't complain about us not using this argument
-	combined <- parse_anno_output(DIR_ANNOVAR, cohort_name) # add annovar annots to the varscan outputs
-	combined <- add_patient_id(combined, cohort_name)
+	DIR_ANNOVAR <- "/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/test"
+	combined <- parse_anno_output(DIR_ANNOVAR)
+	combined <- add_patient_id(combined)
 	combined <- add_bg_error_rate(combined, bg)
 	combined <- add_AAchange_effect(combined)
 	combined <- add_sample_type(combined) # WBC or tumor
@@ -143,14 +130,13 @@ MAIN <- function(cohort_name,
 	combined <- combined %>%
 						mutate(Total_reads = Reads1 + Reads2, 
 								VAF_bg_ratio = VarFreq/error_rate) %>%
-						select(Sample_name, Sample_type, patient_id, Cohort_name, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, REF_Fw, REF_Rv, ALT_Fw, ALT_Rv, Func.refGene, Gene.refGene, AAChange.refGene, Protein_annotation, Effects, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads) %>%
+						select(Sample_name, Sample_type, patient_id, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, REF_Fw, REF_Rv, ALT_Fw, ALT_Rv, Func.refGene, Gene.refGene, AAChange.refGene, Protein_annotation, Effects, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads) %>%
 						filter(ExAC_ALL <= THRESHOLD_ExAC_ALL, 
 								Func.refGene != VALUE_Func_refGene,
 								VAF_bg_ratio >= THRESHOLD_VAF_bg_ratio, # vaf should be at least 15 times more than the bg error rate
 								StrandBias_Fisher_pVal > 0.05) 
-	names(combined) <- c("Sample_name", "Sample_type", "Patient_ID", "Cohort_name", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
+	names(combined) <- c("Sample_name", "Sample_type", "Patient_ID", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
 
-	combined <- identify_duplicates(combined) 	# add a new col indicating if the variant is duplicated or not
 	combined <- combined %>%
 				filter((Total_reads >= 1000 & VAF >= 0.005) | 
 						(Total_reads <= 1000 & Alt_reads >= 5), 
@@ -158,7 +144,7 @@ MAIN <- function(cohort_name,
 
 	combined <- subset_to_panel(PATH_bed, combined) # subset to panel
 	combined <- add_depth(DIR_depth_metrics, PATH_collective_depth_metrics, combined) # add depth information at these positions 
-	combined <- remove_duplicated_variants(combined, 3) # Remove duplicated variants
+	# combined <- find_and_filter_duplicated_variants(combined, 3) # Remove duplicated variants, and add a new column to mark duplicated variants
 
 	return(combined)
 
