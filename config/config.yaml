@@ -13,6 +13,7 @@ DIR_merged_fastq: "results/data/fastq/merged"
 DIR_masked_fastq: "results/data/fastq/masked"
 DIR_extracted_fastq: "results/data/fastq/extracted"
 DIR_trimmed_fastq: "results/data/fastq/trimmed"
+DIR_trimmed_unpaired_fastq: "results/data/fastq/trimmed_unpaired"
 DIR_bams: "results/data/bam"
 
 # fastqc reports 
@@ -39,6 +40,8 @@ DIR_Mutect: "results/variant_calling/Mutect2"
 DIR_Haplotype: "results/variant_calling/Haplotype_caller"
 
 DIR_Vardict: "results/variant_calling/Vardict"
+DIR_Vardict_reformatted: "results/variant_calling/Vardict_reformatted"
+
 # VarDict_snv_output: "results/variant_calling/Vardict/snv"
 # VarDict_indel_output: "results/variant_calling/Vardict/indel"
 
