@@ -28,6 +28,7 @@ DIR_raw_fastq = config["DIR_raw_fastq"]
 DIR_merged_fastq = config["DIR_merged_fastq"]
 DIR_masked_fastq = config["DIR_masked_fastq"]
 DIR_trimmed_fastq = config["DIR_trimmed_fastq"]
+DIR_trimmed_unpaired_fastq = config["DIR_trimmed_unpaired_fastq"]
 DIR_extracted_fastq = config["DIR_extracted_fastq"]
 DIR_bams = config["DIR_bams"]
 
@@ -74,16 +75,17 @@ DIR_insertsize_figures_PNG = config["DIR_insertsize_figures_PNG"]
 # TARGET FILES FOR RULE ALL
 ###################################################
 RUN_FastQC_merged = expand(DIR_merged_fastqc + "/{wildcard}_fastqc.html", wildcard = all_pairs)
+RUN_FastQC_trimmed = expand(DIR_trimmed_fastqc + "/{wildcard}_fastqc.html", wildcard = all_pairs)
 MASK_FastQ = expand(DIR_masked_fastq + "/{wildcard}_masked.fastq", wildcard = all_pairs)
 
 EXTRACT_FastQ_R1 = expand(DIR_extracted_fastq + "/{wildcard}_R1_extracted.fastq", wildcard = samples)
 EXTRACT_FastQ_R2 = expand(DIR_extracted_fastq + "/{wildcard}_R2_extracted.fastq", wildcard = samples)
 
 TRIM_FastQ = [
-	expand(DIR_trimmed_fastq + "/{wildcard}_R1_P.fastq", wildcard = samples), \
-	expand(DIR_trimmed_fastq + "/{wildcard}_R1_U.fastq", wildcard = samples), \
-	expand(DIR_trimmed_fastq + "/{wildcard}_R2_P.fastq", wildcard = samples), \
-	expand(DIR_trimmed_fastq + "/{wildcard}_R2_U.fastq", wildcard = samples)]
+	expand(DIR_trimmed_fastq + "/{wildcard}_R1.fastq", wildcard = samples), \
+	expand(DIR_trimmed_unpaired_fastq + "/{wildcard}_R1_U.fastq", wildcard = samples), \
+	expand(DIR_trimmed_fastq + "/{wildcard}_R2.fastq", wildcard = samples), \
+	expand(DIR_trimmed_unpaired_fastq + "/{wildcard}_R2_U.fastq", wildcard = samples)]
 
 # Alignment, sorting, marking duplicates and adding read groups
 ALIGN_and_SORT = expand(DIR_bams + "/sorted/{wildcard}.bam", wildcard = samples)
@@ -148,21 +150,22 @@ rule all:
 		# EXTRACT_FastQ_R1,
 		# EXTRACT_FastQ_R2,
 		TRIM_FastQ,
-		# ALIGN_and_SORT,
-		# INDEL_REALIGN,
-		# INDEX_sorted_bams, 
-		# INDEX_readGroup_bams,
-		# INDEX_SC_penalty_bams,
-		# DEDUP_umitools,
-		# FIXMATE,
-		# MARKDUP,
-		# SC_PENALTY,
-		# ADD_RG,
-		# RUN_mpileup,
-		# RUN_fastq_read_counts, 
-		# RUN_extract_markdup_perc,
-		# RUN_varscan_snv, 
-		# RUN_VarScan_indel, 
+		RUN_FastQC_trimmed,
+		ALIGN_and_SORT,
+		INDEL_REALIGN,
+		INDEX_sorted_bams, 
+		INDEX_readGroup_bams,
+		INDEX_SC_penalty_bams,
+		DEDUP_umitools,
+		FIXMATE,
+		MARKDUP,
+		SC_PENALTY,
+		ADD_RG,
+		RUN_mpileup,
+		RUN_fastq_read_counts, 
+		RUN_extract_markdup_perc,
+		RUN_varscan_snv, 
+		RUN_VarScan_indel, 
 		# RUN_Mutect2,
 		# FILTER_Mutect2,
 		# RUN_Haplotype_caller,
@@ -171,18 +174,18 @@ rule all:
 		# VCF_to_table,
 		# REFORMAT_GATK_results,
 		# RUN_ANNOVAR_GATK,
-		# RUN_Vardict,
+		RUN_Vardict,
 		# MAKE_ANNOVAR_GATK_input,
-		# make_ANNOVAR_snv_input,
-		# make_ANNOVAR_indel_input,
-		# make_ANNOVAR_vardict_input,
-		# run_ANNOVAR_snv,
-		# run_ANNOVAR_indel, 
-		# run_ANNOVAR_vardict,
+		make_ANNOVAR_snv_input,
+		make_ANNOVAR_indel_input,
+		make_ANNOVAR_vardict_input,
+		run_ANNOVAR_snv,
+		run_ANNOVAR_indel, 
+		run_ANNOVAR_vardict,
 		# run_insert_size, 
 		# PDF_to_PNG,
-		# run_depth, 
-		# run_depth_umi
+		run_depth, 
+		run_depth_umi
 
 ##### Modules #####
 include: "rules/process_fastq.smk"
