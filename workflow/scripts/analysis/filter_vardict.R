@@ -44,7 +44,6 @@ variants <- MAIN(
 				THRESHOLD_VarFreq,
 				THRESHOLD_Reads2,
 				THRESHOLD_VAF_bg_ratio,
-				DIR_vardict,
 				DIR_ANNOVAR,
 				bg,
 				PATH_panel_genes,
