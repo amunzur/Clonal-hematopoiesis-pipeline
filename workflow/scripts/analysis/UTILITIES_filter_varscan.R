@@ -45,7 +45,7 @@ modify_varscan_output <- function(varscan_df, variant_type) {
 }
  
 # do a merge based on column to combine metadata 
-combine_anno_varscan <- function(DIR_varscan, DIR_annovar, variant_type, cohort_name) {
+combine_anno_varscan <- function(DIR_varscan, DIR_annovar, variant_type) {
 
 	# Save all annovar results in one file, rbind causes duplicate colnames
 	annovar_df_list <- lapply(as.list(list.files(DIR_annovar, full.names = TRUE, pattern = "\\.hg38_multianno.txt$")), return_anno_output)
@@ -62,8 +62,7 @@ combine_anno_varscan <- function(DIR_varscan, DIR_annovar, variant_type, cohort_
 	combined <- left_join(varscan_df, annovar_df, by = c("Sample_name", "Chr", "Start", "Ref", "Alt")) %>%
 					mutate(
 						ExAC_ALL = replace_na(as.numeric(ExAC_ALL), 0), 
-						gnomAD_exome_ALL = replace_na(as.numeric(gnomAD_exome_ALL), 0), 
-						Cohort_name = cohort_name)
+						gnomAD_exome_ALL = replace_na(as.numeric(gnomAD_exome_ALL), 0))
 
 	return(combined)
 
@@ -132,7 +131,6 @@ evaluate_strandBias <- function(variants_df){
 
 # main function to run everything
 MAIN <- function(
-					cohort_name, 
 					THRESHOLD_ExAC_ALL, 
 					VALUE_Func_refGene, 
 					THRESHOLD_VarFreq, 
@@ -152,8 +150,10 @@ MAIN <- function(
 					variant_caller){
 
 	variant_caller = variant_caller # so that the function doesnt complain this argument isn't used
-	combined <- combine_anno_varscan(DIR_varscan, DIR_annovar, var_type, cohort_name) # add annovar annotations to the varscan outputs
-	combined <- add_patient_id(combined, cohort_name)
+	DIR_varscan <- "/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/test_varscan2"
+	DIR_annovar <- "/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/test_varscan"
+	combined <- combine_anno_varscan(DIR_varscan, DIR_annovar, var_type) # add annovar annotations to the varscan outputs
+	combined <- add_patient_id(combined)
 	combined <- add_bg_error_rate(combined, bg) 
 	combined <- add_sample_type(combined)
 	
@@ -163,7 +163,6 @@ MAIN <- function(
 							Total_reads = Reads1 + Reads2, 
 							VAF_bg_ratio = VarFreq/error_rate) %>%
 						filter(
-							ExAC_ALL <= THRESHOLD_ExAC_ALL, 
 							Func.refGene != VALUE_Func_refGene,
 							VAF_bg_ratio >= THRESHOLD_VAF_bg_ratio) # vaf should be at least 15 times more than the bg error rate
 	
@@ -172,16 +171,16 @@ MAIN <- function(
 
 	combined <- combined %>%
 						filter(StrandBias_Fisher_pVal > 0.05) %>%
-						select(Sample_name, Sample_type, patient_id, Cohort_name, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, Reads1Plus, Reads1Minus, Reads2Plus, Reads2Minus, Func.refGene, Gene.refGene, AAChange.refGene, Protein_annotation, Effects, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads)
-	names(combined) <- c("Sample_name", "Sample_type", "Patient_ID", "Cohort_name", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
+						select(Sample_name, Sample_type, patient_id, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, Reads1Plus, Reads1Minus, Reads2Plus, Reads2Minus, Func.refGene, Gene.refGene, AAChange.refGene, Protein_annotation, Effects, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads)
+	names(combined) <- c("Sample_name", "Sample_type", "Patient_ID", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
 	
 	combined <- combined %>%
 				filter((Total_reads >= 1000 & VAF >= 0.005) | (Total_reads <= 1000 & Alt_reads >= 5), 
 						VAF < THRESHOLD_VarFreq)
 				
-	combined <- subset_to_panel(PATH_bed, combined) # Subset to panel 
+	# combined <- subset_to_panel(PATH_bed, combined) # Subset to panel 
 	combined <- add_depth(DIR_depth_metrics, PATH_collective_depth_metrics, combined) # Add depth information at these positions
-	combined <- find_and_filter_duplicated_variants(combined, 3) # Remove duplicated variants, and add a new column to mark duplicated variants
+	# combined <- find_and_filter_duplicated_variants(combined, 3) # Remove duplicated variants, and add a new column to mark duplicated variants
 
 	return(combined)
 } 
