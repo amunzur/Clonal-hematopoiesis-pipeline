@@ -1,8 +1,8 @@
 return_anno_output_vardict <- function(PATH_ANNOVAR) {
 
 	df_scrap <- as.data.frame(read_delim(PATH_ANNOVAR, delim = "\t"))
-	col_names_vector <- c(names(df_scrap)[1:118], "x1", "x2", "x3", "CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", gsub(".hg38_multianno.txt", "", basename(PATH_ANNOVAR)))
 
+	col_names_vector <- c(names(df_scrap)[1:118], "x1", "x2", "x3", "CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", gsub(".hg38_multianno.txt", "", basename(PATH_ANNOVAR)))
 	info_col_names <- c("SAMPLE", "TYPE", "DP", "VD", "AF", "BIAS", "REFBIAS", "VARBIAS", "PMEAN", "PSTD", "QUAL", "QSTD", "SBF", "ODDRATIO", "MQ", "SN", "HIAF", "ADJAF", "SHIFT3", "MSI", "MSILEN", "NM", "HICNT", "HICOV", "LSEQ", "RSEQ", "DUPRATE", "SPLITREAD", "SPANPAIR")
 	format_col_names <- c("GT", "DP", "VD", "AD", "AF", "RD", "ALD")
 
@@ -28,21 +28,9 @@ return_anno_output_vardict <- function(PATH_ANNOVAR) {
 				separate(col = ALD, sep = ",", into = c("ALT_Fw", "ALT_Rv"), remove = TRUE) %>%
   			    select(SAMPLE, Chr, Start, Ref, Alt, AF, DP, VD, MQ, TYPE, FILTER, SBF, ODDRATIO, Func.refGene, Gene.refGene, Func.knownGene, Gene.knownGene, AAChange.refGene, ExAC_ALL, gnomAD_exome_ALL, REF_Fw, REF_Rv, ALT_Fw, ALT_Rv) %>%
 				slice(-1) %>%
-				mutate(
-					Start = as.numeric(Start),
-					AF = as.numeric(AF), 
-					DP = as.numeric(DP),
-					VD = as.numeric(VD),
-					MQ = as.numeric(MQ),
-					SBF = as.numeric(SBF),
-					ODDRATIO = as.numeric(ODDRATIO), 
-					REF_Fw = as.numeric(REF_Fw), 
-					REF_Rv = as.numeric(REF_Rv),
-					ALT_Fw = as.numeric(ALT_Fw), 
-					ALT_Rv = as.numeric(ALT_Rv), 
-					ExAC_ALL = as.numeric(gsub(".", 0, ExAC_ALL,, fixed = TRUE)), 
-					gnomAD_exome_ALL = as.numeric(gsub(".", 0, gnomAD_exome_ALL, fixed = TRUE)))
-
+				mutate_at(c("Start", "AF", "DP", "VD", "MQ", "SBF", "ODDRATIO", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "ExAC_ALL", "gnomAD_exome_ALL"), as.numeric) %>%
+				replace_na(list(ExAC_ALL = 0, gnomAD_exome_ALL = 0))
+				
 	names(df_main) <- c("Sample_name", "Chr", "Start", "Ref", "Alt", "VarFreq", "Reads1", "Reads2", "Mapping_quality", "variant", "FILTER", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "Func.refGene", "Gene.refGene", "Func.knownGene", "Gene.knownGene", "AAChange.refGene", "ExAC_ALL", "gnomAD_exome_ALL", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv")
 	df_main$variant <- tolower(df_main$variant)
 
@@ -120,7 +108,7 @@ MAIN <- function(
 					variant_caller){
 
 	variant_caller = variant_caller # just so the function doesn't complain about us not using this argument
-	DIR_ANNOVAR <- "/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/test"
+	# DIR_ANNOVAR <- "/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/vardict/test"
 	combined <- parse_anno_output(DIR_ANNOVAR)
 	combined <- add_patient_id(combined)
 	combined <- add_bg_error_rate(combined, bg)
