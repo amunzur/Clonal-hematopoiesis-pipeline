@@ -131,7 +131,6 @@ evaluate_strandBias <- function(variants_df){
 
 # main function to run everything
 MAIN <- function(
-					THRESHOLD_ExAC_ALL, 
 					VALUE_Func_refGene, 
 					THRESHOLD_VarFreq, 
 					THRESHOLD_Reads2, 
