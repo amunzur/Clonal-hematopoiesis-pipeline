@@ -10,7 +10,6 @@ library(pkgcond)
 
 variant_caller <- "varscan"
 
-THRESHOLD_ExAC_ALL <- 0.005
 VALUE_Func_refGene <- "intronic"
 THRESHOLD_VarFreq <- 0.40
 THRESHOLD_Reads2 <- 5
@@ -44,11 +43,10 @@ source(PATH_utilities_file) # functions shared between vardict and varscan
 
 bg <- read_delim(PATH_bg, delim = "\t")
 
-DIR_annovar <- DIR_annovar_snv
-DIR_varscan <- DIR_varscan_snv
+DIR_annovar <- DIR_annovar_indel
+DIR_varscan <- DIR_varscan_indel
 
 snv <- MAIN(
-				THRESHOLD_ExAC_ALL, 
 				VALUE_Func_refGene, 
 				THRESHOLD_VarFreq, 
 				THRESHOLD_Reads2, 
@@ -67,7 +65,6 @@ snv <- MAIN(
 				variant_caller)
 
 indel <- MAIN(
-				THRESHOLD_ExAC_ALL, 
 				VALUE_Func_refGene, 
 				THRESHOLD_VarFreq, 
 				THRESHOLD_Reads2, 
