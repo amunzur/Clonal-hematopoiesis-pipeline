@@ -30,7 +30,7 @@ return_anno_output_vardict <- function(PATH_ANNOVAR) {
 				slice(-1) %>%
 				mutate_at(c("Start", "AF", "DP", "VD", "MQ", "SBF", "ODDRATIO", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "ExAC_ALL", "gnomAD_exome_ALL"), as.numeric) %>%
 				replace_na(list(ExAC_ALL = 0, gnomAD_exome_ALL = 0))
-				
+
 	names(df_main) <- c("Sample_name", "Chr", "Start", "Ref", "Alt", "VarFreq", "Reads1", "Reads2", "Mapping_quality", "variant", "FILTER", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "Func.refGene", "Gene.refGene", "Func.knownGene", "Gene.knownGene", "AAChange.refGene", "ExAC_ALL", "gnomAD_exome_ALL", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv")
 	df_main$variant <- tolower(df_main$variant)
 
@@ -91,7 +91,6 @@ add_bg_error_rate <- function(variants_df, bg) {
 
 # main function to run everything
 MAIN <- function(
-					THRESHOLD_ExAC_ALL, 
 					VALUE_Func_refGene, 
 					THRESHOLD_VarFreq, 
 					THRESHOLD_Reads2, 
@@ -119,8 +118,7 @@ MAIN <- function(
 						mutate(Total_reads = Reads1 + Reads2, 
 								VAF_bg_ratio = VarFreq/error_rate) %>%
 						select(Sample_name, Sample_type, patient_id, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, REF_Fw, REF_Rv, ALT_Fw, ALT_Rv, Func.refGene, Gene.refGene, AAChange.refGene, Protein_annotation, Effects, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads) %>%
-						filter(ExAC_ALL <= THRESHOLD_ExAC_ALL, 
-								Func.refGene != VALUE_Func_refGene,
+						filter(Func.refGene != VALUE_Func_refGene,
 								VAF_bg_ratio >= THRESHOLD_VAF_bg_ratio, # vaf should be at least 15 times more than the bg error rate
 								StrandBias_Fisher_pVal > 0.05) 
 	names(combined) <- c("Sample_name", "Sample_type", "Patient_ID", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
@@ -130,7 +128,7 @@ MAIN <- function(
 						(Total_reads <= 1000 & Alt_reads >= 5), 
 						VAF < THRESHOLD_VarFreq)
 
-	combined <- subset_to_panel(PATH_bed, combined) # subset to panel
+	# combined <- subset_to_panel(PATH_bed, combined) # subset to panel
 	combined <- add_depth(DIR_depth_metrics, PATH_collective_depth_metrics, combined) # add depth information at these positions 
 	# combined <- find_and_filter_duplicated_variants(combined, 3) # Remove duplicated variants, and add a new column to mark duplicated variants
 
