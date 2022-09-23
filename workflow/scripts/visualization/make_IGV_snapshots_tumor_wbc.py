@@ -30,7 +30,7 @@ def make_igv_batch_script(
 			
 		# os.remove(IGV_script)
 		os.makedirs(DIR_snapshots, exist_ok = True) # make the snapshost dir if it doesnt exist already
-		output_file_name = row["Sample_name_t"] + "_" + str(row["Chrom"]) + "_" + str(position) + "_" + str(row["Protein_annotation"]) + ".png" # one snapshot for each variant
+		output_file_name = str(row["Protein_annotation"]) + "_" + row["Gene"] + "_" + row["Sample_name_t"] + ".png" # one snapshot for each variant
 		
 		# Begin compiling the batch file
 		with open(PATH_batch, 'a') as the_file:
