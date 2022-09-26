@@ -1,8 +1,6 @@
-
-
 rule indel_realignment:
     input:
-        SORTED_bam=DIR_bams + "/sorted/{wildcard}.bam",
+        MAPPED_bam=DIR_bams + "/mBAM/{wildcard}.bam",
         PATH_bed=PATH_bed,
         PATH_hg38=PATH_hg38,
     params:
@@ -12,8 +10,8 @@ rule indel_realignment:
     threads: 12
     shell:
         "java -Xms64G -jar /home/amunzur/anaconda3/envs/snakemake/share/abra2-2.24-1/abra2.jar \
-        --in {input.SORTED_bam} --out {output} \
-        --ref {input.PATH_hg38} --threads {threads} --index --no-edge-ci --targets {input.PATH_bed} --tmpdir /groups/wyattgrp/users/amunzur/COMPOST_BIN > \
+        --in {input.SORTED_bam} --out {output} --ref {input.PATH_hg38} --threads {threads} --index \
+		--no-edge-ci --nosort --mmr=0.1 --cons --targets {input.PATH_bed} --targets /groups/wyattgrp/users/jbacon/reference/CHIP_capturetargets.bed --tmpdir /groups/wyattgrp/users/amunzur/COMPOST_BIN > \
         '/groups/wyattgrp/users/amunzur/pipeline/results/logs_slurm/indel_realignment/{wildcards.wildcard}'"
 
 
