@@ -2,10 +2,15 @@ import pandas as pd
 
 # snakemake --reason --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch --exclude=cn[01-05] -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 50
 
-PATH_to_samples = "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/sample_list.tsv"
+PATH_to_samples = (
+    "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/sample_list.tsv"
+)
+
+
 configfile: "config/config.yaml"
 
-samples = pd.read_csv(PATH_to_samples, sep = '\t')["sample_names"].tolist()
+
+samples = pd.read_csv(PATH_to_samples, sep="\t")["sample_names"].tolist()
 
 # samples = [pd.read_csv(PATH_to_samples, sep = '\t')["sample_names"].tolist() for PATH_to_samples in PATH_to_samples_list]
 
@@ -30,12 +35,13 @@ DIR_trimmed_fastq = config["DIR_trimmed_fastq"]
 DIR_trimmed_unpaired_fastq = config["DIR_trimmed_unpaired_fastq"]
 DIR_extracted_fastq = config["DIR_extracted_fastq"]
 DIR_bams = config["DIR_bams"]
+DIR_recalibrated_base_scores = config["DIR_recalibrated_base_scores"]
 
-# fastqc reports 
+# fastqc reports
 DIR_merged_fastqc = config["DIR_merged_fastqc"]
 DIR_trimmed_fastqc = config["DIR_trimmed_fastqc"]
 
-# metrics files 
+# metrics files
 DIR_insertsize_metrics = config["DIR_insertsize_metrics"]
 DIR_markdup_metrics = config["DIR_markdup_metrics"]
 DIR_markdup_perc_metrics = config["DIR_markdup_perc_metrics"]
@@ -67,126 +73,167 @@ ANNOVAR_Vardict_output = config["ANNOVAR_Vardict_output"]
 ANNOVAR_GATK_input = config["ANNOVAR_GATK_input"]
 ANNOVAR_GATK_output = config["ANNOVAR_GATK_output"]
 
-# figures 
+# figures
 DIR_insertsize_figures = config["DIR_insertsize_figures"]
 DIR_insertsize_figures_PNG = config["DIR_insertsize_figures_PNG"]
 
 ###################################################
 # TARGET FILES FOR RULE ALL
 ###################################################
-RUN_FastQC_merged = expand(DIR_merged_fastqc + "/{wildcard}_fastqc.html", wildcard = all_pairs)
-RUN_FastQC_trimmed = expand(DIR_trimmed_fastqc + "/{wildcard}_fastqc.html", wildcard = all_pairs)
-MASK_FastQ = expand(DIR_masked_fastq + "/{wildcard}_masked.fastq", wildcard = all_pairs)
-
-EXTRACT_FastQ_R1 = expand(DIR_extracted_fastq + "/{wildcard}_R1_extracted.fastq", wildcard = samples)
-EXTRACT_FastQ_R2 = expand(DIR_extracted_fastq + "/{wildcard}_R2_extracted.fastq", wildcard = samples)
+RUN_FastQC_merged = expand(
+    DIR_merged_fastqc + "/{wildcard}_fastqc.html", wildcard=all_pairs
+)
+RUN_FastQC_trimmed = expand(
+    DIR_trimmed_fastqc + "/{wildcard}_fastqc.html", wildcard=all_pairs
+)
+MASK_FastQ = expand(DIR_masked_fastq + "/{wildcard}_masked.fastq", wildcard=all_pairs)
 
 TRIM_FastQ = [
-	expand(DIR_trimmed_fastq + "/{wildcard}_R1.fastq", wildcard = samples), \
-	expand(DIR_trimmed_unpaired_fastq + "/{wildcard}_R1_U.fastq", wildcard = samples), \
-	expand(DIR_trimmed_fastq + "/{wildcard}_R2.fastq", wildcard = samples), \
-	expand(DIR_trimmed_unpaired_fastq + "/{wildcard}_R2_U.fastq", wildcard = samples)]
+    expand(DIR_trimmed_fastq + "/{wildcard}_R1_masked_val_1.fq", wildcard=samples),
+    expand(DIR_trimmed_fastq + "/{wildcard}_R2_masked_val_2.fq", wildcard=samples),
+    expand(
+        DIR_trimmed_fastqc + "/{wildcard}_R1_masked_val_1_fastqc.html", wildcard=samples
+    ),
+    expand(
+        DIR_trimmed_fastqc + "/{wildcard}_R2_masked_val_2_fastqc.html", wildcard=samples
+    ),
+]
+
+fgBIO_FastqToBam = expand(DIR_bams + "/uBAM/{wildcard}.bam", wildcard=samples)
+fgBIO_mapBam = expand(DIR_bams + "/mBAM/{wildcard}.bam", wildcard=samples)
+
+INDEL_REALIGN = expand(DIR_bams + "/abra2/{wildcard}.bam", wildcard=samples)
+
+
 
 # Alignment, sorting, marking duplicates and adding read groups
-ALIGN_and_SORT = expand(DIR_bams + "/sorted/{wildcard}.bam", wildcard = samples)
-INDEL_REALIGN = expand(DIR_bams + "/abra2/{wildcard}.bam", wildcard = samples)
+ALIGN_and_SORT = expand(DIR_bams + "/sorted/{wildcard}.bam", wildcard=samples)
 
-INDEX_sorted_bams = expand(DIR_bams + "/sorted/{wildcard}.bam.bai", wildcard = samples)
-DEDUP_umitools = expand(DIR_bams + "/dedup/{wildcard}.bam", wildcard = samples)
+INDEX_sorted_bams = expand(DIR_bams + "/sorted/{wildcard}.bam.bai", wildcard=samples)
+DEDUP_umitools = expand(DIR_bams + "/dedup/{wildcard}.bam", wildcard=samples)
 
-FIXMATE = expand(DIR_bams + "/fixmate/{wildcard}.bam", wildcard = samples)
-MARKDUP = [
-	expand(DIR_bams + "/markdup/{wildcard}.bam", wildcard = samples), \
-	expand(DIR_markdup_metrics + "/{wildcard}.txt", wildcard = samples)]
+FIXMATE = expand(DIR_bams + "/fixmate/{wildcard}.bam", wildcard=samples)
 
-SC_PENALTY = expand(DIR_bams + "/SC_penalty/{wildcard}.bam", wildcard = samples)
-ADD_RG = expand(DIR_bams + "/readGroup/{wildcard}.bam", wildcard = samples)
-INDEX_readGroup_bams = expand(DIR_bams + "/readGroup/{wildcard}.bam.bai", wildcard = samples)
-INDEX_SC_penalty_bams = expand(DIR_bams + "/SC_penalty/{wildcard}.bam.bai", wildcard = samples)
-run_complexity_metrics_markdup = expand(DIR_complexity_metrics + "/PICARD_complexity_dedup/{wildcard}.txt", wildcard = samples)
-RUN_fastq_read_counts = expand(DIR_readcounts_metrics + "/raw/{wildcard}.txt", wildcard = samples)
-RUN_extract_markdup_perc = expand(DIR_markdup_perc_metrics + "/{wildcard}.txt", wildcard = samples)
+ADD_RG = expand(DIR_bams + "/readGroup/{wildcard}.bam", wildcard=samples)
+INDEX_readGroup_bams = expand(
+    DIR_bams + "/readGroup/{wildcard}.bam.bai", wildcard=samples
+)
+INDEX_SC_penalty_bams = expand(
+    DIR_bams + "/SC_penalty/{wildcard}.bam.bai", wildcard=samples
+)
+run_complexity_metrics_markdup = expand(
+    DIR_complexity_metrics + "/PICARD_complexity_dedup/{wildcard}.txt", wildcard=samples
+)
+RUN_fastq_read_counts = expand(
+    DIR_readcounts_metrics + "/raw/{wildcard}.txt", wildcard=samples
+)
+RUN_extract_markdup_perc = expand(
+    DIR_markdup_perc_metrics + "/{wildcard}.txt", wildcard=samples
+)
 
-RUN_mpileup = expand(DIR_mpileup + "/{wildcard}.mpileup", wildcard = samples)
-RUN_varscan_snv = expand(VarScan_snv + "/{wildcard}.vcf", wildcard = samples)
-RUN_VarScan_indel = expand(VarScan_indel + "/{wildcard}.vcf", wildcard = samples)
-RUN_Vardict = expand(DIR_Vardict + "/{wildcard}.vcf", wildcard = samples)
-REFORMAT_vardict_results = expand(DIR_Vardict_reformatted + "/{wildcard}.tsv", wildcard = samples)
+RUN_mpileup = expand(DIR_mpileup + "/{wildcard}.mpileup", wildcard=samples)
+RUN_varscan_snv = expand(VarScan_snv + "/{wildcard}.vcf", wildcard=samples)
+RUN_VarScan_indel = expand(VarScan_indel + "/{wildcard}.vcf", wildcard=samples)
+RUN_Vardict = expand(DIR_Vardict + "/{wildcard}.vcf", wildcard=samples)
+REFORMAT_vardict_results = expand(
+    DIR_Vardict_reformatted + "/{wildcard}.tsv", wildcard=samples
+)
 
-RUN_Mutect2 = expand(DIR_Mutect + "/raw/{wildcard}_vcf.gz", wildcard = samples)
-FILTER_Mutect2 = expand(DIR_Mutect + "/filtered/{wildcard}_vcf.gz", wildcard = samples)
+RUN_Mutect2 = expand(DIR_Mutect + "/raw/{wildcard}_vcf.gz", wildcard=samples)
+FILTER_Mutect2 = expand(DIR_Mutect + "/filtered/{wildcard}_vcf.gz", wildcard=samples)
 
-RUN_Haplotype_caller = expand(DIR_Haplotype + "/GVCFs/{wildcard}.g.vcf.gz", wildcard = samples)
+RUN_Haplotype_caller = expand(
+    DIR_Haplotype + "/GVCFs/{wildcard}.g.vcf.gz", wildcard=samples
+)
 RUN_genomics_DB = expand(DIR_Haplotype + "/Genomics_DB")
 RUN_genotype_vcfs = expand(DIR_Haplotype + "/GenotypeGVCFs_genotyped.vcf.gz")
 VCF_to_table = expand(DIR_Haplotype + "/GenotypeGVCFs_table.tsv")
-REFORMAT_GATK_results = [expand(DIR_Haplotype + "/variants_reformatted.tsv"), expand(ANNOVAR_GATK_input + ".tsv")]
+REFORMAT_GATK_results = [
+    expand(DIR_Haplotype + "/variants_reformatted.tsv"),
+    expand(ANNOVAR_GATK_input + ".tsv"),
+]
 
 MAKE_ANNOVAR_GATK_input = expand(ANNOVAR_GATK_input + ".tsv")
 RUN_ANNOVAR_GATK = expand(ANNOVAR_GATK_output + ".hg38_multianno.txt")
 
-make_ANNOVAR_snv_input = expand(ANNOVAR_snv_input + "/{wildcard}_anno.tsv", wildcard = samples)
-make_ANNOVAR_indel_input = expand(ANNOVAR_indel_input + "/{wildcard}_anno.tsv", wildcard = samples)
-make_ANNOVAR_vardict_input = expand(ANNOVAR_Vardict_input + "/{wildcard}_anno.tsv", wildcard = samples)
+make_ANNOVAR_snv_input = expand(
+    ANNOVAR_snv_input + "/{wildcard}_anno.tsv", wildcard=samples
+)
+make_ANNOVAR_indel_input = expand(
+    ANNOVAR_indel_input + "/{wildcard}_anno.tsv", wildcard=samples
+)
+make_ANNOVAR_vardict_input = expand(
+    ANNOVAR_Vardict_input + "/{wildcard}_anno.tsv", wildcard=samples
+)
 
-run_ANNOVAR_snv = expand(ANNOVAR_snv_output + "/{wildcard}.hg38_multianno.txt", wildcard = samples)
-run_ANNOVAR_indel = expand(ANNOVAR_indel_output + "/{wildcard}.hg38_multianno.txt", wildcard = samples)
-run_ANNOVAR_vardict = expand(ANNOVAR_Vardict_output + "/{wildcard}.hg38_multianno.txt", wildcard = samples)
+run_ANNOVAR_snv = expand(
+    ANNOVAR_snv_output + "/{wildcard}.hg38_multianno.txt", wildcard=samples
+)
+run_ANNOVAR_indel = expand(
+    ANNOVAR_indel_output + "/{wildcard}.hg38_multianno.txt", wildcard=samples
+)
+run_ANNOVAR_vardict = expand(
+    ANNOVAR_Vardict_output + "/{wildcard}.hg38_multianno.txt", wildcard=samples
+)
 
-run_insert_size = [expand(DIR_insertsize_metrics + "/{wildcard}.txt", wildcard = samples), \
-	expand(DIR_insertsize_figures + "/{wildcard}.pdf", wildcard = samples)]
-PDF_to_PNG = expand(DIR_insertsize_figures_PNG + "/{wildcard}.png", wildcard = samples)
-run_depth = expand(DIR_depth_metrics + "/{wildcard}.txt", wildcard = samples) # depth at each position
-run_depth_umi = expand(DIR_depth_metrics_dedup + "/{wildcard}.txt", wildcard = samples)
+run_insert_size = [
+    expand(DIR_insertsize_metrics + "/{wildcard}.txt", wildcard=samples),
+    expand(DIR_insertsize_figures + "/{wildcard}.pdf", wildcard=samples),
+]
+PDF_to_PNG = expand(DIR_insertsize_figures_PNG + "/{wildcard}.png", wildcard=samples)
+run_depth = expand(DIR_depth_metrics + "/{wildcard}.txt", wildcard=samples)
+run_depth_umi = expand(DIR_depth_metrics_dedup + "/{wildcard}.txt", wildcard=samples)
+
+
 ###################################################
 # TARGET RULES
 ###################################################
 
+
 # only use expansion here
 rule all:
-	input:
-		# RUN_FastQC_merged,
-		# MASK_FastQ,
-		# EXTRACT_FastQ_R1,
-		# EXTRACT_FastQ_R2,
-		# TRIM_FastQ,
-		# RUN_FastQC_trimmed,
-		# ALIGN_and_SORT,
-		# INDEL_REALIGN,
-		# INDEX_sorted_bams, 
-		# INDEX_readGroup_bams,
-		# INDEX_SC_penalty_bams,
-		# DEDUP_umitools,
-		# FIXMATE,
-		# MARKDUP,
-		# SC_PENALTY,
-		# ADD_RG,
-		# RUN_mpileup,
-		# RUN_fastq_read_counts, 
-		# RUN_extract_markdup_perc,
-		# RUN_varscan_snv, 
-		# RUN_VarScan_indel, 
-		# RUN_Mutect2,
-		# FILTER_Mutect2,
-		# RUN_Haplotype_caller,
-		# RUN_genomics_DB,
-		# RUN_genotype_vcfs,
-		# VCF_to_table,
-		# REFORMAT_GATK_results,
-		# RUN_ANNOVAR_GATK,
-		# RUN_Vardict,
-		# REFORMAT_vardict_results,
-		# MAKE_ANNOVAR_GATK_input,
-		# make_ANNOVAR_snv_input,
-		# make_ANNOVAR_indel_input,
-		# make_ANNOVAR_vardict_input,
-		# run_ANNOVAR_snv,
-		# run_ANNOVAR_indel, 
-		# run_ANNOVAR_vardict,
-		# run_insert_size, 
-		# PDF_to_PNG,
-		# run_depth, 
-		# run_depth_umi
+    input:
+        # RUN_FastQC_merged,
+        # MASK_FastQ,
+        TRIM_FastQ,
+        # RUN_FastQC_trimmed,
+        # ALIGN_and_SORT,
+        # INDEL_REALIGN,
+        # INDEX_sorted_bams, 
+        # INDEX_readGroup_bams,
+        # INDEX_SC_penalty_bams,
+        # DEDUP_umitools,
+        # FIXMATE,
+        # ADD_RG,
+        # RUN_mpileup,
+        # RUN_fastq_read_counts, 
+        # RUN_extract_markdup_perc,
+        # RUN_varscan_snv, 
+        # RUN_VarScan_indel, 
+        # RUN_Mutect2,
+        # FILTER_Mutect2,
+        # RUN_Haplotype_caller,
+        # RUN_genomics_DB,
+        # RUN_genotype_vcfs,
+        # VCF_to_table,
+        # REFORMAT_GATK_results,
+        # RUN_ANNOVAR_GATK,
+        # RUN_Vardict,
+        # REFORMAT_vardict_results,
+        # MAKE_ANNOVAR_GATK_input,
+        # make_ANNOVAR_snv_input,
+        # make_ANNOVAR_indel_input,
+        # make_ANNOVAR_vardict_input,
+        # run_ANNOVAR_snv,
+        # run_ANNOVAR_indel, 
+        # run_ANNOVAR_vardict,
+        # run_insert_size, 
+        # PDF_to_PNG,
+        # run_depth, 
+        # run_depth_umi,
+        # fgBIO_FastqToBam,
+        # fgBIO_mapBam
+
 
 ##### Modules #####
 include: "rules/process_fastq.smk"
@@ -195,3 +242,4 @@ include: "rules/index_bams.smk"
 include: "rules/run_metrics.smk"
 include: "rules/variant_calling.smk"
 include: "rules/haplotype_caller.smk"
+include: "rules/consensus.smk"
