@@ -23,18 +23,3 @@ rule PICARD_fixmate:
     threads: 12
     shell:
         "picard -Xmx40g FixMateInformation I={input.ABRA2_bam} O={output} IGNORE_MISSING_MATES=true SORT_ORDER=coordinate"
-
-# Add read groups after removing duplicates
-rule add_read_groups_PICARD:
-    input:
-        DIR_bams + "/markdup/{wildcard}.bam",
-    params:
-        rglb="library",
-        rgpl="ILLUMINA",
-        rgpu="unit",
-        rgsm="sample",
-    output:
-        DIR_bams + "/readGroup/{wildcard}.bam",
-    threads: 12
-    shell:
-        "picard -Xmx40g AddOrReplaceReadGroups I={input} O={output} RGID=1 RGLB={params.rglb} RGPL={params.rgpl} RGPU={params.rgpu} RGSM={params.rgsm}"
