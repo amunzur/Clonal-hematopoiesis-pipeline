@@ -26,6 +26,9 @@ PATH_adapters = config["PATH_adapters"]
 PATH_bets = config["PATH_bets"]
 DIR_sample_maps = config["DIR_sample_maps"]
 DIR_temp = config["DIR_temp"]
+PATH_known_indels = config["PATH_known_indels"]
+PATH_gold_std_indels = config["PATH_gold_std_indels"]
+PATH_SNP_db = config["PATH_SNP_db"]
 
 # data files
 DIR_raw_fastq = config["DIR_raw_fastq"]
