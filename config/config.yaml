@@ -15,6 +15,7 @@ DIR_extracted_fastq: "results/data/fastq/extracted"
 DIR_trimmed_fastq: "results/data/fastq/trimmed"
 DIR_trimmed_unpaired_fastq: "results/data/fastq/trimmed_unpaired"
 DIR_bams: "results/data/bam"
+DIR_recalibrated_base_scores: "results/base_recalc_info"
 
 # fastqc reports 
 DIR_merged_fastqc: "results/reports/fastqc/merged" # running fastqc right after merging individual fastqs from lanes
