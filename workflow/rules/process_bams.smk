@@ -14,7 +14,6 @@ rule indel_realignment:
 		--no-edge-ci --nosort --mmr=0.1 --cons --targets {input.PATH_bed} --targets /groups/wyattgrp/users/jbacon/reference/CHIP_capturetargets.bed --tmpdir /groups/wyattgrp/users/amunzur/COMPOST_BIN > \
         '/groups/wyattgrp/users/amunzur/pipeline/results/logs_slurm/indel_realignment/{wildcards.wildcard}'"
 
-
 rule PICARD_fixmate:
     input:
         ABRA2_bam=DIR_bams + "/abra2/{wildcard}.bam",
@@ -23,11 +22,7 @@ rule PICARD_fixmate:
         DIR_bams + "/fixmate/{wildcard}.bam",
     threads: 12
     shell:
-        "picard -Xmx40g FixMateInformation \
-        I={input.ABRA2_bam} \
-        O={output}"
-
-
+        "picard -Xmx40g FixMateInformation I={input.ABRA2_bam} O={output} IGNORE_MISSING_MATES=true SORT_ORDER=coordinate"
 
 # Add read groups after removing duplicates
 rule add_read_groups_PICARD:
