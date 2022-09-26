@@ -6,6 +6,9 @@ PATH_adapters: "resources/references/adapters.fa"
 PATH_bets: "resources/betastasis/CLEANED_mutations_kidney_cancer_somatic.tsv"
 DIR_sample_maps: "resources/sample_maps"
 DIR_temp: "resources/TEMP"
+PATH_known_indels: "/groups/wyattgrp/users/jbacon/reference/resources_broad_hg38_v0_Homo_sapiens_assembly38.known_indels.vcf.gz"
+PATH_gold_std_indels: "/groups/wyattgrp/users/jbacon/reference/resources_broad_hg38_v0_Mills_and_1000G_gold_standard.indels.hg38.vcf.gz"
+PATH_SNP_db: "/groups/wyattgrp/users/jbacon/reference/resources_broad_hg38_v0_Homo_sapiens_assembly38.dbsnp138.vcf"
 
 # data files
 DIR_raw_fastq: "results/data/fastq/raw"
