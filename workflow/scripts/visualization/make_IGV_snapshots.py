@@ -48,7 +48,7 @@ def make_igv_batch_script(variants_df, PATH_batch, DIR_snapshots, DIR_vancouver_
 given_range = 200
 add_prefix = ""
 add_suffix = ".bam"
-cohort_name = "batch2"
+cohort_name = "new_chip_panel"
 
 PATH_varscan = os.path.join("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined", cohort_name, "varscan.csv")
 PATH_vardict = os.path.join("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/combined", cohort_name, "vardict.csv")
