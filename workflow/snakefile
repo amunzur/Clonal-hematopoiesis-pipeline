@@ -92,22 +92,22 @@ RUN_FastQC_trimmed = expand(
 MASK_FastQ = expand(DIR_masked_fastq + "/{wildcard}_masked.fastq", wildcard=all_pairs)
 
 TRIM_FastQ = [
-    expand(DIR_trimmed_fastq + "/{wildcard}_R1_masked_val_1.fq", wildcard=samples),
-    expand(DIR_trimmed_fastq + "/{wildcard}_R2_masked_val_2.fq", wildcard=samples),
-    expand(
-        DIR_trimmed_fastqc + "/{wildcard}_R1_masked_val_1_fastqc.html", wildcard=samples
-    ),
-    expand(
-        DIR_trimmed_fastqc + "/{wildcard}_R2_masked_val_2_fastqc.html", wildcard=samples
-    ),
+    expand(DIR_trimmed_fastq + "/{wildcard}_R1.fastq", wildcard=samples),
+    expand(DIR_trimmed_unpaired_fastq + "/{wildcard}_R1_U.fastq", wildcard=samples),
+    expand(DIR_trimmed_fastq + "/{wildcard}_R2.fastq", wildcard=samples),
+    expand(DIR_trimmed_unpaired_fastq + "/{wildcard}_R2_U.fastq", wildcard=samples),
 ]
 
 fgBIO_FastqToBam = expand(DIR_bams + "/uBAM/{wildcard}.bam", wildcard=samples)
 fgBIO_mapBam = expand(DIR_bams + "/mBAM/{wildcard}.bam", wildcard=samples)
 
+fgBIO_remapBAM = expand(
+    DIR_bams + "/{consensus_type}_mBAM/{wildcard}.bam",
+    consensus_type=["DCS", "SSCS"],
+    wildcard=samples,
+)
+
 INDEL_REALIGN = expand(DIR_bams + "/abra2/{wildcard}.bam", wildcard=samples)
-
-
 
 # Alignment, sorting, marking duplicates and adding read groups
 ALIGN_and_SORT = expand(DIR_bams + "/sorted/{wildcard}.bam", wildcard=samples)
@@ -198,7 +198,7 @@ rule all:
     input:
         # RUN_FastQC_merged,
         # MASK_FastQ,
-        TRIM_FastQ,
+        # TRIM_FastQ,
         # RUN_FastQC_trimmed,
         # ALIGN_and_SORT,
         # INDEL_REALIGN,
@@ -234,13 +234,14 @@ rule all:
         # PDF_to_PNG,
         # run_depth, 
         # run_depth_umi,
-        # fgBIO_FastqToBam,
-        # fgBIO_mapBam
+        fgBIO_FastqToBam,
+        # fgBIO_mapBam,
+        # fgBIO_remapBAM
 
 
 ##### Modules #####
 include: "rules/process_fastq.smk"
-include: "rules/process_bams.smk"
+# include: "rules/process_bams.smk"
 include: "rules/index_bams.smk"
 include: "rules/run_metrics.smk"
 include: "rules/variant_calling.smk"
