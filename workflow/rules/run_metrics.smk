@@ -32,30 +32,6 @@ rule extract_duplicate_percentage:
 	shell: 
 		"paste <(echo {params}) <(head {input} | grep Library | cut -f9) > {output}"
 
-# extract duplicate perc from the UMI deduplicated bams
-# rule extract_duplicate_percentage_dedup: 
-# 	input: 		
-# 		DIR_markdup_metrics + "/{wildcard}.txt"
-# 	params: 
-# 		sample_name = "{wildcard}"
-# 	output: 
-# 		DIR_markdup_perc_metrics + "/{wildcard}.txt"
-# 	shell: 
-# 		"paste <(echo {params}) <(head {input} | grep Library | cut -f9) > {output}"
-
-
-# run complexity estimates after deduplication
-rule PICARD_complexity_dedup:
-	input: 
-		DEDUP_bam = DIR_bams + "/dedup/{wildcard}.bam"
-	output: 
-		complexity_metrics = DIR_complexity_metrics + "/dedup/{wildcard}.txt"
-	threads: 12
-	shell:
-		"picard -Xmx40g EstimateLibraryComplexity \
-					I={input} \
-					O={output}"
-
 rule run_insert_size: 
 	input: 
 		DIR_bams + "/readGroup/{wildcard}.bam"
