@@ -1,8 +1,8 @@
 rule run_VarScan_snv: 
 	input: 
-		DIR_mpileup + "/{wildcard}.mpileup"
+		DIR_mpileup + "/{consensus_type}/{wildcard}.mpileup"
 	output: 
-		VarScan_snv + "/{wildcard}.vcf"
+		VarScan_snv + "{consensus_type}/{wildcard}.vcf"
 	params:
 		min_coverage = 8,
 		min_reads = 2, 
@@ -20,9 +20,9 @@ rule run_VarScan_snv:
 
 rule run_VarScan_indel: 
 	input: 
-		DIR_mpileup + "/{wildcard}.mpileup"
+		DIR_mpileup + "{consensus_type}/{wildcard}.mpileup"
 	output: 
-		VarScan_indel + "/{wildcard}.vcf"
+		VarScan_indel + "{consensus_type}/{wildcard}.vcf"
 	params:
 		min_coverage = 8,
 		min_reads = 2, 
@@ -41,18 +41,18 @@ rule run_VarScan_indel:
 # Modify the VarScan2 snv output in such a way that ANNOVAR can handle it.
 rule make_ANNOVAR_snv_input: 
 	input: 
-		VarScan_snv + "/{wildcard}.vcf"
+		VarScan_snv + "{consensus_type}/{wildcard}.vcf"
 	output: 
-		ANNOVAR_snv_input + "/{wildcard}_anno.tsv"
+		ANNOVAR_snv_input + "{consensus_type}/{wildcard}_anno.tsv"
 	shell:
 		'paste <(cat {input} | cut -f1,2)  <(cat {input} | cut -f2,3,19) > {output}'
 
 # Modify the VarScan2 indel output in such a way that ANNOVAR can handle it.
 rule make_ANNOVAR_indel_input: 
 	input: 
-		VarScan_indel + "/{wildcard}.vcf"
+		VarScan_indel + "{consensus_type}/{wildcard}.vcf"
 	output: 
-		ANNOVAR_indel_input + "/{wildcard}_anno.tsv"
+		ANNOVAR_indel_input + "{consensus_type}/{wildcard}_anno.tsv"
 	conda: 
 		"../envs/r_env_v2.yaml"
 	shell:
@@ -63,9 +63,9 @@ rule make_ANNOVAR_indel_input:
 # Annotate the SNVs
 rule run_ANNOVAR_snv: 
 	input: 
-		ANNOVAR_snv_input + "/{wildcard}_anno.tsv"
+		ANNOVAR_snv_input + "{consensus_type}/{wildcard}_anno.tsv"
 	output: 
-		ANNOVAR_snv_output + "/{wildcard}.hg38_multianno.txt"
+		ANNOVAR_snv_output + "{consensus_type}/{wildcard}.hg38_multianno.txt"
 	params: 
 		actual_output_file = ANNOVAR_snv_output + "/{wildcard}"
 	threads: 12
@@ -81,13 +81,13 @@ rule run_ANNOVAR_snv:
 # Annotate the indels
 rule run_ANNOVAR_indel: 
 	input: 
-		make_ANNOVAR_indel_input = ANNOVAR_indel_input + "/{wildcard}_anno.tsv",
-		VarScan_indel = VarScan_indel + "/{wildcard}.vcf"
+		make_ANNOVAR_indel_input = ANNOVAR_indel_input + "{consensus_type}/{wildcard}_anno.tsv",
+		VarScan_indel = VarScan_indel + "{consensus_type}/{wildcard}.vcf"
 	output: 
-		ANNOVAR_indel_output = ANNOVAR_indel_output + "/{wildcard}.hg38_multianno.txt"
+		ANNOVAR_indel_output = ANNOVAR_indel_output + "{consensus_type}/{wildcard}.hg38_multianno.txt"
 	params: 
-		actual_output_file = ANNOVAR_indel_output + "/{wildcard}",
-		temp_output_file = ANNOVAR_indel_output + "/{wildcard}_temp"
+		actual_output_file = ANNOVAR_indel_output + "{consensus_type}/{wildcard}",
+		temp_output_file = ANNOVAR_indel_output + "{consensus_type}/{wildcard}_temp"
 	threads: 12
 	shell:
 		'perl /groups/wyattgrp/software/annovar/annovar/table_annovar.pl {input.make_ANNOVAR_indel_input} /groups/wyattgrp/software/annovar/annovar/humandb/ \
@@ -100,10 +100,10 @@ rule run_ANNOVAR_indel:
 			
 rule run_VarDict: 
 	input: 
-		SC_bam = DIR_bams + "/SC_penalty/{wildcard}.bam",
-		SC_bam_index = DIR_bams + "/SC_penalty/{wildcard}.bam.bai" # helps make sure the bam was indexed before variant calling
+		SC_bam = DIR_bams + "/{consensus_type}/{wildcard}.bam",
+		SC_bam_index = DIR_bams + "/{consensus_type}/{wildcard}.bam.bai" # helps make sure the bam was indexed before variant calling
 	output: 
-		DIR_Vardict + "/{wildcard}.vcf" # snv and indel together
+		DIR_Vardict + "{consensus_type}/{wildcard}.vcf" # snv and indel together
 	params: 
 		PATH_hg38 = PATH_hg38, 
 		PATH_bed = PATH_bed,
@@ -112,14 +112,14 @@ rule run_VarDict:
 	threads: 12
 	shell:
 		"/home/amunzur/VarDictJava/build/install/VarDict/bin/VarDict -G {params.PATH_hg38} -f {params.THRESHOLD_VarFreq} -N {params.sample_name} -b {input.SC_bam} \
-		-c 1 -S 2 -E 3 -g 4 {params.PATH_bed} | /home/amunzur/VarDictJava/build/install/VarDict/bin/teststrandbias.R | /home/amunzur/VarDictJava/build/install/VarDict/bin/var2vcf_valid.pl \
+		-k 0 -c 1 -S 2 -E 3 -g 4 {params.PATH_bed} | /home/amunzur/VarDictJava/build/install/VarDict/bin/teststrandbias.R | /home/amunzur/VarDictJava/build/install/VarDict/bin/var2vcf_valid.pl \
 		-N {params.sample_name} -E -f {params.THRESHOLD_VarFreq} > {output}"
 
 rule make_ANNOVAR_Vardict_input: 
 	input: 
-		DIR_Vardict + "/{wildcard}.vcf"
+		DIR_Vardict + "{consensus_type}/{wildcard}.vcf"
 	output: 
-		ANNOVAR_Vardict_input + "/{wildcard}_anno.tsv"
+		ANNOVAR_Vardict_input + "{consensus_type}/{wildcard}_anno.tsv"
 	conda: 
 		"../envs/r_env_v2.yaml"
 	shell:
@@ -130,11 +130,11 @@ rule make_ANNOVAR_Vardict_input:
 # Runs directly on the vcf file 
 rule run_ANNOVAR_vardict: 
 	input: 
-		DIR_Vardict + "/{wildcard}.vcf"
+		DIR_Vardict + "{consensus_type}/{wildcard}.vcf"
 	output: 
-		ANNOVAR_Vardict_output + "/{wildcard}.hg38_multianno.txt"
+		ANNOVAR_Vardict_output + "{consensus_type}/{wildcard}.hg38_multianno.txt"
 	params: 
-		actual_output_file = ANNOVAR_Vardict_output + "/{wildcard}"		
+		actual_output_file = ANNOVAR_Vardict_output + "{consensus_type}/{wildcard}"		
 	shell:
 		'perl /groups/wyattgrp/software/annovar/annovar/table_annovar.pl {input} /groups/wyattgrp/software/annovar/annovar/humandb/ \
 			-vcfinput \
@@ -147,9 +147,9 @@ rule run_ANNOVAR_vardict:
 
 rule reformat_vardict_results: 
 	input: 
-		DIR_Vardict + "/{wildcard}.vcf"
+		DIR_Vardict + "{consensus_type}/{wildcard}.vcf"
 	output: 
-		DIR_Vardict + "_reformatted/{wildcard}.tsv"
+		DIR_Vardict_reformatted + "{consensus_type}/{wildcard}.tsv"
 	conda: 
 		"../envs/r_env_v2.yaml"
 	shell:
@@ -159,11 +159,11 @@ rule reformat_vardict_results:
 
 rule run_Mutect:
 	input:
-		SC_bam = DIR_bams + "/SC_penalty/{wildcard}.bam"
+		SC_bam = DIR_bams + "/{consensus_type}/{wildcard}.bam"
 	output: 
-		vcf = DIR_Mutect + "/raw/{wildcard}_vcf.gz",
-		stats = DIR_Mutect + "/raw/{wildcard}_vcf.gz.stats",
-		index = DIR_Mutect + "/raw/{wildcard}_vcf.gz.tbi"
+		vcf = DIR_Mutect + "{consensus_type}/raw/{wildcard}_vcf.gz",
+		stats = DIR_Mutect + "{consensus_type}/raw/{wildcard}_vcf.gz.stats",
+		index = DIR_Mutect + "{consensus_type}/raw/{wildcard}_vcf.gz.tbi"
 	params: 
 		PATH_hg38 = PATH_hg38
 	threads: 12
@@ -179,12 +179,12 @@ rule run_Mutect:
 
 rule filter_Mutect:
 	input:
-		vcf = DIR_Mutect + "/raw/{wildcard}_vcf.gz",
+		vcf = DIR_Mutect + "{consensus_type}/raw/{wildcard}_vcf.gz",
 		PATH_hg38 = PATH_hg38
 	output: 
-		vcf_fil = DIR_Mutect + "/filtered/{wildcard}_vcf.gz",
-		stats_fil = DIR_Mutect + "/filtered/{wildcard}_vcf.gz.stats",
-		index_fil = DIR_Mutect + "/filtered/{wildcard}_vcf.gz.idx"
+		vcf_fil = DIR_Mutect + "{consensus_type}/filtered/{wildcard}_vcf.gz",
+		stats_fil = DIR_Mutect + "{consensus_type}/filtered/{wildcard}_vcf.gz.stats",
+		index_fil = DIR_Mutect + "{consensus_type}/filtered/{wildcard}_vcf.gz.idx"
 	params: 
 		DIR_Mutect + "/{wildcard}"
 	threads: 12
@@ -197,17 +197,3 @@ rule filter_Mutect:
     	--min-median-mapping-quality 10 \
     	--min-slippage-length 15 \
     	--verbosity INFO"
-
-
-
-
-
-# rule make_IGV_snapshot_script:
-# 	input: 
-# 		DIR_Vardict + "/{wildcard}.vcf"
-# 	output: 
-# 		DIR_Vardict + "_reformatted/{wildcard}.tsv"
-# 	shell:
-# 		'Rscript --silent --slave /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/reformat_vardict.R\
-# 			--PATH_Vardict_output {input} \
-# 			--PATH_Vardict_reformatted {output}'
