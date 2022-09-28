@@ -145,18 +145,6 @@ rule run_ANNOVAR_vardict:
 			-operation g,g,f,f,f,f,f,f,f,f,f,f,f \
 			-nastring .'
 
-rule reformat_vardict_results: 
-	input: 
-		DIR_Vardict + "{consensus_type}/{wildcard}.vcf"
-	output: 
-		DIR_Vardict_reformatted + "{consensus_type}/{wildcard}.tsv"
-	conda: 
-		"../envs/r_env_v2.yaml"
-	shell:
-		'Rscript --silent --slave /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/reformat_vardict.R\
-			--PATH_Vardict_output {input} \
-			--PATH_Vardict_reformatted {output}'
-
 rule run_Mutect:
 	input:
 		SC_bam = DIR_bams + "/{consensus_type}/{wildcard}.bam"
