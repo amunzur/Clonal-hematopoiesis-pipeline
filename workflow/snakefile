@@ -128,24 +128,12 @@ RUN_Mutect2 = expand(DIR_Mutect + "{consensus_type}/filtered/{wildcard}_vcf.gz",
 
 
 
-make_ANNOVAR_snv_input = expand(
-    ANNOVAR_snv_input + "/{wildcard}_anno.tsv", wildcard=samples
-)
-make_ANNOVAR_indel_input = expand(
-    ANNOVAR_indel_input + "/{wildcard}_anno.tsv", wildcard=samples
-)
-make_ANNOVAR_vardict_input = expand(
-    ANNOVAR_Vardict_input + "/{wildcard}_anno.tsv", wildcard=samples
-)
-
-
 run_insert_size = [
     expand(DIR_insertsize_metrics + "/{wildcard}.txt", wildcard=samples),
     expand(DIR_insertsize_figures + "/{wildcard}.pdf", wildcard=samples),
 ]
 PDF_to_PNG = expand(DIR_insertsize_figures_PNG + "/{wildcard}.png", wildcard=samples)
 run_depth = expand(DIR_depth_metrics + "/{wildcard}.txt", wildcard=samples)
-run_depth_umi = expand(DIR_depth_metrics_dedup + "/{wildcard}.txt", wildcard=samples)
 
 
 ###################################################
