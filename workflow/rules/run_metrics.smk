@@ -21,23 +21,12 @@ rule run_mpileup:
 	shell:
 		"samtools mpileup -f {input.PATH_hg38} {input.BAM} -o {output}"
 
-# extract duplicate perc from the PICARD markdup bams
-rule extract_duplicate_percentage: 
-	input: 		
-		DIR_markdup_metrics + "/{wildcard}.txt"
-	params: 
-		sample_name = "{wildcard}"
-	output: 
-		DIR_markdup_perc_metrics + "/{wildcard}.txt"
-	shell: 
-		"paste <(echo {params}) <(head {input} | grep Library | cut -f9) > {output}"
-
 rule run_insert_size: 
 	input: 
-		DIR_bams + "/readGroup/{wildcard}.bam"
+		DIR_bams + "/{consensus_type}/{wildcard}.bam"
 	output:
-		metrics = DIR_insertsize_metrics + "/{wildcard}.txt",
-		figures = DIR_insertsize_figures + "/{wildcard}.pdf"
+		metrics = DIR_insertsize_metrics + "{consensus_type}/{wildcard}.txt",
+		figures = DIR_insertsize_figures + "{consensus_type}/{wildcard}.pdf"
 	threads: 12
 	shell:
 		"picard CollectInsertSizeMetrics \
