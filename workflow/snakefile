@@ -55,6 +55,7 @@ DIR_mpileup = config["DIR_mpileup"]
 DIR_complexity_metrics = config["DIR_complexity_metrics"]
 DIR_dedup_metrics = config["DIR_dedup_metrics"]
 DIR_readcounts_metrics = config["DIR_readcounts_metrics"]
+DIR_HS_metrics = config["DIR_HS_metrics"]
 
 # variant calling
 DIR_varscan = config["DIR_varscan"]
@@ -99,42 +100,11 @@ TRIM_FastQ = [
     expand(DIR_trimmed_unpaired_fastq + "/{wildcard}_R2_U.fastq", wildcard=samples),
 ]
 
-Fastq_to_uBAM = expand(DIR_bams + "/uBAM/{wildcard}.bam", wildcard=samples)
-uBam_to_Fastq = expand(DIR_fastq + "/consensus_fq/{wildcard}.fastq", wildcard = samples)
-uBAM_to_mBAM_raw = expand(DIR_bams + "/mBAM_raw/{wildcard}.bam", wildcard=samples)
-add_read_groups = expand(DIR_bams + "/readGroup/{wildcard}.bam", wildcard=samples)
-uBAM_to_mBAM = expand(DIR_bams + "/mBAM/{wildcard}.bam", wildcard=samples)
+Call_SSCS_and_DCS = expand(DIR_bams + "/{consensus_type}_uBAM/{wildcard}.bam", consensus_type=["DCS", "SSCS"], wildcard=samples)
+Map_SSCS_and_DCS = expand(DIR_bams + "/{consensus_type}_mBAM/{wildcard}.bam", consensus_type=["DCS", "SSCS"], wildcard=samples)
+Filter_SSCS_and_DCS = expand(DIR_bams + "/{consensus_type}_filtered/{wildcard}.bam", consensus_type=["DCS", "SSCS3"], wildcard=samples)
+# CollectHsMetrics = expand()
 
-Indel_realignment = expand(DIR_bams + "/abra2/{wildcard}.bam", wildcard=samples)
-
-
-fixmate = expand(DIR_bams + "/fixmate/{wildcard}.bam", wildcard=samples)
-recalibrate_bases = expand(DIR_recalibrated_base_scores + "/{wildcard}_table", wildcard=samples)
-apply_base_scores = expand(DIR_bams + "/uncollapsed_BAM/{wildcard}.bam", wildcard=samples)
-GroupReadsByUmi = expand(DIR_bams + "/grouped_umi_BAM/{wildcard}.bam", wildcard=samples)
-CallDuplexConsensusReads = expand(DIR_bams + "/DCS_uBAM/{wildcard}.bam", wildcard=samples)
-CallMolecularConsensusReads = expand(DIR_bams + "/SSCS_uBAM/{wildcard}.bam", wildcard=samples)
-
-
-x = expand(DIR_bams + "/{consensus_type}_mBAM/{wildcard}.bam", consensus_type=["DCS", "SSCS"], wildcard=samples)
-
-
-
-# Map_consensus_bams = expand(DIR_bams + "/{consensus_type}_mBAM/{wildcard}.bam", wildcard=samples)
-
-
-remap_uBAMs = expand(
-    DIR_bams + "/{consensus_type}_mBAM/{wildcard}.bam",
-    consensus_type=["DCS", "SSCS"],
-    wildcard=samples,
-)
-Process_consensus_mBAMs = expand(
-    DIR_bams + "/{consensus_type}_processed_mBAM/{wildcard}.bam",
-    consensus_type=["DCS", "SSCS"],
-    wildcard=samples,
-)
-Filter_DCS = expand(DIR_bams + "/DCS_filtered_mBAM/{wildcard}.bam", wildcard=samples)
-Filter_SSCS = expand(DIR_bams + "/SSCS_filtered_mBAM/{wildcard}.bam", wildcard=samples)
 
 run_complexity_metrics_markdup = expand(
     DIR_complexity_metrics + "/PICARD_complexity_dedup/{wildcard}.txt", wildcard=samples
@@ -146,30 +116,17 @@ RUN_extract_markdup_perc = expand(
     DIR_markdup_perc_metrics + "/{wildcard}.txt", wildcard=samples
 )
 
-RUN_mpileup = expand(DIR_mpileup + "/{wildcard}.mpileup", wildcard=samples)
-RUN_varscan_snv = expand(VarScan_snv + "/{wildcard}.vcf", wildcard=samples)
-RUN_VarScan_indel = expand(VarScan_indel + "/{wildcard}.vcf", wildcard=samples)
-RUN_Vardict = expand(DIR_Vardict + "/{wildcard}.vcf", wildcard=samples)
-REFORMAT_vardict_results = expand(
-    DIR_Vardict_reformatted + "/{wildcard}.tsv", wildcard=samples
-)
+RUN_VarScan_snv = expand(VarScan_snv + "{consensus_type}/{wildcard}.vcf", consensus_type=["DCS", "SSCS3"], wildcard=samples)
+RUN_VarScan_indel = expand(VarScan_indel + "{consensus_type}/{wildcard}.vcf", consensus_type=["DCS", "SSCS3"], wildcard=samples)
+ANNOTATE_VarScan_snv = expand(ANNOVAR_snv_output + "{consensus_type}/{wildcard}.hg38_multianno.txt", consensus_type=["DCS", "SSCS3"], wildcard=samples)
+ANNOTATE_VarScan_indel = expand(ANNOVAR_indel_output + "{consensus_type}/{wildcard}.hg38_multianno.txt", consensus_type=["DCS", "SSCS3"], wildcard=samples)
 
-RUN_Mutect2 = expand(DIR_Mutect + "/raw/{wildcard}_vcf.gz", wildcard=samples)
-FILTER_Mutect2 = expand(DIR_Mutect + "/filtered/{wildcard}_vcf.gz", wildcard=samples)
+RUN_Vardict = expand(DIR_Vardict + "{consensus_type}/{wildcard}.vcf", consensus_type=["DCS", "SSCS3"], wildcard=samples)
+ANNOTATE_Vardict = expand(ANNOVAR_Vardict_output + "{consensus_type}/{wildcard}.hg38_multianno.txt", consensus_type=["DCS", "SSCS3"], wildcard=samples)
+RUN_Mutect2 = expand(DIR_Mutect + "{consensus_type}/filtered/{wildcard}_vcf.gz", consensus_type=["DCS", "SSCS3"], wildcard=samples)
 
-RUN_Haplotype_caller = expand(
-    DIR_Haplotype + "/GVCFs/{wildcard}.g.vcf.gz", wildcard=samples
-)
-RUN_genomics_DB = expand(DIR_Haplotype + "/Genomics_DB")
-RUN_genotype_vcfs = expand(DIR_Haplotype + "/GenotypeGVCFs_genotyped.vcf.gz")
-VCF_to_table = expand(DIR_Haplotype + "/GenotypeGVCFs_table.tsv")
-REFORMAT_GATK_results = [
-    expand(DIR_Haplotype + "/variants_reformatted.tsv"),
-    expand(ANNOVAR_GATK_input + ".tsv"),
-]
 
-MAKE_ANNOVAR_GATK_input = expand(ANNOVAR_GATK_input + ".tsv")
-RUN_ANNOVAR_GATK = expand(ANNOVAR_GATK_output + ".hg38_multianno.txt")
+
 
 make_ANNOVAR_snv_input = expand(
     ANNOVAR_snv_input + "/{wildcard}_anno.tsv", wildcard=samples
@@ -181,15 +138,6 @@ make_ANNOVAR_vardict_input = expand(
     ANNOVAR_Vardict_input + "/{wildcard}_anno.tsv", wildcard=samples
 )
 
-run_ANNOVAR_snv = expand(
-    ANNOVAR_snv_output + "/{wildcard}.hg38_multianno.txt", wildcard=samples
-)
-run_ANNOVAR_indel = expand(
-    ANNOVAR_indel_output + "/{wildcard}.hg38_multianno.txt", wildcard=samples
-)
-run_ANNOVAR_vardict = expand(
-    ANNOVAR_Vardict_output + "/{wildcard}.hg38_multianno.txt", wildcard=samples
-)
 
 run_insert_size = [
     expand(DIR_insertsize_metrics + "/{wildcard}.txt", wildcard=samples),
@@ -250,7 +198,9 @@ rule all:
         # GroupReadsByUmi,
         # CallDuplexConsensusReads,
         # CallMolecularConsensusReads,
-        x,
+        Call_SSCS_and_DCS,
+        Map_SSCS_and_DCS,
+        Filter_SSCS_and_DCS,      
         # remap_uBAMs,
         # Process_consensus_mBAMs,
         # Filter_DCS,
