@@ -1,12 +1,3 @@
-rule PDF_to_PNG: 
-	input: 
-		DIR_insertsize_figures + "{cohort_wildcard}/{wildcard}.pdf"
-	output:
-		DIR_insertsize_figures_PNG + "{cohort_wildcard}/{wildcard}.png"
-	threads: 3
-	shell:
-		'bash /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/pdf_to_png.sh {input} {output}'
-
 # Compute depth at each position
 rule run_depth: 
 	input: 
