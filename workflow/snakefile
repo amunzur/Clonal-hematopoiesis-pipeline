@@ -31,6 +31,7 @@ PATH_gold_std_indels = config["PATH_gold_std_indels"]
 PATH_SNP_db = config["PATH_SNP_db"]
 
 # data files
+DIR_fastq = config["DIR_fastq"]
 DIR_raw_fastq = config["DIR_raw_fastq"]
 DIR_merged_fastq = config["DIR_merged_fastq"]
 DIR_masked_fastq = config["DIR_masked_fastq"]
@@ -98,32 +99,43 @@ TRIM_FastQ = [
     expand(DIR_trimmed_unpaired_fastq + "/{wildcard}_R2_U.fastq", wildcard=samples),
 ]
 
-fgBIO_FastqToBam = expand(DIR_bams + "/uBAM/{wildcard}.bam", wildcard=samples)
-fgBIO_mapBam = expand(DIR_bams + "/mBAM/{wildcard}.bam", wildcard=samples)
+Fastq_to_uBAM = expand(DIR_bams + "/uBAM/{wildcard}.bam", wildcard=samples)
+uBam_to_Fastq = expand(DIR_fastq + "/consensus_fq/{wildcard}.fastq", wildcard = samples)
+uBAM_to_mBAM_raw = expand(DIR_bams + "/mBAM_raw/{wildcard}.bam", wildcard=samples)
+add_read_groups = expand(DIR_bams + "/readGroup/{wildcard}.bam", wildcard=samples)
+uBAM_to_mBAM = expand(DIR_bams + "/mBAM/{wildcard}.bam", wildcard=samples)
 
-fgBIO_remapBAM = expand(
+Indel_realignment = expand(DIR_bams + "/abra2/{wildcard}.bam", wildcard=samples)
+
+
+fixmate = expand(DIR_bams + "/fixmate/{wildcard}.bam", wildcard=samples)
+recalibrate_bases = expand(DIR_recalibrated_base_scores + "/{wildcard}_table", wildcard=samples)
+apply_base_scores = expand(DIR_bams + "/uncollapsed_BAM/{wildcard}.bam", wildcard=samples)
+GroupReadsByUmi = expand(DIR_bams + "/grouped_umi_BAM/{wildcard}.bam", wildcard=samples)
+CallDuplexConsensusReads = expand(DIR_bams + "/DCS_uBAM/{wildcard}.bam", wildcard=samples)
+CallMolecularConsensusReads = expand(DIR_bams + "/SSCS_uBAM/{wildcard}.bam", wildcard=samples)
+
+
+x = expand(DIR_bams + "/{consensus_type}_mBAM/{wildcard}.bam", consensus_type=["DCS", "SSCS"], wildcard=samples)
+
+
+
+# Map_consensus_bams = expand(DIR_bams + "/{consensus_type}_mBAM/{wildcard}.bam", wildcard=samples)
+
+
+remap_uBAMs = expand(
     DIR_bams + "/{consensus_type}_mBAM/{wildcard}.bam",
     consensus_type=["DCS", "SSCS"],
     wildcard=samples,
 )
-
-INDEL_REALIGN = expand(DIR_bams + "/abra2/{wildcard}.bam", wildcard=samples)
-
-# Alignment, sorting, marking duplicates and adding read groups
-ALIGN_and_SORT = expand(DIR_bams + "/sorted/{wildcard}.bam", wildcard=samples)
-
-INDEX_sorted_bams = expand(DIR_bams + "/sorted/{wildcard}.bam.bai", wildcard=samples)
-DEDUP_umitools = expand(DIR_bams + "/dedup/{wildcard}.bam", wildcard=samples)
-
-FIXMATE = expand(DIR_bams + "/fixmate/{wildcard}.bam", wildcard=samples)
-
-ADD_RG = expand(DIR_bams + "/readGroup/{wildcard}.bam", wildcard=samples)
-INDEX_readGroup_bams = expand(
-    DIR_bams + "/readGroup/{wildcard}.bam.bai", wildcard=samples
+Process_consensus_mBAMs = expand(
+    DIR_bams + "/{consensus_type}_processed_mBAM/{wildcard}.bam",
+    consensus_type=["DCS", "SSCS"],
+    wildcard=samples,
 )
-INDEX_SC_penalty_bams = expand(
-    DIR_bams + "/SC_penalty/{wildcard}.bam.bai", wildcard=samples
-)
+Filter_DCS = expand(DIR_bams + "/DCS_filtered_mBAM/{wildcard}.bam", wildcard=samples)
+Filter_SSCS = expand(DIR_bams + "/SSCS_filtered_mBAM/{wildcard}.bam", wildcard=samples)
+
 run_complexity_metrics_markdup = expand(
     DIR_complexity_metrics + "/PICARD_complexity_dedup/{wildcard}.txt", wildcard=samples
 )
@@ -200,14 +212,6 @@ rule all:
         # MASK_FastQ,
         # TRIM_FastQ,
         # RUN_FastQC_trimmed,
-        # ALIGN_and_SORT,
-        # INDEL_REALIGN,
-        # INDEX_sorted_bams, 
-        # INDEX_readGroup_bams,
-        # INDEX_SC_penalty_bams,
-        # DEDUP_umitools,
-        # FIXMATE,
-        # ADD_RG,
         # RUN_mpileup,
         # RUN_fastq_read_counts, 
         # RUN_extract_markdup_perc,
@@ -234,16 +238,30 @@ rule all:
         # PDF_to_PNG,
         # run_depth, 
         # run_depth_umi,
-        fgBIO_FastqToBam,
-        # fgBIO_mapBam,
-        # fgBIO_remapBAM
+        # Fastq_to_uBAM,
+        # uBam_to_Fastq,
+        # uBAM_to_mBAM_raw,
+        # add_read_groups,
+        # uBAM_to_mBAM,       
+        # Indel_realignment,
+        # fixmate,
+        # recalibrate_bases,
+        # apply_base_scores,
+        # GroupReadsByUmi,
+        # CallDuplexConsensusReads,
+        # CallMolecularConsensusReads,
+        x,
+        # remap_uBAMs,
+        # Process_consensus_mBAMs,
+        # Filter_DCS,
+        # Filter_SSCS,
 
 
 ##### Modules #####
 include: "rules/process_fastq.smk"
-# include: "rules/process_bams.smk"
+include: "rules/make_consensus_bams.smk"
+include: "rules/filter_consensus_bams.smk"
 include: "rules/index_bams.smk"
 include: "rules/run_metrics.smk"
 include: "rules/variant_calling.smk"
 include: "rules/haplotype_caller.smk"
-include: "rules/consensus.smk"
