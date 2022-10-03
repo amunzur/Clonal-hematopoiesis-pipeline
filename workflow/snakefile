@@ -11,7 +11,7 @@ configfile: "config/config.yaml"
 
 
 samples = pd.read_csv(PATH_to_samples, sep="\t")["sample_names"].tolist()
-
+# samples = ["GUBB-18-029_gDNA_Baseline_IDT_2018Apr18"]
 # samples = [pd.read_csv(PATH_to_samples, sep = '\t')["sample_names"].tolist() for PATH_to_samples in PATH_to_samples_list]
 
 pair1 = [sample + "_R1" for sample in samples]
@@ -58,13 +58,10 @@ DIR_readcounts_metrics = config["DIR_readcounts_metrics"]
 DIR_HS_metrics = config["DIR_HS_metrics"]
 
 # variant calling
-DIR_varscan = config["DIR_varscan"]
 VarScan_snv = config["VarScan_snv"]
 VarScan_indel = config["VarScan_indel"]
 DIR_Vardict = config["DIR_Vardict"]
-DIR_Vardict_reformatted = config["DIR_Vardict_reformatted"]
 DIR_Mutect = config["DIR_Mutect"]
-DIR_Haplotype = config["DIR_Haplotype"]
 
 # annotating variants from varscan
 ANNOVAR_snv_input = config["ANNOVAR_snv_input"]
@@ -74,9 +71,6 @@ ANNOVAR_indel_output = config["ANNOVAR_indel_output"]
 
 ANNOVAR_Vardict_input = config["ANNOVAR_Vardict_input"]
 ANNOVAR_Vardict_output = config["ANNOVAR_Vardict_output"]
-
-ANNOVAR_GATK_input = config["ANNOVAR_GATK_input"]
-ANNOVAR_GATK_output = config["ANNOVAR_GATK_output"]
 
 # figures
 DIR_insertsize_figures = config["DIR_insertsize_figures"]
@@ -102,9 +96,9 @@ TRIM_FastQ = [
 
 Call_SSCS_and_DCS = expand(DIR_bams + "/{consensus_type}_uBAM/{wildcard}.bam", consensus_type=["DCS", "SSCS"], wildcard=samples)
 Map_SSCS_and_DCS = expand(DIR_bams + "/{consensus_type}_mBAM/{wildcard}.bam", consensus_type=["DCS", "SSCS"], wildcard=samples)
+Fixmates = expand(DIR_bams + "/{consensus_type}_final/{wildcard}.bam", consensus_type=["DCS", "SSCS"], wildcard=samples)
 Filter_SSCS_and_DCS = expand(DIR_bams + "/{consensus_type}_filtered/{wildcard}.bam", consensus_type=["DCS", "SSCS3"], wildcard=samples)
 # CollectHsMetrics = expand()
-
 
 run_complexity_metrics_markdup = expand(
     DIR_complexity_metrics + "/PICARD_complexity_dedup/{wildcard}.txt", wildcard=samples
@@ -112,29 +106,20 @@ run_complexity_metrics_markdup = expand(
 RUN_fastq_read_counts = expand(
     DIR_readcounts_metrics + "/raw/{wildcard}.txt", wildcard=samples
 )
-RUN_extract_markdup_perc = expand(
-    DIR_markdup_perc_metrics + "/{wildcard}.txt", wildcard=samples
-)
 
-RUN_VarScan_snv = expand(VarScan_snv + "{consensus_type}/{wildcard}.vcf", consensus_type=["DCS", "SSCS3"], wildcard=samples)
-RUN_VarScan_indel = expand(VarScan_indel + "{consensus_type}/{wildcard}.vcf", consensus_type=["DCS", "SSCS3"], wildcard=samples)
-ANNOTATE_VarScan_snv = expand(ANNOVAR_snv_output + "{consensus_type}/{wildcard}.hg38_multianno.txt", consensus_type=["DCS", "SSCS3"], wildcard=samples)
-ANNOTATE_VarScan_indel = expand(ANNOVAR_indel_output + "{consensus_type}/{wildcard}.hg38_multianno.txt", consensus_type=["DCS", "SSCS3"], wildcard=samples)
+RUN_VarScan_snv = expand(VarScan_snv + "/{consensus_type}/{wildcard}.vcf", consensus_type=["DCS", "SSCS3"], wildcard=samples)
+RUN_VarScan_indel = expand(VarScan_indel + "/{consensus_type}/{wildcard}.vcf", consensus_type=["DCS", "SSCS3"], wildcard=samples)
+ANNOTATE_VarScan_snv = expand(ANNOVAR_snv_output + "/{consensus_type}/{wildcard}.hg38_multianno.txt", consensus_type=["DCS", "SSCS3"], wildcard=samples)
+ANNOTATE_VarScan_indel = expand(ANNOVAR_indel_output + "/{consensus_type}/{wildcard}.hg38_multianno.txt", consensus_type=["DCS", "SSCS3"], wildcard=samples)
 
-RUN_Vardict = expand(DIR_Vardict + "{consensus_type}/{wildcard}.vcf", consensus_type=["DCS", "SSCS3"], wildcard=samples)
-ANNOTATE_Vardict = expand(ANNOVAR_Vardict_output + "{consensus_type}/{wildcard}.hg38_multianno.txt", consensus_type=["DCS", "SSCS3"], wildcard=samples)
-RUN_Mutect2 = expand(DIR_Mutect + "{consensus_type}/filtered/{wildcard}_vcf.gz", consensus_type=["DCS", "SSCS3"], wildcard=samples)
+RUN_Vardict = expand(DIR_Vardict + "/{consensus_type}/{wildcard}.vcf", consensus_type=["DCS", "SSCS3"], wildcard=samples)
+ANNOTATE_Vardict = expand(ANNOVAR_Vardict_output + "/{consensus_type}/{wildcard}.hg38_multianno.txt", consensus_type=["DCS", "SSCS3"], wildcard=samples)
+RUN_Mutect2 = expand(DIR_Mutect + "/{consensus_type}_filtered/{wildcard}_vcf.gz", consensus_type=["DCS", "SSCS3"], wildcard=samples)
 
+run_insert_size = expand(DIR_insertsize_metrics + "/{consensus_type}/{wildcard}.txt", consensus_type=["DCS", "SSCS3"], wildcard=samples)
 
-
-
-run_insert_size = [
-    expand(DIR_insertsize_metrics + "/{wildcard}.txt", wildcard=samples),
-    expand(DIR_insertsize_figures + "/{wildcard}.pdf", wildcard=samples),
-]
-PDF_to_PNG = expand(DIR_insertsize_figures_PNG + "/{wildcard}.png", wildcard=samples)
-run_depth = expand(DIR_depth_metrics + "/{wildcard}.txt", wildcard=samples)
-
+# PDF_to_PNG = expand(DIR_insertsize_figures_PNG + "/{wildcard}.png", wildcard=samples)
+run_depth = expand(DIR_depth_metrics + "/{consensus_type}/{wildcard}.txt", consensus_type=["DCS", "SSCS3"], wildcard=samples)
 
 ###################################################
 # TARGET RULES
@@ -172,27 +157,20 @@ rule all:
         # run_ANNOVAR_vardict,
         # run_insert_size, 
         # PDF_to_PNG,
+        # Index_consensus_bams_filtered,
         # run_depth, 
-        # run_depth_umi,
-        # Fastq_to_uBAM,
-        # uBam_to_Fastq,
-        # uBAM_to_mBAM_raw,
-        # add_read_groups,
-        # uBAM_to_mBAM,       
-        # Indel_realignment,
-        # fixmate,
-        # recalibrate_bases,
-        # apply_base_scores,
-        # GroupReadsByUmi,
-        # CallDuplexConsensusReads,
-        # CallMolecularConsensusReads,
-        Call_SSCS_and_DCS,
-        Map_SSCS_and_DCS,
-        Filter_SSCS_and_DCS,      
-        # remap_uBAMs,
-        # Process_consensus_mBAMs,
-        # Filter_DCS,
-        # Filter_SSCS,
+        # Call_SSCS_and_DCS,
+        # Map_SSCS_and_DCS,
+        # Fixmates,
+        Filter_SSCS_and_DCS,
+        # RUN_VarScan_snv,
+        # RUN_VarScan_indel,
+        # ANNOTATE_VarScan_snv,
+        # ANNOTATE_VarScan_indel,
+        RUN_Vardict,
+        ANNOTATE_Vardict,
+        RUN_Mutect2,
+        run_depth
 
 
 ##### Modules #####
@@ -202,4 +180,3 @@ include: "rules/filter_consensus_bams.smk"
 include: "rules/index_bams.smk"
 include: "rules/run_metrics.smk"
 include: "rules/variant_calling.smk"
-include: "rules/haplotype_caller.smk"
