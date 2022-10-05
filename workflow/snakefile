@@ -1,4 +1,6 @@
 import pandas as pd
+exec(open('workflow/snakemake_functions.py').read())
+
 
 # snakemake --reason --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch --exclude=cn[01-05] -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 50
 
@@ -11,6 +13,8 @@ configfile: "config/config.yaml"
 
 
 samples = pd.read_csv(PATH_to_samples, sep="\t")["sample_names"].tolist()
+cfDNA_samples = list(filter(lambda x:'cfDNA' in x, samples))
+WBC_samples = list(filter(lambda x:'gDNA' in x, samples))
 # samples = ["GUBB-18-029_gDNA_Baseline_IDT_2018Apr18"]
 # samples = [pd.read_csv(PATH_to_samples, sep = '\t')["sample_names"].tolist() for PATH_to_samples in PATH_to_samples_list]
 
@@ -72,6 +76,8 @@ ANNOVAR_indel_output = config["ANNOVAR_indel_output"]
 ANNOVAR_Vardict_input = config["ANNOVAR_Vardict_input"]
 ANNOVAR_Vardict_output = config["ANNOVAR_Vardict_output"]
 
+ANNOVAR_mutect_output = config["ANNOVAR_mutect_output"]
+
 # figures
 DIR_insertsize_figures = config["DIR_insertsize_figures"]
 DIR_insertsize_figures_PNG = config["DIR_insertsize_figures_PNG"]
@@ -98,7 +104,7 @@ Call_SSCS_and_DCS = expand(DIR_bams + "/{consensus_type}_uBAM/{wildcard}.bam", c
 Map_SSCS_and_DCS = expand(DIR_bams + "/{consensus_type}_mBAM/{wildcard}.bam", consensus_type=["DCS", "SSCS"], wildcard=samples)
 Fixmates = expand(DIR_bams + "/{consensus_type}_final/{wildcard}.bam", consensus_type=["DCS", "SSCS"], wildcard=samples)
 Filter_SSCS_and_DCS = expand(DIR_bams + "/{consensus_type}_filtered/{wildcard}.bam", consensus_type=["DCS", "SSCS3"], wildcard=samples)
-# CollectHsMetrics = expand()
+GetBaseCounts = expand("results/variant_calling/base_counts" + "/{consensus_type}/{wildcard}.vcf", consensus_type=["SSCS3"], wildcard=samples)
 
 run_complexity_metrics_markdup = expand(
     DIR_complexity_metrics + "/PICARD_complexity_dedup/{wildcard}.txt", wildcard=samples
@@ -162,15 +168,16 @@ rule all:
         # Call_SSCS_and_DCS,
         # Map_SSCS_and_DCS,
         # Fixmates,
-        Filter_SSCS_and_DCS,
+        # Filter_SSCS_and_DCS,
+        # GetBaseCounts,
         # RUN_VarScan_snv,
         # RUN_VarScan_indel,
         # ANNOTATE_VarScan_snv,
         # ANNOTATE_VarScan_indel,
-        RUN_Vardict,
-        ANNOTATE_Vardict,
+        # RUN_Vardict,
+        # ANNOTATE_Vardict,
         RUN_Mutect2,
-        run_depth
+        # run_depth
 
 
 ##### Modules #####
@@ -180,3 +187,4 @@ include: "rules/filter_consensus_bams.smk"
 include: "rules/index_bams.smk"
 include: "rules/run_metrics.smk"
 include: "rules/variant_calling.smk"
+include: "rules/annotation.smk"
