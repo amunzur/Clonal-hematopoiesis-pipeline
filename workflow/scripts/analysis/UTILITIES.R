@@ -1,22 +1,12 @@
-return_anno_output <- function(DIR_ANNOVAR) {
+return_anno_output <- function(PATH_annovar) {
 
-	df_main <- as.data.frame(read_delim(DIR_ANNOVAR, delim = "\t"))
+	df_main <- as.data.frame(read_delim(PATH_annovar, delim = "\t"))
 
 	df <- df_main %>% 
-		mutate(Sample_name = gsub(".hg38_multianno.txt", "", basename(DIR_ANNOVAR))) %>%
+		mutate(Sample_name = gsub(".hg38_multianno.txt", "", basename(PATH_annovar))) %>%
 		select(Sample_name, Chr, Start, Ref, Alt, Func.refGene, Gene.refGene, Func.knownGene, Gene.knownGene, AAChange.refGene, ExAC_ALL, gnomAD_exome_ALL) 
 
 	return(df)
-
-}
-
-# based on the cohort_name, add the patient id
-add_patient_id <- function(variant_df){
-
-	x <- str_split(variant_df$Sample_name, "_gDNA|_WBC|_cfDNA")
-	variant_df$patient_id <- unlist(lapply(x, "[", 1))
-
-	return(variant_df)
 
 }
 
@@ -31,17 +21,6 @@ add_sample_type <- function(variant_df){
 
 	return(variant_df)
 
-}
-
-# this function compares variants to variants jack found. need a path to jack
-compare_with_jacks_figure <- function(PATH_validated_variants, variant_df){
-
-	validated_vars <- read.delim(PATH_validated_variants, header = FALSE, sep = "\t")
-	names(validated_vars) <- c("Sample", "Gene", "Chrom", "Position", "Ref", "Alt")
-
-	validated_vars$detected <- validated_vars$Position %in% variant_df$Position
-
-	return(validated_vars)
 }
 
 # add the depth at each variant position
@@ -140,7 +119,7 @@ add_AAchange_effect <- function(variants_df){
 	# frameshift, stop gain and start loss
 	fs_list <- add_effect("fs", "frameshift", p_list)
 	stop_gain_list <- add_effect("X$", "stop_gain", p_list)
-	start_loss_list <- add_effect("^p.M.+[a-zA-Z]$", "start_loss", p_list) # Methionine becomes something else
+	start_loss_list <- add_effect("^p.M1.+[a-zA-Z]$", "start_loss", p_list) # Methionine1 becomes something else
 
 	# now combine all mutational effects into one list
 	effects <- mapply(c, fs_list, stop_gain_list, start_loss_list, synonymous_list, missense_list, SIMPLIFY=TRUE)
@@ -158,7 +137,7 @@ add_AAchange_effect <- function(variants_df){
 	variants_df$Effects <- unlist(lapply(effects, function(x) paste(x, collapse = ":")))
 
 	# add for splicing variants, make sure both the "Function" and "Effects" column have the string splicing
-	idx <- grep("splicing", variants_df$Function)
+	idx <- grep("splicing", variants_df$Func.refGene)
 	variants_df$Effects[idx] <- "splicing"
 
 	# Choosing the longest spicing variant from the protein_annotation column
@@ -173,44 +152,6 @@ add_AAchange_effect <- function(variants_df){
 	return(variants_df)
 
 } # end of function
-
-filter_tnvstats_by_variants <- function(variants_df, DIR_tnvstats, PATH_temp, PATH_filter_tnvstats_script, identifier){
-
-	# Add 1 to indels so that the merge happens correctly
-	variants_df <- variants_df %>% 
-	mutate(
-		Position = case_when(
-			Variant == "deletion" ~ Position + 1, 
-			TRUE ~ Position))
-
-	write_delim(variants_df, PATH_temp, delim = "\t") # save a temp file before we add the read counts, depth and vaf from finland bams
-
-	PATHS_tnvstats <- as.list(unique(grep(paste(variants_df$Sample_name_finland, collapse = "|"), list.files(DIR_tnvstats, full.names = TRUE, recursive = TRUE), value = TRUE))) # complete file paths to tnvstats
-	PATHS_tnvstats <- unique(grep(".bam.tnvstat$", PATHS_tnvstats, value = TRUE)) # make sure we filter for the original tnvstat files
-
-	# Run system commands for each tnvstats
-	message("Filtering tnvstats in through system commands.")
-	for (PATH_tnvstat in PATHS_tnvstats) {
-		message(basename(PATH_tnvstat))
-		system(paste("bash", PATH_filter_tnvstats_script, PATH_temp, PATH_tnvstat, identifier))
-	}
-
-	PATHS_filtered_tnvstats <- unique(
-		grep(paste(variants_df$Sample_name_finland, collapse = "|"), 
-			list.files(DIR_tnvstats, full.names = TRUE, recursive = TRUE), value = TRUE)) # complete file paths to tnvstats
-	
-	PATHS_filtered_tnvstats <- grep(identifier, PATHS_filtered_tnvstats, value = TRUE) # grep for the correct identifier to ensure we grab the right filtered file
-	filtered_tnvstats <- lapply(PATHS_filtered_tnvstats, function(some_path) read_delim(some_path, delim = "\t")) # load all tnvstats
-	filtered_tnvstats <- do.call(rbind, filtered_tnvstats) %>% select(-contains("_n"), -tumor_max_value, -gc, -target)
-
-	# fix some formatting issues
-	filtered_tnvstats$base_tumor <- gsub("TRUE", "T", filtered_tnvstats$base_tumor)
-	filtered_tnvstats$ref <- gsub("TRUE", "T", filtered_tnvstats$ref)
-	filtered_tnvstats$sample_t <- gsub(".bam", "", filtered_tnvstats$sample_t)
-
-	return(filtered_tnvstats)
-
-}
 
 # Removes variants if they are found in more than n_times (appears multiple times)
 # For the remaining, add a new column to indicate if the variant occurs more than once
@@ -234,4 +175,35 @@ find_and_filter_duplicated_variants <- function(variants_df, n_times) {
 	variants_df <- rbind(non_dups, dups)
 
 	return(variants_df)
+}
+
+process_basecounts_vcf <- function(PATH_basecounts) {
+	# PATH_basecounts <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/base_counts/DCS/GUBB-18-029_gDNA_Baseline_IDT_2018Apr18.vcf"
+
+	vcf <- read.table(PATH_basecounts, stringsAsFactors = FALSE, col.names = c("Chrom", "Position", "ID", "Ref", "Alt", "Qual", "Filter", "Info", "Format", "Values")) %>%
+			separate(col = Values, sep = ":", into = c("DP", "Ref_reads", "Alt_reads", "VAF", "DPP", "DPN", "RDP", "RDN", "ADP", "ADN")) %>%
+			mutate(Sample_name = gsub(".vcf", "", basename(PATH_basecounts))) %>%
+			select(Sample_name, Chrom, Position, Ref, Alt, Ref_reads, Alt_reads, VAF) %>%
+			mutate(Type = case_when(
+								nchar(Ref) > nchar(Alt) ~ "Deletion", 
+								nchar(Ref) < nchar(Alt) ~ "Insertion",
+								nchar(Ref) == nchar(Alt) ~ "SNV", 
+								TRUE ~ "Error")) %>%
+			mutate(Position = as.double(Position)) %>%
+			mutate(Position = case_when(
+								Type == "Deletion" ~ as.double(Position) + 1, 
+								TRUE ~ Position)) %>%
+			mutate(Ref = ifelse(Type == "Deletion", sub(".", "", Ref), Ref), 
+				   Alt = ifelse(Type == "Deletion", sub(".", "-", Alt), Alt), 
+				   Ref = ifelse(Type == "Insertion", sub(".", "-", Ref), Ref), 
+				   Alt = ifelse(Type == "Insertion", sub(".", "", Alt), Alt)) %>%
+			mutate(Position = as.character(Position))
+	return(vcf)
+
+}
+
+parse_basecount_vcf <- function(DIR_basecounts){
+
+	vcf_list <- lapply(as.list(list.files(DIR_basecounts, full.names = TRUE, pattern = "gDNA.+vcf$")), process_basecounts_vcf) # only look for cfDNA files
+	vcf_df <- as.data.frame(do.call(rbind, vcf_list)) %>% mutate(Position = as.character(Position))
 }
