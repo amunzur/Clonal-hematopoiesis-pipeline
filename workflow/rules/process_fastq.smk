@@ -19,21 +19,6 @@ rule fastq_read_counts:
     shell:
         "paste <(echo {params}) <(echo $(cat {input}|wc -l)/4|bc) > {output}"
 
-
-# mask low quality bases in fastq files
-rule mask_fastq:
-    input:
-        DIR_merged_fastq + "/{wildcard}.fastq",
-    output:
-        DIR_masked_fastq + "/{wildcard}_masked.fastq",
-    params:
-        min_base_quality=20,
-    run:
-        shell(
-            "/groups/wyattgrp/users/amunzur/gene_panel_pipeline/dependencies/fasta mask by quality {input} {params.min_base_quality} > {output}"
-        )
-
-
 rule trim_fastq:
     input:
         R1=DIR_masked_fastq + "/{wildcard}_R1_masked.fastq",
