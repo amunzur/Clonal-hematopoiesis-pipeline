@@ -51,8 +51,8 @@ rule trim_fastq:
         shell(
             "fastp -i {input.R1} -I {input.R2} -o {output.R1} -O {output.R2} \
         --length_required {params.minimum_read_length} \
-        --disable_trim_poly_g \
-        --disable_quality_filtering \
+        --correction \
+        --length_required 32 \
         --html {output.html_report} \
         --json {output.json_report} \
         --adapter_sequence AGATCGGAAGAGCACACGTCTGAACTCCAGTCA \
