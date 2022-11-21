@@ -35,7 +35,7 @@ add_depth <- function(DIR_depth_metrics, PATH_collective_depth_metrics, variant_
 	depth_file$Sample_name <- sample_names_repeated # add the sample names so that we can do a join based on sample names with the variant df later on
 	names(depth_file) <- c("Chrom", "Position", "Depth", "Sample_name")
 	depth_file$Position <- as.character(depth_file$Position) # add the sample names so that we can do a join based on sample names with the variant df later on
-
+	depth_file$Chrom <- as.character(depth_file$Chrom)
 	combined <- left_join(variant_df, depth_file, by = c("Sample_name", "Chrom", "Position"))
 
 	# Add the median depth across all positions
@@ -105,6 +105,7 @@ add_AAchange_effect <- function(variants_df){
 	
 	# creating a list of first and second AA will help identify missense and synonymous mutations 
 	first_AA <- lapply(p_list, function(x) substr(x, 3, 3)) # first AA
+	first_AA[grep("delins|del$", p_list)] <- NA # exclude nonfs deletions and complex delins
 	second_AA <- lapply(p_list, function(x) substr(x, nchar(x), nchar(x))) # second AA that first one changes into
 	second_AA <- lapply(second_AA, function(x) grep("s|X", x, invert = TRUE, value = TRUE)) # exclude the frameshift
 
@@ -116,42 +117,54 @@ add_AAchange_effect <- function(variants_df){
 	idx <- mapply(function(x, y) {x == y}, first_AA, second_AA)
 	synonymous_list <- lapply(idx, function(my_vector) case_when(my_vector == TRUE ~ "synonymous"))
 
+	# complicated deletions and insertions together
+	idx <- grepl("delins", p_list)
+	delins_list <- lapply(idx, function(my_vector) case_when(my_vector == TRUE ~ "non_frameshift_delins"))
+
+	# non frameshift deletion
+	idx <- grepl("del$", p_list)
+	nonfsdel_list <- lapply(idx, function(my_vector) case_when(my_vector == TRUE ~ "nonframeshift_deletion"))
+
+	# non frameshift insertion
+	idx <- grepl("ins$", p_list)
+	nonfsins_list <- lapply(idx, function(my_vector) case_when(my_vector == TRUE ~ "nonframeshift_insertion"))
+
 	# frameshift, stop gain and start loss
 	fs_list <- add_effect("fs", "frameshift", p_list)
 	stop_gain_list <- add_effect("X$", "stop_gain", p_list)
 	start_loss_list <- add_effect("^p.M1.+[a-zA-Z]$", "start_loss", p_list) # Methionine1 becomes something else
 
 	# now combine all mutational effects into one list
-	effects <- mapply(c, fs_list, stop_gain_list, start_loss_list, synonymous_list, missense_list, SIMPLIFY=TRUE)
+	effects <- mapply(c, fs_list, stop_gain_list, start_loss_list, synonymous_list, missense_list, delins_list, nonfsdel_list, nonfsins_list, SIMPLIFY=TRUE)
 	effects <- lapply(effects, function(x) x[!is.na(x)]) # remove all NAs
 
 	# convert all elements with a length 0 to NA
 	effects <- purrr::modify_if(effects, ~ length(.) == 0, ~ NA_character_)
 	p_list <- purrr::modify_if(p_list, ~ length(.) == 0, ~ NA_character_)
 
-	# collapse into single strings separated by :
-	effects <- unlist(lapply(effects, function(x) paste(x, collapse = ":"))) # concatenate the strings from the same mutation with a colon 
-
-	# add two new cols to the df
-	variants_df$Protein_annotation <- unlist(lapply(p_list, function(x) paste(x, collapse = ":")))
-	variants_df$Effects <- unlist(lapply(effects, function(x) paste(x, collapse = ":")))
-
-	# add for splicing variants, make sure both the "Function" and "Effects" column have the string splicing
-	idx <- grep("splicing", variants_df$Func.refGene)
-	variants_df$Effects[idx] <- "splicing"
-
 	# Choosing the longest spicing variant from the protein_annotation column
-	# Index of the longest variant in Protein_annotation and Effects columns
-	idx_list <- lapply(variants_df$Protein_annotation, function(some_vector) which.max(str_extract(unlist(str_split(some_vector, ":")), "[[:digit:]]+")))
+	idx_list <- lapply(p_list, function(some_vector) which.max(str_extract(some_vector, "[[:digit:]]+")))
 	idx_list[lengths(idx_list) == 0] <- NA # if annotation is NA, set the index to 1
 	idx_list <- unlist(idx_list)
 
-	variants_df$Protein_annotation <- unlist(mapply("[", str_split(variants_df$Protein_annotation, ":"), idx_list))
-	variants_df$Effects <- unlist(mapply("[", str_split(variants_df$Effects, ":"), idx_list))
+	# add two new cols to the df
+	variants_df$Protein_annotation <- unlist(mapply("[", p_list, idx_list))
+	variants_df$Effects <- unlist(mapply("[", effects, idx_list))
+	variants_df$Effects[grep("splicing", variants_df$Func.refGene)] <- "splicing"
 
 	return(variants_df)
 
 } # end of function
+
+# based on the cohort_name, add the patient id
+add_patient_id <- function(variant_df){
+
+	x <- str_split(variant_df$Sample_name, "_gDNA|_WBC|_cfDNA")
+	variant_df$patient_id <- unlist(lapply(x, "[", 1))
+
+	return(variant_df)
+
+}
 
 # Removes variants if they are found in more than n_times (appears multiple times)
 # For the remaining, add a new column to indicate if the variant occurs more than once
@@ -206,4 +219,81 @@ parse_basecount_vcf <- function(DIR_basecounts){
 
 	vcf_list <- lapply(as.list(list.files(DIR_basecounts, full.names = TRUE, pattern = "gDNA.+vcf$")), process_basecounts_vcf) # only look for cfDNA files
 	vcf_df <- as.data.frame(do.call(rbind, vcf_list)) %>% mutate(Position = as.character(Position))
+}
+
+add_cfDNA_information <- function(variants_df, DIR_basecounts_DCS, DIR_basecounts_SSCS1) {
+
+	# combine with the DCS - only keep the vars with read support in the cfDNA DCS file
+	basecounts_df_DCS <- parse_basecount_vcf(DIR_basecounts_DCS)
+	variants_df <- left_join(variants_df, basecounts_df_DCS, by = c("Chrom", "Position", "Ref", "Alt", "Sample_name"))
+	names(variants_df) <- gsub("\\.x", "_n", names(variants_df))
+    names(variants_df) <- gsub("\\.y", "_DCS_t", names(variants_df))
+	variants_df <- filter(variants_df, Alt_reads_DCS_t > 0)
+
+	# combine with SSCS1 - to obtain the cfDNA VAF
+	basecounts_df_SSCS1 <- parse_basecount_vcf(DIR_basecounts_SSCS1)
+	names(basecounts_df_SSCS1)[c(6, 7, 8)] <- c("Ref_reads_SSCS1_t", "Alt_reads_SSCS1_t", "VAF_SSCS1_t")
+	variants_df <- left_join(variants_df, basecounts_df_SSCS1)
+
+	return(variants_df)
+}
+
+combine_tumor_wbc <- function(variants_df){
+
+    variants_df <- variants_df %>% mutate(Sample_type = str_extract(Sample_name, "cfDNA|gDNA"))
+	tumor <- variants_df %>% filter(Sample_type == "cfDNA") %>% select(-Sample_type)
+	wbc <- variants_df %>% filter(Sample_type == "gDNA") 
+
+    combined <- inner_join(tumor, wbc, by = c("Patient_ID", "Chrom", "Position", "Ref", "Alt", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant"))
+    names(combined) <- gsub("\\.x", "_t", names(combined)) 
+    names(combined) <- gsub("\\.y", "_n", names(combined)) 
+
+    combined <- combined %>%
+            mutate(tumor_wbc_vaf_ratio = round((VAF_t / VAF_n), 2), 
+                    tumor_wbc_depth_ratio = round((Depth_t / Depth_n), 2))
+
+    return(combined)
+}
+
+blacklist_variants <- function(variants_df, PATH_blacklist) {
+	df_blacklist <- as.data.frame(read_csv(PATH_blacklist)) %>% mutate(Position = as.character(Position))
+	combined <- anti_join(variants_df, df_blacklist)
+}
+
+filter_pileup <- function(PATH_mpileup, DIR_mpileup_filtered, variants_df) {
+
+	df <- variants_df %>% 
+		  filter(Sample_name == gsub(".mpileup", "", basename(PATH_mpileup))) %>% 
+		  select(Chrom, Position) %>% 
+		  distinct(.keep_all = TRUE) %>%
+		  unite(combined_names, Chrom, Position, sep = "[[:blank:]]")
+
+	message("Grepping ", gsub(".mpileup", "", basename(PATH_mpileup)))
+	if (!file.exists(file.path(DIR_mpileup_filtered, basename(PATH_mpileup)))) {
+		system(paste0("grep -E ", "'", (paste(df$combined_names, collapse = "|")), "'", " ", PATH_mpileup, " > ", file.path(DIR_mpileup_filtered, basename(PATH_mpileup))))
+	} else {
+		message("Filtered pileup exists, skipping this sample.")
+	}
+	
+	mpileup <- read_delim(file.path(DIR_mpileup_filtered, basename(PATH_mpileup)), delim = "\t", col_names = c("Chrom", "Position", "Ref", "Depth", "Read_bases", "Read_quality")) %>% select(-Read_quality)
+
+	mpileup <- mpileup %>% 
+			   mutate(N_bases = str_count(Read_bases, "N|n"),
+			   		  N_fraction = as.numeric(N_bases) / as.numeric(Depth), 
+					  Sample_name = gsub(".mpileup", "", basename(PATH_mpileup))) %>%
+
+	return(mpileup)
+}
+
+add_N_fraction <- function(variants_df, DIR_mpileup, DIR_mpileup_filtered) {
+
+	idx <- grep(paste(unique(variants_df$Sample_name), collapse = "|"), list.files(DIR_mpileup, full.names = TRUE))
+	files <- list.files(DIR_mpileup, full.names = TRUE)[idx]
+
+	mpileup_list <- lapply(files, filter_pileup, DIR_mpileup_filtered = DIR_mpileup_filtered, variants_df = variants_df)
+	mpileup <- do.call(rbind, mpileup_list) %>% 
+				select(Sample_name, Chrom, Position, N_fraction)
+
+	combined <- left_join(variants_df, mpileup) 
+
 }
