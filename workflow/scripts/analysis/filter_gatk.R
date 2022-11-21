@@ -1,69 +1,65 @@
-library(janitor)
+# This R script filters and plots VarScan2 output. 
+
+args <- commandArgs(trailingOnly=TRUE) # right now only arg needed is the name of the cohort 
+
 library(tidyverse)
-library(argparse)
+library(stringr)
+library(janitor)
+library(pkgcond)
 
-parser <- ArgumentParser(description = "Clean up the ANNOVAR results for GATK's HaplotypeCaller.")
-parser$add_argument('--cohort_name', metavar='FILE', type='character', help="Which batch are you trying to analyze?")
-args <- parser$parse_args()
+variant_caller <- "Mutect2"
 
-cohort_name <- args$cohort_name
-# cohort_name <- "batch5"
-variant_caller <- "gatk"
-
-THRESHOLD_ExAC_ALL <- 0.005
 VALUE_Func_refGene <- "intronic"
 THRESHOLD_VarFreq <- 0.40
-THRESHOLD_Reads2 <- 5
+THRESHOLD_Reads2 <- 1
 THRESHOLD_VAF_bg_ratio <- 10
+DIR_ANNOVAR <- "/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/Mutect2/SSCS1"
+DIR_basecounts_DCS <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/base_counts/Mutect2/gDNA_SSCS1_cfDNA_DCS"
+DIR_basecounts_SSCS1 <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/base_counts/Mutect2/gDNA_SSCS1_cfDNA_SSCS1"
+DIR_mpileup <- "/groups/wyattgrp/users/amunzur/pipeline/results/metrics/mpileup/temp_SSCS1"
+DIR_mpileup_filtered <- "/groups/wyattgrp/users/amunzur/pipeline/results/metrics/mpileup_filtered/Mutect"
 
-PATH_vcf_table <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Haplotype_caller/GenotypeGVCFs_table", paste0(cohort_name, ".tsv")) # HaplotypeCaller results in table format
-PATH_ANNOVAR_output <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/haplotype_caller", cohort_name, paste0(cohort_name, ".hg38_multianno.txt"))
 PATH_bg <- "/groups/wyattgrp/users/amunzur/pipeline/resources/bg_error_rate/bg_error.tsv"
 
-PATH_bets_somatic <- "/groups/wyattgrp/users/amunzur/pipeline/resources/betastasis/CLEANED_mutations_kidney_cancer_somatic.tsv"
-PATH_bets_germline <- "/groups/wyattgrp/users/amunzur/pipeline/resources/betastasis/CLEANED_mutations_no_germline_filter.tsv"
 PATH_panel_genes <- "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/kidney/genes.tsv"
 
 PATH_bed  <- "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/1000012543_CHIP_Design_selection_results_Version2/capture_targets.bed"
-DIR_depth_metrics <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/metrics/depth", cohort_name)
-PATH_collective_depth_metrics <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/metrics/averaged_depth/PICARD_markdup", cohort_name, "averaged_depths.txt")
-DIR_tnvstats <- "/groups/wyattgrp/users/amunzur/pipeline/results/metrics/tnvstats/kidney_samples"
+DIR_depth_metrics <- "/groups/wyattgrp/users/amunzur/pipeline/results/metrics/depth/SSCS1"
+PATH_collective_depth_metrics <- "/groups/wyattgrp/users/amunzur/pipeline/results/metrics/averaged_depth/SSCS1/averaged_depths.txt"
 DIR_temp <- "/groups/wyattgrp/users/amunzur/pipeline/results/temp"
-PATH_filter_tnvstats_script <- "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/filter_tnvstats.sh"
 
-PATH_validated_variants <- "/groups/wyattgrp/users/amunzur/pipeline/resources/validated_variants/chip_muts_locations.tsv"
-PATH_SAVE_chip_variants <- file.path("/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Haplotype_caller/finalized", cohort_name, "chip_variants.csv")
-DIR_finland_bams <- "/groups/wyattgrp/data/bam/kidney"
+PATH_blacklist <- "/groups/wyattgrp/users/amunzur/pipeline/resources/validated_variants/blacklisted_variants.csv"
 
-PATH_utilities_file_vardict <- "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/UTILITIES_filter_vardict.R"
+PATH_before_filtering <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Mutect2/finalized/SSCS1/before_filtering.csv"
+PATH_after_filtering <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Mutect2/finalized/SSCS1/after_filtering.csv"
+PATH_final <- "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/Mutect2/finalized/SSCS1/chip_variants.csv"
+
+PATH_utilities_file_mutect <- "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/UTILITIES_filter_gatk.R"
 PATH_utilities_file <- "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/UTILITIES.R"
-PATH_utilities_file_gatk <- "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/UTILITIES_filter_gatk.R"
 
-source(PATH_utilities_file_vardict)
+source(PATH_utilities_file_mutect) # functions specificic to vardict
 source(PATH_utilities_file) # functions shared between vardict and varscan
-source(PATH_utilities_file_gatk)
 
-bg <- read_delim(PATH_bg, delim = "\t") # background error rate file
+chroms <- c(as.character(1:22), "X", "Y")
+bg <- read_delim(PATH_bg, delim = "\t", col_types = cols(chrom = col_character())) %>%
+	  filter(chrom %in% chroms)
 
-variants <- main(
-            PATH_vcf_table, 
-            PATH_ANNOVAR_output,
-            cohort_name, 
-            THRESHOLD_ExAC_ALL, 
-            VALUE_Func_refGene, 
-            THRESHOLD_VarFreq, 
-            THRESHOLD_VAF_bg_ratio,
-            bg, 
-            PATH_bets_somatic, 
-            PATH_bets_germline, 
-            PATH_panel_genes, 
-            PATH_bed, 
-            DIR_depth_metrics, 
-            PATH_collective_depth_metrics, 
-            DIR_finland_bams, 
-            DIR_temp, 
-            DIR_tnvstats, 
-            PATH_filter_tnvstats_script,
-            variant_caller)
-
-combine_and_save(variants, PATH_SAVE_chip_variants)
+variants <- MAIN(
+				VALUE_Func_refGene,
+				THRESHOLD_VarFreq,
+				THRESHOLD_Reads2,
+				THRESHOLD_VAF_bg_ratio,
+				DIR_ANNOVAR,
+				DIR_mpileup,
+				DIR_mpileup_filtered,
+				bg,
+				PATH_panel_genes,
+				PATH_bed,
+				DIR_depth_metrics,
+				PATH_collective_depth_metrics, 
+				DIR_temp,
+				variant_caller,
+				PATH_blacklist, 
+				PATH_before_filtering,
+				PATH_after_filtering,
+				PATH_final)
