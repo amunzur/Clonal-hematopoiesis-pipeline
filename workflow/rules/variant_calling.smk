@@ -40,76 +40,10 @@ rule run_VarScan_indel:
         --p-value {params.p_value} > {output}"
 
 
-# Modify the VarScan2 snv output in such a way that ANNOVAR can handle it.
-rule make_ANNOVAR_snv_input:
-    input:
-        VarScan_snv + "/{consensus_type}/{wildcard}.vcf",
-    output:
-        ANNOVAR_snv_input + "/{consensus_type}/{wildcard}_anno.tsv",
-    shell:
-        "paste <(cat {input} | cut -f1,2)  <(cat {input} | cut -f2,3,19) > {output}"
-
-
-# Modify the VarScan2 indel output in such a way that ANNOVAR can handle it.
-rule make_ANNOVAR_indel_input:
-    input:
-        VarScan_indel + "/{consensus_type}/{wildcard}.vcf",
-    output:
-        ANNOVAR_indel_input + "/{consensus_type}/{wildcard}_anno.tsv",
-    conda:
-        "../envs/r_env_v2.yaml"
-    shell:
-        "Rscript --silent --slave /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/make_anno_input_indel.R\
-        --PATH_VarScan_indel {input} \
-        --ANNOVAR_indel_input {output}"
-
-
-# Annotate the SNVs
-rule run_ANNOVAR_snv:
-    input:
-        ANNOVAR_snv_input + "/{consensus_type}/{wildcard}_anno.tsv",
-    output:
-        ANNOVAR_snv_output + "/{consensus_type}/{wildcard}.hg38_multianno.txt",
-    params:
-        actual_output_file=ANNOVAR_snv_output + "/{wildcard}",
-    threads: 12
-    shell:
-        "perl /groups/wyattgrp/software/annovar/annovar/table_annovar.pl {input} /groups/wyattgrp/software/annovar/annovar/humandb/ \
-        -buildver hg38 \
-        -out {params.actual_output_file} \
-        -remove \
-        -protocol refGene,knownGene,avsnp147,exac03,cosmic70,clinvar_20170130,kaviar_20150923,gnomad_exome,dbnsfp33a,dbscsnv11,hrcr1,mcap,revel \
-        -operation g,g,f,f,f,f,f,f,f,f,f,f,f \
-        -nastring ."
-
-
-# Annotate the indels
-rule run_ANNOVAR_indel:
-    input:
-        make_ANNOVAR_indel_input=ANNOVAR_indel_input
-        + "/{consensus_type}/{wildcard}_anno.tsv",
-        VarScan_indel=VarScan_indel + "/{consensus_type}/{wildcard}.vcf",
-    output:
-        ANNOVAR_indel_output=ANNOVAR_indel_output
-        + "/{consensus_type}/{wildcard}.hg38_multianno.txt",
-    params:
-        actual_output_file=ANNOVAR_indel_output + "/{consensus_type}/{wildcard}",
-        temp_output_file=ANNOVAR_indel_output + "/{consensus_type}/{wildcard}_temp",
-    threads: 12
-    shell:
-        "perl /groups/wyattgrp/software/annovar/annovar/table_annovar.pl {input.make_ANNOVAR_indel_input} /groups/wyattgrp/software/annovar/annovar/humandb/ \
-        -buildver hg38 \
-        -out {params.actual_output_file} \
-        -remove \
-        -protocol refGene,knownGene,avsnp147,exac03,cosmic70,clinvar_20170130,kaviar_20150923,gnomad_exome,dbnsfp33a,dbscsnv11,hrcr1,mcap,revel \
-        -operation g,g,f,f,f,f,f,f,f,f,f,f,f \
-        -nastring ."
-
-
 rule run_VarDict:
     input:
-        SC_bam=DIR_bams + "/{consensus_type}_filtered/{wildcard}.bam",
-        SC_bam_index=DIR_bams + "/{consensus_type}_filtered/{wildcard}.bam.bai",  # helps make sure the bam was indexed before variant calling
+        SC_bam=DIR_bams + "/{consensus_type}_clipped/{wildcard}.bam",
+        INDEX = DIR_bams + "/{consensus_type}_clipped/{wildcard}.bam.bai",
     output:
         DIR_Vardict + "/{consensus_type}/{wildcard}.vcf",
     params:
@@ -119,71 +53,41 @@ rule run_VarDict:
         sample_name="{wildcard}",
     threads: 12
     shell:
-        "/home/amunzur/VarDictJava/build/install/VarDict/bin/VarDict -G {params.PATH_hg38} -f {params.THRESHOLD_VarFreq} -N {params.sample_name} -b {input.SC_bam} \
-        -k 0 -c 1 -S 2 -E 3 -g 4 {params.PATH_bed} | /home/amunzur/VarDictJava/build/install/VarDict/bin/teststrandbias.R | /home/amunzur/VarDictJava/build/install/VarDict/bin/var2vcf_valid.pl \
+        "/home/amunzur/VarDictJava/build/install/VarDict/bin/VarDict -G {params.PATH_hg38} -f {params.THRESHOLD_VarFreq} -u -N {params.sample_name} -b {input.SC_bam} \
+        -k 1 -c 1 -S 2 -E 3 -g 4 {params.PATH_bed} | /home/amunzur/VarDictJava/build/install/VarDict/bin/teststrandbias.R | /home/amunzur/VarDictJava/build/install/VarDict/bin/var2vcf_valid.pl \
         -N {params.sample_name} -E -f {params.THRESHOLD_VarFreq} > {output}"
-
-
-rule make_ANNOVAR_Vardict_input:
-    input:
-        DIR_Vardict + "/{consensus_type}/{wildcard}.vcf",
-    output:
-        ANNOVAR_Vardict_input + "/{consensus_type}/{wildcard}_anno.tsv",
-    conda:
-        "../envs/r_env_v2.yaml"
-    shell:
-        "Rscript --silent --slave /groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/analysis/make_anno_input_vardict.R\
-        --PATH_Vardict_output {input} \
-        --PATH_ANNOVAR_input {output}"
-
-
-# Runs directly on the vcf file, no need for manual conversion
-rule run_ANNOVAR_vardict:
-    input:
-        DIR_Vardict + "/{consensus_type}/{wildcard}.vcf",
-    output:
-        ANNOVAR_Vardict_output + "/{consensus_type}/{wildcard}.hg38_multianno.txt",
-    params:
-        actual_output_file=ANNOVAR_Vardict_output + "/{consensus_type}/{wildcard}",
-    shell:
-        "perl /groups/wyattgrp/software/annovar/annovar/table_annovar.pl {input} /groups/wyattgrp/software/annovar/annovar/humandb/ \
-        -vcfinput \
-        -buildver hg38 \
-        -out {params.actual_output_file} \
-        -remove \
-        -protocol refGene,knownGene,avsnp147,exac03,cosmic70,clinvar_20170130,kaviar_20150923,gnomad_exome,dbnsfp33a,dbscsnv11,hrcr1,mcap,revel \
-        -operation g,g,f,f,f,f,f,f,f,f,f,f,f \
-        -nastring ."
-
 
 rule run_Mutect:
     input:
-        DIR_bams + "/{consensus_type}_filtered/{wildcard}.bam",
+        BAM = DIR_bams + "/{consensus_type}_clipped/{wildcard}.bam",
+        INDEX = DIR_bams + "/{consensus_type}_clipped/{wildcard}.bam.bai",
     output:
         vcf=DIR_Mutect + "/{consensus_type}/raw/{wildcard}_vcf.gz",
         stats=DIR_Mutect + "/{consensus_type}/raw/{wildcard}_vcf.gz.stats",
         index=DIR_Mutect + "/{consensus_type}/raw/{wildcard}_vcf.gz.tbi",
     params:
         PATH_hg38=PATH_hg38,
+        PATH_bed=PATH_bed,
+        PATH_PoN=PATH_PoN,
     threads: 12
     shell:
         "/home/amunzur/gatk-4.2.0.0/gatk Mutect2 \
         -R {params.PATH_hg38} \
-        -I {input} \
+        -I {input.BAM} \
         -O {output.vcf} \
         -max-mnp-distance 0 \
-        -max-af 0.00001 \
+        --panel-of-normals {params.PATH_PoN} \
         --f1r2-median-mq 10 \
         --f1r2-min-bq 10 \
-        --read-filter AllowAllReadsReadFilter"
-
+        --read-filter AllowAllReadsReadFilter \
+        --intervals {params.PATH_bed}"
 
 rule filter_Mutect:
     input:
         vcf=DIR_Mutect + "/{consensus_type}/raw/{wildcard}_vcf.gz",
         PATH_hg38=PATH_hg38,
     output:
-        DIR_Mutect + "/{consensus_type}_filtered/{wildcard}_vcf.gz",
+        DIR_Mutect + "/{consensus_type}/filtered/{wildcard}_vcf.gz",
     threads: 12
     shell:
         "/home/amunzur/gatk-4.2.0.0/gatk FilterMutectCalls \
@@ -193,21 +97,55 @@ rule filter_Mutect:
         --min-median-base-quality 10 \
         --min-median-mapping-quality 10 \
         --min-slippage-length 15 \
+        --max-events-in-region 4 \
         --verbosity INFO"
 
-# Given a vcf from a cfDNA vcf file, get read counts from the WBC bams in the positions in the vcf file
-rule GetBaseCounts_SSCS3: 
+rule unzip_mutect:
+    input:
+        DIR_Mutect + "/{consensus_type}/filtered/{wildcard}_vcf.gz"
+    output:
+        DIR_Mutect + "/{consensus_type}/filtered/{wildcard}_vcf"
+    shell:
+        "gunzip {input}"
+
+# Consensus_type below refers to the consensus for the cfDNA sample
+rule GetBaseCounts_Vardict_SSCS1: 
     input: 
-        cfDNA_vcf=DIR_Vardict + "/SSCS3/{wildcard}.vcf",
-        WBC_bam=lambda wildcards: get_WBC_bam_SSCS3("{wildcard}".format(wildcard=wildcards.wildcard)),
+        gDNA_vcf=DIR_Vardict + "/SSCS1/{wildcard}.vcf",
+        cfDNA_bam=lambda wildcards: get_cfDNA_bam_SSCS1("{wildcard}".format(wildcard=wildcards.wildcard)),
         PATH_hg38=PATH_hg38,
-    wildcard_constraints:
-        wildcard="/cfDNA/"
     output: 
-        "results/variant_calling/base_counts/SSCS3" + "/{wildcard}" + ".vcf"
+        "results/variant_calling/base_counts/Vardict/gDNA_SSCS1_cfDNA_SSCS1" + "/{wildcard}.vcf"
     run: 
-        shell("~/GetBaseCountsMultiSample/GetBaseCountsMultiSample --fasta {input.PATH_hg38} --bam {input.WBC_bam} --vcf {input.cfDNA_vcf} --output {output}")
+        shell("~/GetBaseCountsMultiSample/GetBaseCountsMultiSample --fasta {input.PATH_hg38} --bam cfDNA_bam:{input.cfDNA_bam} --vcf {input.gDNA_vcf} --output {output}")
+
+rule GetBaseCounts_Vardict_DCS: 
+    input: 
+        gDNA_vcf=DIR_Vardict + "/SSCS1/{wildcard}.vcf",
+        cfDNA_bam=lambda wildcards: get_cfDNA_bam_DCS("{wildcard}".format(wildcard=wildcards.wildcard)),
+        PATH_hg38=PATH_hg38,
+    output: 
+        "results/variant_calling/base_counts/Vardict/gDNA_SSCS1_cfDNA_DCS" + "/{wildcard}.vcf"
+    run: 
+        shell("~/GetBaseCountsMultiSample/GetBaseCountsMultiSample --fasta {input.PATH_hg38} --bam cfDNA_bam:{input.cfDNA_bam} --vcf {input.gDNA_vcf} --output {output}")
 
 
+rule GetBaseCounts_Mutect_SSCS1: 
+    input: 
+        gDNA_vcf=DIR_Mutect + "/SSCS1/filtered/{wildcard}_vcf",
+        cfDNA_bam=lambda wildcards: get_cfDNA_bam_SSCS1("{wildcard}".format(wildcard=wildcards.wildcard)),
+        PATH_hg38=PATH_hg38,
+    output: 
+        "results/variant_calling/base_counts/Mutect2/gDNA_SSCS1_cfDNA_SSCS1" + "/{wildcard}.vcf"
+    run: 
+        shell("~/GetBaseCountsMultiSample/GetBaseCountsMultiSample --fasta {input.PATH_hg38} --bam cfDNA_bam:{input.cfDNA_bam} --vcf {input.gDNA_vcf} --output {output}")
 
-        
+rule GetBaseCounts_Mutect_DCS: 
+    input: 
+        gDNA_vcf=DIR_Mutect + "/SSCS1/filtered/{wildcard}_vcf",
+        cfDNA_bam=lambda wildcards: get_cfDNA_bam_DCS("{wildcard}".format(wildcard=wildcards.wildcard)),
+        PATH_hg38=PATH_hg38,
+    output: 
+        "results/variant_calling/base_counts/Mutect2/gDNA_SSCS1_cfDNA_DCS" + "/{wildcard}.vcf"
+    run: 
+        shell("~/GetBaseCountsMultiSample/GetBaseCountsMultiSample --fasta {input.PATH_hg38} --bam cfDNA_bam:{input.cfDNA_bam} --vcf {input.gDNA_vcf} --output {output}")
