@@ -105,7 +105,7 @@ add_AAchange_effect <- function(variants_df){
 	
 	# creating a list of first and second AA will help identify missense and synonymous mutations 
 	first_AA <- lapply(p_list, function(x) substr(x, 3, 3)) # first AA
-	first_AA[grep("delins|del$", p_list)] <- NA # exclude nonfs deletions and complex delins
+	first_AA[grep("delins|del|ins", p_list)] <- NA # exclude nonfs deletions and complex delins
 	second_AA <- lapply(p_list, function(x) substr(x, nchar(x), nchar(x))) # second AA that first one changes into
 	second_AA <- lapply(second_AA, function(x) grep("s|X", x, invert = TRUE, value = TRUE)) # exclude the frameshift
 
@@ -260,7 +260,7 @@ blacklist_variants <- function(variants_df, PATH_blacklist) {
 	combined <- anti_join(variants_df, df_blacklist)
 }
 
-filter_pileup <- function(PATH_mpileup, DIR_mpileup_filtered, variants_df) {
+filter_pileup <- function(PATH_mpileup, DIR_mpileup_filtered, variants_df, force) {
 
 	df <- variants_df %>% 
 		  filter(Sample_name == gsub(".mpileup", "", basename(PATH_mpileup))) %>% 
@@ -268,13 +268,17 @@ filter_pileup <- function(PATH_mpileup, DIR_mpileup_filtered, variants_df) {
 		  distinct(.keep_all = TRUE) %>%
 		  unite(combined_names, Chrom, Position, sep = "[[:blank:]]")
 
-	message("Grepping ", gsub(".mpileup", "", basename(PATH_mpileup)))
-	if (!file.exists(file.path(DIR_mpileup_filtered, basename(PATH_mpileup)))) {
+	if (force) {
+		message("Grepping ", gsub(".mpileup", "", basename(PATH_mpileup)))
 		system(paste0("grep -E ", "'", (paste(df$combined_names, collapse = "|")), "'", " ", PATH_mpileup, " > ", file.path(DIR_mpileup_filtered, basename(PATH_mpileup))))
 	} else {
-		message("Filtered pileup exists, skipping this sample.")
+		message("Grepping ", gsub(".mpileup", "", basename(PATH_mpileup)))
+		if (!file.exists(file.path(DIR_mpileup_filtered, basename(PATH_mpileup)))) {
+			system(paste0("grep -E ", "'", (paste(df$combined_names, collapse = "|")), "'", " ", PATH_mpileup, " > ", file.path(DIR_mpileup_filtered, basename(PATH_mpileup))))
+		} else {
+			message("Filtered pileup exists, skipping this sample.")
+		}
 	}
-	
 	mpileup <- read_delim(file.path(DIR_mpileup_filtered, basename(PATH_mpileup)), delim = "\t", col_names = c("Chrom", "Position", "Ref", "Depth", "Read_bases", "Read_quality")) %>% select(-Read_quality)
 
 	mpileup <- mpileup %>% 
@@ -285,15 +289,23 @@ filter_pileup <- function(PATH_mpileup, DIR_mpileup_filtered, variants_df) {
 	return(mpileup)
 }
 
-add_N_fraction <- function(variants_df, DIR_mpileup, DIR_mpileup_filtered) {
+add_N_fraction <- function(variants_df, DIR_mpileup, DIR_mpileup_filtered, force) {
 
 	idx <- grep(paste(unique(variants_df$Sample_name), collapse = "|"), list.files(DIR_mpileup, full.names = TRUE))
 	files <- list.files(DIR_mpileup, full.names = TRUE)[idx]
 
-	mpileup_list <- lapply(files, filter_pileup, DIR_mpileup_filtered = DIR_mpileup_filtered, variants_df = variants_df)
+	mpileup_list <- lapply(files, filter_pileup, DIR_mpileup_filtered = DIR_mpileup_filtered, variants_df = variants_df, force = force)
 	mpileup <- do.call(rbind, mpileup_list) %>% 
-				select(Sample_name, Chrom, Position, N_fraction)
+				select(Sample_name, Chrom, Position, N_fraction, N_bases) %>% 
+				mutate(Position = as.character(Position))
 
-	combined <- left_join(variants_df, mpileup) 
+	variants_df <- mutate(variants_df, Position = as.character(Position))
+	combined <- left_join(variants_df, mpileup) %>%
+		filter(N_fraction < 0.2)
 
 }
+
+
+
+
+combined <- filter(combined, N_fraction_t < 0.2, N_fraction_n < 0.2)
