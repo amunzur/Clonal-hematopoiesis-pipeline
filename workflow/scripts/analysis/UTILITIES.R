@@ -304,8 +304,3 @@ add_N_fraction <- function(variants_df, DIR_mpileup, DIR_mpileup_filtered, force
 		filter(N_fraction < 0.2)
 
 }
-
-
-
-
-combined <- filter(combined, N_fraction_t < 0.2, N_fraction_n < 0.2)
