@@ -106,7 +106,7 @@ rule FilterConsensusReads_SSCS:
         min_base_quality=40,
         max_read_error_rate=0.025,
     output:
-        DIR_bams + "/SSCS1_filtered/{wildcard}.bam",
+        DIR_bams + "/SSCS2_filtered/{wildcard}.bam",
     threads: 12
     run:
         shell(
@@ -123,11 +123,11 @@ rule FilterConsensusReads_SSCS:
 
 rule clip_SSCS:
     input:
-        DIR_bams + "/SSCS1_filtered/{wildcard}.bam",
+        DIR_bams + "/SSCS2_filtered/{wildcard}.bam",
     params:
         PATH_hg38=PATH_hg38,
     output:
-        temp(DIR_bams + "/SSCS1_clipped_unsorted/{wildcard}.bam"),
+        temp(DIR_bams + "/SSCS2_clipped_unsorted/{wildcard}.bam"),
     threads: 12
     run:
         shell(
@@ -135,18 +135,18 @@ rule clip_SSCS:
 
 rule sort_clipped:
     input:
-        DIR_bams + "/SSCS1_clipped_unsorted/{wildcard}.bam",
+        DIR_bams + "/SSCS2_clipped_unsorted/{wildcard}.bam",
     output:
-        DIR_bams + "/SSCS1_clipped/{wildcard}.bam",
+        DIR_bams + "/SSCS2_clipped/{wildcard}.bam",
     threads: 12
     run:
         shell("samtools sort {input} -o {output}")
         
 rule index_clipped:
     input:
-        DIR_bams + "/SSCS1_clipped/{wildcard}.bam",
+        DIR_bams + "/SSCS2_clipped/{wildcard}.bam",
     output:
-        DIR_bams + "/SSCS1_clipped/{wildcard}.bam.bai",
+        DIR_bams + "/SSCS2_clipped/{wildcard}.bam.bai",
     threads: 12
     run:
         shell("samtools index {input}")
