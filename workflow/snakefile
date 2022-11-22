@@ -123,13 +123,13 @@ Fixmates = expand(
 )
 Filter_SSCS_and_DCS = expand(
     DIR_bams + "/{consensus_type}_filtered/{wildcard}.bam",
-    consensus_type=["SSCS1"],
+    consensus_type=["SSCS2"],
     wildcard=samples,
 )
 
 Clip_SSCS1 = expand(
     DIR_bams + "/{consensus_type}_clipped/{wildcard}.bam.bai",
-    consensus_type=["SSCS1"],
+    consensus_type=["SSCS2"],
     wildcard=samples,
 )
 
@@ -139,22 +139,22 @@ RUN_fastq_read_counts = expand(
 
 RUN_Vardict = expand(
     DIR_Vardict + "/{consensus_type}/{wildcard}.vcf",
-    consensus_type=["SSCS1"],
+    consensus_type=["SSCS2"],
     wildcard=samples,
 )
 ANNOTATE_Vardict = expand(
     ANNOVAR_Vardict_output + "/{consensus_type}/{wildcard}.hg38_multianno.txt",
-    consensus_type=["SSCS1"],
+    consensus_type=["SSCS2"],
     wildcard=samples,
 )
 RUN_Mutect2 = expand(
     DIR_Mutect + "/{consensus_type}/filtered/{wildcard}_vcf",
-    consensus_type=["SSCS1"],
+    consensus_type=["SSCS2"],
     wildcard=samples,
 )
 ANNOTATE_Mutect2 = expand(
     ANNOVAR_mutect_output + "/{consensus_type}/{wildcard}.hg38_multianno.txt",
-    consensus_type=["SSCS1"],
+    consensus_type=["SSCS2"],
     wildcard=samples,
 )
 
@@ -165,26 +165,21 @@ ANNOTATE_Mutato = expand(
 
 run_insert_size = expand(
     DIR_insertsize_metrics + "/{consensus_type}/{wildcard}.txt",
-    consensus_type=["DCS", "SSCS1", "SSCS3"],
+    consensus_type=["SSCS2"],
     wildcard=samples,
 )
 
 # PDF_to_PNG = expand(DIR_insertsize_figures_PNG + "/{wildcard}.png", wildcard=samples)
 run_depth = expand(
     DIR_depth_metrics + "/{consensus_type}/{wildcard}.txt",
-    consensus_type=["DCS", "SSCS1"],
+    consensus_type=["SSCS2"],
     wildcard=samples,
 )
 RUN_mpileup = expand(
     DIR_mpileup + "/{consensus_type}/{wildcard}.mpileup",
-    consensus_type=["SSCS1"],
+    consensus_type=["SSCS2"],
     wildcard=samples,
 )
-
-###################################################
-# TARGET RULES
-###################################################
-
 
 # only use expansion here
 rule all:
@@ -195,48 +190,18 @@ rule all:
         # RUN_FastQC_trimmed,
         RUN_mpileup,
         # RUN_fastq_read_counts, 
-        # RUN_extract_markdup_perc,
-        # RUN_varscan_snv, 
-        # RUN_VarScan_indel, 
         # RUN_Mutect2,
-        # FILTER_Mutect2,
-        # RUN_Haplotype_caller,
-        # RUN_genomics_DB,
-        # RUN_genotype_vcfs,
-        # VCF_to_table,
-        # REFORMAT_GATK_results,
-        # REFORMAT_vardict_results,
-        # MAKE_ANNOVAR_GATK_input,
-        # make_ANNOVAR_snv_input,
-        # make_ANNOVAR_indel_input,
-        # make_ANNOVAR_vardict_input,
-        # run_ANNOVAR_snv,
-        # run_ANNOVAR_indel, 
-        # run_ANNOVAR_vardict,
         # run_insert_size, 
         # PDF_to_PNG,
-        # Index_consensus_bams_filtered,
-        # run_depth, 
         # Call_SSCS_and_DCS,
         # Map_SSCS_and_DCS,
         # Fixmates,
         # Filter_SSCS_and_DCS,
         # Clip_SSCS1,
-        # GetBaseCounts,
-        # RUN_VarScan_snv,
-        # RUN_VarScan_indel,
-        # ANNOTATE_VarScan_snv,
-        # ANNOTATE_VarScan_indel,
-        # RUN_Mutect2,
         # RUN_Vardict,
         # ANNOTATE_Mutect2,
         # ANNOTATE_Vardict,
         run_depth, 
-        # GetBaseCounts_Vardict, 
-        # GetBaseCounts_Mutect,
-        # Make_mutato_bams,
-        # Edge_filter_SSCS3,
-        # ANNOTATE_Mutato
 
 ##### Modules #####
 include: "rules/process_fastq.smk"
@@ -246,6 +211,3 @@ include: "rules/index_bams.smk"
 include: "rules/run_metrics.smk"
 include: "rules/variant_calling.smk"
 include: "rules/annotation.smk"
-
-
-# include: "rules/make_mutato_bams.smk"
