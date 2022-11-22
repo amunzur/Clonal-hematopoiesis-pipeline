@@ -1,21 +1,22 @@
 import pandas as pd
-exec(open('workflow/snakemake_functions.py').read())
+import re
+import os
 
-
+exec(open("workflow/snakemake_functions.py").read())
 # snakemake --reason --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch --exclude=cn[01-05] -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 50
 
 PATH_to_samples = (
     "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/sample_list.tsv"
 )
 
-
 configfile: "config/config.yaml"
-
-
+# samples = ["GUBB-20-277_gDNA_Baseline_IDT_2020Sep17"]
 samples = pd.read_csv(PATH_to_samples, sep="\t")["sample_names"].tolist()
-cfDNA_samples = list(filter(lambda x:'cfDNA' in x, samples))
-WBC_samples = list(filter(lambda x:'gDNA' in x, samples))
-# samples = ["GUBB-18-029_gDNA_Baseline_IDT_2018Apr18"]
+# samples = ["GUBB-18-321_cfDNA_Baseline_IDT_2018Jun26"]
+
+patients = sorted(list(set([re.sub('_gDNA.*|_cfDNA.*', '', s) for s in samples]))) # used when running mutato
+cfDNA_samples = list(filter(lambda x: "cfDNA" in x, samples))
+WBC_samples = list(filter(lambda x: "gDNA" in x, samples))
 # samples = [pd.read_csv(PATH_to_samples, sep = '\t')["sample_names"].tolist() for PATH_to_samples in PATH_to_samples_list]
 
 pair1 = [sample + "_R1" for sample in samples]
@@ -33,6 +34,8 @@ DIR_temp = config["DIR_temp"]
 PATH_known_indels = config["PATH_known_indels"]
 PATH_gold_std_indels = config["PATH_gold_std_indels"]
 PATH_SNP_db = config["PATH_SNP_db"]
+PATH_germline = config["PATH_germline"]
+PATH_PoN = config["PATH_PoN"]
 
 # data files
 DIR_fastq = config["DIR_fastq"]
@@ -43,6 +46,7 @@ DIR_trimmed_fastq = config["DIR_trimmed_fastq"]
 DIR_trimmed_unpaired_fastq = config["DIR_trimmed_unpaired_fastq"]
 DIR_extracted_fastq = config["DIR_extracted_fastq"]
 DIR_bams = config["DIR_bams"]
+DIR_bams_mutato = config["DIR_bams_mutato"]
 DIR_recalibrated_base_scores = config["DIR_recalibrated_base_scores"]
 
 # fastqc reports
@@ -66,6 +70,7 @@ VarScan_snv = config["VarScan_snv"]
 VarScan_indel = config["VarScan_indel"]
 DIR_Vardict = config["DIR_Vardict"]
 DIR_Mutect = config["DIR_Mutect"]
+DIR_Mutato = config["DIR_Mutato"]
 
 # annotating variants from varscan
 ANNOVAR_snv_input = config["ANNOVAR_snv_input"]
@@ -77,6 +82,9 @@ ANNOVAR_Vardict_input = config["ANNOVAR_Vardict_input"]
 ANNOVAR_Vardict_output = config["ANNOVAR_Vardict_output"]
 
 ANNOVAR_mutect_output = config["ANNOVAR_mutect_output"]
+
+ANNOVAR_mutato_input = config["ANNOVAR_mutato_input"]
+ANNOVAR_mutato_output = config["ANNOVAR_mutato_output"]
 
 # figures
 DIR_insertsize_figures = config["DIR_insertsize_figures"]
@@ -95,37 +103,83 @@ MASK_FastQ = expand(DIR_masked_fastq + "/{wildcard}_masked.fastq", wildcard=all_
 
 TRIM_FastQ = [
     expand(DIR_trimmed_fastq + "/{wildcard}_R1.fastq", wildcard=samples),
-    expand(DIR_trimmed_unpaired_fastq + "/{wildcard}_R1_U.fastq", wildcard=samples),
     expand(DIR_trimmed_fastq + "/{wildcard}_R2.fastq", wildcard=samples),
-    expand(DIR_trimmed_unpaired_fastq + "/{wildcard}_R2_U.fastq", wildcard=samples),
 ]
 
-Call_SSCS_and_DCS = expand(DIR_bams + "/{consensus_type}_uBAM/{wildcard}.bam", consensus_type=["DCS", "SSCS"], wildcard=samples)
-Map_SSCS_and_DCS = expand(DIR_bams + "/{consensus_type}_mBAM/{wildcard}.bam", consensus_type=["DCS", "SSCS"], wildcard=samples)
-Fixmates = expand(DIR_bams + "/{consensus_type}_final/{wildcard}.bam", consensus_type=["DCS", "SSCS"], wildcard=samples)
-Filter_SSCS_and_DCS = expand(DIR_bams + "/{consensus_type}_filtered/{wildcard}.bam", consensus_type=["DCS", "SSCS3"], wildcard=samples)
-GetBaseCounts = expand("results/variant_calling/base_counts" + "/{consensus_type}/{wildcard}.vcf", consensus_type=["SSCS3"], wildcard=samples)
-
-run_complexity_metrics_markdup = expand(
-    DIR_complexity_metrics + "/PICARD_complexity_dedup/{wildcard}.txt", wildcard=samples
+Call_SSCS_and_DCS = expand(
+    DIR_bams + "/{consensus_type}_uBAM/{wildcard}.bam",
+    consensus_type=["SSCS"],
+    wildcard=samples,
 )
+Map_SSCS_and_DCS = expand(
+    DIR_bams + "/{consensus_type}_mBAM/{wildcard}.bam",
+    consensus_type=["SSCS"],
+    wildcard=samples,
+)
+Fixmates = expand(
+    DIR_bams + "/{consensus_type}_final/{wildcard}.bam",
+    consensus_type=["SSCS"],
+    wildcard=samples,
+)
+Filter_SSCS_and_DCS = expand(
+    DIR_bams + "/{consensus_type}_filtered/{wildcard}.bam",
+    consensus_type=["SSCS1"],
+    wildcard=samples,
+)
+
+Clip_SSCS1 = expand(
+    DIR_bams + "/{consensus_type}_clipped/{wildcard}.bam.bai",
+    consensus_type=["SSCS1"],
+    wildcard=samples,
+)
+
 RUN_fastq_read_counts = expand(
-    DIR_readcounts_metrics + "/raw/{wildcard}.txt", wildcard=samples
+    DIR_readcounts_metrics + "/merged/{wildcard}.txt", wildcard=samples
 )
 
-RUN_VarScan_snv = expand(VarScan_snv + "/{consensus_type}/{wildcard}.vcf", consensus_type=["DCS", "SSCS3"], wildcard=samples)
-RUN_VarScan_indel = expand(VarScan_indel + "/{consensus_type}/{wildcard}.vcf", consensus_type=["DCS", "SSCS3"], wildcard=samples)
-ANNOTATE_VarScan_snv = expand(ANNOVAR_snv_output + "/{consensus_type}/{wildcard}.hg38_multianno.txt", consensus_type=["DCS", "SSCS3"], wildcard=samples)
-ANNOTATE_VarScan_indel = expand(ANNOVAR_indel_output + "/{consensus_type}/{wildcard}.hg38_multianno.txt", consensus_type=["DCS", "SSCS3"], wildcard=samples)
+RUN_Vardict = expand(
+    DIR_Vardict + "/{consensus_type}/{wildcard}.vcf",
+    consensus_type=["SSCS1"],
+    wildcard=samples,
+)
+ANNOTATE_Vardict = expand(
+    ANNOVAR_Vardict_output + "/{consensus_type}/{wildcard}.hg38_multianno.txt",
+    consensus_type=["SSCS1"],
+    wildcard=samples,
+)
+RUN_Mutect2 = expand(
+    DIR_Mutect + "/{consensus_type}/filtered/{wildcard}_vcf",
+    consensus_type=["SSCS1"],
+    wildcard=samples,
+)
+ANNOTATE_Mutect2 = expand(
+    ANNOVAR_mutect_output + "/{consensus_type}/{wildcard}.hg38_multianno.txt",
+    consensus_type=["SSCS1"],
+    wildcard=samples,
+)
 
-RUN_Vardict = expand(DIR_Vardict + "/{consensus_type}/{wildcard}.vcf", consensus_type=["DCS", "SSCS3"], wildcard=samples)
-ANNOTATE_Vardict = expand(ANNOVAR_Vardict_output + "/{consensus_type}/{wildcard}.hg38_multianno.txt", consensus_type=["DCS", "SSCS3"], wildcard=samples)
-RUN_Mutect2 = expand(DIR_Mutect + "/{consensus_type}_filtered/{wildcard}_vcf.gz", consensus_type=["DCS", "SSCS3"], wildcard=samples)
+ANNOTATE_Mutato = expand(
+    ANNOVAR_mutato_output + "/{wildcard}.hg38_multianno.txt",
+    wildcard=patients,
+)
 
-run_insert_size = expand(DIR_insertsize_metrics + "/{consensus_type}/{wildcard}.txt", consensus_type=["DCS", "SSCS3"], wildcard=samples)
+run_insert_size = expand(
+    DIR_insertsize_metrics + "/{consensus_type}/{wildcard}.txt",
+    consensus_type=["DCS", "SSCS1", "SSCS3"],
+    wildcard=samples,
+)
 
 # PDF_to_PNG = expand(DIR_insertsize_figures_PNG + "/{wildcard}.png", wildcard=samples)
-run_depth = expand(DIR_depth_metrics + "/{consensus_type}/{wildcard}.txt", consensus_type=["DCS", "SSCS3"], wildcard=samples)
+run_depth = expand(
+    DIR_depth_metrics + "/{consensus_type}/{wildcard}.txt",
+    consensus_type=["DCS", "SSCS1"],
+    wildcard=samples,
+)
+RUN_mpileup = expand(
+    DIR_mpileup + "/{consensus_type}/{wildcard}.mpileup",
+    consensus_type=["SSCS1"],
+    wildcard=samples,
+)
 
 ###################################################
 # TARGET RULES
@@ -139,7 +193,7 @@ rule all:
         # MASK_FastQ,
         # TRIM_FastQ,
         # RUN_FastQC_trimmed,
-        # RUN_mpileup,
+        RUN_mpileup,
         # RUN_fastq_read_counts, 
         # RUN_extract_markdup_perc,
         # RUN_varscan_snv, 
@@ -151,8 +205,6 @@ rule all:
         # RUN_genotype_vcfs,
         # VCF_to_table,
         # REFORMAT_GATK_results,
-        # RUN_ANNOVAR_GATK,
-        # RUN_Vardict,
         # REFORMAT_vardict_results,
         # MAKE_ANNOVAR_GATK_input,
         # make_ANNOVAR_snv_input,
@@ -169,16 +221,22 @@ rule all:
         # Map_SSCS_and_DCS,
         # Fixmates,
         # Filter_SSCS_and_DCS,
+        # Clip_SSCS1,
         # GetBaseCounts,
         # RUN_VarScan_snv,
         # RUN_VarScan_indel,
         # ANNOTATE_VarScan_snv,
         # ANNOTATE_VarScan_indel,
+        # RUN_Mutect2,
         # RUN_Vardict,
+        # ANNOTATE_Mutect2,
         # ANNOTATE_Vardict,
-        RUN_Mutect2,
-        # run_depth
-
+        run_depth, 
+        # GetBaseCounts_Vardict, 
+        # GetBaseCounts_Mutect,
+        # Make_mutato_bams,
+        # Edge_filter_SSCS3,
+        # ANNOTATE_Mutato
 
 ##### Modules #####
 include: "rules/process_fastq.smk"
@@ -188,3 +246,6 @@ include: "rules/index_bams.smk"
 include: "rules/run_metrics.smk"
 include: "rules/variant_calling.smk"
 include: "rules/annotation.smk"
+
+
+# include: "rules/make_mutato_bams.smk"
