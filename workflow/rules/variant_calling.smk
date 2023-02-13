@@ -59,12 +59,13 @@ rule run_VarDict:
 
 rule run_Mutect:
     input:
-        BAM = DIR_bams + "/{consensus_type}_clipped/{wildcard}.bam",
-        INDEX = DIR_bams + "/{consensus_type}_clipped/{wildcard}.bam.bai",
+        BAM = DIR_bams + "/{consensus_type}_filtered_sorted/{wildcard}.bam",
+        INDEX = DIR_bams + "/{consensus_type}_filtered_sorted/{wildcard}.bam.bai",
     output:
         vcf=DIR_Mutect + "/{consensus_type}/raw/{wildcard}_vcf.gz",
         stats=DIR_Mutect + "/{consensus_type}/raw/{wildcard}_vcf.gz.stats",
         index=DIR_Mutect + "/{consensus_type}/raw/{wildcard}_vcf.gz.tbi",
+        bamout=DIR_Mutect + "/{consensus_type}/bamout/{wildcard}.bam",
     params:
         PATH_hg38=PATH_hg38,
         PATH_bed=PATH_bed,
@@ -75,11 +76,19 @@ rule run_Mutect:
         -R {params.PATH_hg38} \
         -I {input.BAM} \
         -O {output.vcf} \
+        --bam-output {output.bamout} \
         -max-mnp-distance 0 \
         --panel-of-normals {params.PATH_PoN} \
         --f1r2-median-mq 10 \
         --f1r2-min-bq 10 \
         --read-filter AllowAllReadsReadFilter \
+        --recover-all-dangling-branches true \
+        --linked-de-bruijn-graph true \
+        --force-active true \
+        --max-reads-per-alignment-start 0 \
+        --minimum-allele-fraction 0.0001 \
+        --tumor-lod-to-emit 1 \
+        --f1r2-max-depth 5000 \
         --intervals {params.PATH_bed}"
 
 rule filter_Mutect:
