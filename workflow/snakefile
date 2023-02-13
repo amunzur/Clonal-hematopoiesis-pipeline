@@ -10,9 +10,8 @@ PATH_to_samples = (
 )
 
 configfile: "config/config.yaml"
-# samples = ["GUBB-20-277_gDNA_Baseline_IDT_2020Sep17"]
 samples = pd.read_csv(PATH_to_samples, sep="\t")["sample_names"].tolist()
-# samples = ["GUBB-18-321_cfDNA_Baseline_IDT_2018Jun26"]
+# samples = ["GUBB-19-562_gDNA_Baseline_IDT_2019Nov13", "GUBB-19-562_cfDNA_Baseline_IDT_2019Nov13", "GUBB-18-471_cfDNA_Baseline_IDT_2018Nov26", "GUBB-18-471_gDNA_Baseline_IDT_2018Nov26"]
 
 patients = sorted(list(set([re.sub('_gDNA.*|_cfDNA.*', '', s) for s in samples]))) # used when running mutato
 cfDNA_samples = list(filter(lambda x: "cfDNA" in x, samples))
@@ -71,6 +70,7 @@ VarScan_indel = config["VarScan_indel"]
 DIR_Vardict = config["DIR_Vardict"]
 DIR_Mutect = config["DIR_Mutect"]
 DIR_Mutato = config["DIR_Mutato"]
+DIR_Lofreq = config["DIR_Lofreq"]
 
 # annotating variants from varscan
 ANNOVAR_snv_input = config["ANNOVAR_snv_input"]
@@ -123,13 +123,7 @@ Fixmates = expand(
 )
 Filter_SSCS_and_DCS = expand(
     DIR_bams + "/{consensus_type}_filtered/{wildcard}.bam",
-    consensus_type=["SSCS2"],
-    wildcard=samples,
-)
-
-Clip_SSCS1 = expand(
-    DIR_bams + "/{consensus_type}_clipped/{wildcard}.bam.bai",
-    consensus_type=["SSCS2"],
+    consensus_type=["SSCS1"],
     wildcard=samples,
 )
 
@@ -142,6 +136,13 @@ RUN_Vardict = expand(
     consensus_type=["SSCS2"],
     wildcard=samples,
 )
+
+RUN_Lofreq = expand(
+    DIR_Lofreq + "/{consensus_type}/{wildcard}.vcf", 
+    consensus_type=["SSCS1"],
+    wildcard=samples,
+    )
+
 ANNOTATE_Vardict = expand(
     ANNOVAR_Vardict_output + "/{consensus_type}/{wildcard}.hg38_multianno.txt",
     consensus_type=["SSCS2"],
@@ -188,7 +189,7 @@ rule all:
         # MASK_FastQ,
         # TRIM_FastQ,
         # RUN_FastQC_trimmed,
-        RUN_mpileup,
+        # RUN_mpileup,
         # RUN_fastq_read_counts, 
         # RUN_Mutect2,
         # run_insert_size, 
@@ -197,11 +198,11 @@ rule all:
         # Map_SSCS_and_DCS,
         # Fixmates,
         # Filter_SSCS_and_DCS,
-        # Clip_SSCS1,
         # RUN_Vardict,
+        # RUN_Lofreq,
         # ANNOTATE_Mutect2,
         # ANNOTATE_Vardict,
-        run_depth, 
+        # run_depth, 
 
 ##### Modules #####
 include: "rules/process_fastq.smk"
