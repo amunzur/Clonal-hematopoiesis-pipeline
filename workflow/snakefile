@@ -133,7 +133,7 @@ RUN_fastq_read_counts = expand(
 
 RUN_Vardict = expand(
     DIR_Vardict + "/{consensus_type}/{wildcard}.vcf",
-    consensus_type=["SSCS2"],
+    consensus_type=["SSCS1"],
     wildcard=samples,
 )
 
@@ -145,17 +145,17 @@ RUN_Lofreq = expand(
 
 ANNOTATE_Vardict = expand(
     ANNOVAR_Vardict_output + "/{consensus_type}/{wildcard}.hg38_multianno.txt",
-    consensus_type=["SSCS2"],
+    consensus_type=["SSCS1"],
     wildcard=samples,
 )
 RUN_Mutect2 = expand(
     DIR_Mutect + "/{consensus_type}/filtered/{wildcard}_vcf",
-    consensus_type=["SSCS2"],
+    consensus_type=["SSCS1"],
     wildcard=samples,
 )
 ANNOTATE_Mutect2 = expand(
     ANNOVAR_mutect_output + "/{consensus_type}/{wildcard}.hg38_multianno.txt",
-    consensus_type=["SSCS2"],
+    consensus_type=["SSCS1"],
     wildcard=samples,
 )
 
@@ -166,19 +166,19 @@ ANNOTATE_Mutato = expand(
 
 run_insert_size = expand(
     DIR_insertsize_metrics + "/{consensus_type}/{wildcard}.txt",
-    consensus_type=["SSCS2"],
+    consensus_type=["SSCS1"],
     wildcard=samples,
 )
 
 # PDF_to_PNG = expand(DIR_insertsize_figures_PNG + "/{wildcard}.png", wildcard=samples)
 run_depth = expand(
     DIR_depth_metrics + "/{consensus_type}/{wildcard}.txt",
-    consensus_type=["SSCS2"],
+    consensus_type=["SSCS1"],
     wildcard=samples,
 )
 RUN_mpileup = expand(
     DIR_mpileup + "/{consensus_type}/{wildcard}.mpileup",
-    consensus_type=["SSCS2"],
+    consensus_type=["SSCS1"],
     wildcard=samples,
 )
 
