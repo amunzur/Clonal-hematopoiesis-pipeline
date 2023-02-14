@@ -1,3 +1,39 @@
+rule run_Lofreq_indelqual:
+    input:
+        bam=DIR_bams + "/{consensus_type}_filtered/{wildcard}.bam",
+        index = DIR_bams + "/{consensus_type}_filtered/{wildcard}.bam.bai",
+    output:
+        indelqual_bams=DIR_bams + "/{consensus_type}_filtered_indelqual/{wildcard}.bam",
+    conda:
+        "../envs/variantcalling.yaml"
+    params:
+        PATH_hg38=PATH_hg38,
+    threads: 12
+    shell:
+        "lofreq indelqual {input.bam} --dindel --ref {params.PATH_hg38} -o {output}"
+
+rule run_Lofreq_callvariants:
+    input:
+        indelqual_bams=DIR_bams + "/{consensus_type}_filtered_indelqual/{wildcard}.bam",
+    output:
+        DIR_Lofreq + "/{consensus_type}/{wildcard}.vcf"
+    conda:
+        "../envs/variantcalling.yaml"
+    params:
+        PATH_hg38=PATH_hg38,
+        PATH_bed=PATH_bed,
+    threads: 12
+    shell:
+        """
+        lofreq call \
+            {input} \
+            -l {params.PATH_bed} \
+            -f {params.PATH_hg38} \
+            -a 0.05 \
+            --call-indels \
+            --force-overwrite \
+            -o {output}
+        """
 
 
 rule run_VarDict:
