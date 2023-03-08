@@ -1,153 +1,112 @@
-return_anno_output_vardict <- function(PATH_ANNOVAR) {
+return_anno_output_vardict <- function(PATH_variant_table) {
 
-	df_scrap <- as.data.frame(read_delim(PATH_ANNOVAR, delim = "\t"))
+	df <- as.data.frame(read_delim(PATH_variant_table, delim = "\t"))
+	colnames(df) <- gsub("^.*_gDNA_.*\\.", "gDNA_", colnames(df)) 
+	colnames(df) <- gsub("^.*_cfDNA_.*\\.", "cfDNA_", colnames(df)) 
 
-	col_names_vector <- c(names(df_scrap)[1:118], "x1", "x2", "x3", "CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", gsub(".hg38_multianno.txt", "", basename(PATH_ANNOVAR)))
-	info_col_names <- c("SAMPLE", "TYPE", "DP", "VD", "AF", "BIAS", "REFBIAS", "VARBIAS", "PMEAN", "PSTD", "QUAL", "QSTD", "SBF", "ODDRATIO", "MQ", "SN", "HIAF", "ADJAF", "SHIFT3", "MSI", "MSILEN", "NM", "HICNT", "HICOV", "LSEQ", "RSEQ", "DUPRATE", "SPLITREAD", "SPANPAIR")
-	format_col_names <- c("GT", "DP", "VD", "AD", "AF", "RD", "ALD")
+	# Add patient id
+	df$Patient_id <- sub(".*\\/([^\\/]+)_cfDNA.*", "\\1", PATH_variant_table)
+	df <- df[, c("Patient_id", colnames(df)[-which(names(df) == "Patient_id")])] # move to the beginning
 
-	df_main <- read_delim(
-					PATH_ANNOVAR, 
-					delim = "\t", 
-					col_names = col_names_vector) %>%
-			   select(Chr, Start, Ref, Alt, Func.refGene, Gene.refGene, Func.knownGene, Gene.knownGene, AAChange.refGene, ExAC_ALL, FILTER, gnomAD_exome_ALL, INFO, gsub(".hg38_multianno.txt", "", basename(PATH_ANNOVAR))) %>%
-				rename(
-					FORMAT_values = gsub(".hg38_multianno.txt", "", basename(PATH_ANNOVAR))) %>%
-				separate(
-					col = INFO, 
-					sep = ";",	
-					into = info_col_names, 
-					remove = FALSE) %>%
-				separate(
-					col = FORMAT_values, 
-					sep = ":",	
-					into = format_col_names, 
-					remove = FALSE) %>%
-				mutate(across(info_col_names, gsub, pattern = ".*=", replacement = "")) %>%
-				separate(col = RD, sep = ",", into = c("REF_Fw", "REF_Rv"), remove = TRUE) %>%
-				separate(col = ALD, sep = ",", into = c("ALT_Fw", "ALT_Rv"), remove = TRUE) %>%
-  			    select(SAMPLE, Chr, Start, Ref, Alt, AF, DP, VD, MQ, TYPE, FILTER, SBF, ODDRATIO, Func.refGene, Gene.refGene, Func.knownGene, Gene.knownGene, AAChange.refGene, ExAC_ALL, gnomAD_exome_ALL, REF_Fw, REF_Rv, ALT_Fw, ALT_Rv) %>%
-				slice(-1) %>%
-				mutate_at(c("Start", "AF", "DP", "VD", "MQ", "SBF", "ODDRATIO", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "ExAC_ALL", "gnomAD_exome_ALL"), as.numeric) %>%
-				replace_na(list(ExAC_ALL = 0, gnomAD_exome_ALL = 0))
+	# Indicate insertion, deletion or SNV
+	df <- mutate(df, TYPE = case_when(
+					nchar(REF) > nchar(ALT) ~ "Deletion", 
+					nchar(REF) < nchar(ALT) ~ "Insertion",
+					nchar(REF) == nchar(ALT) ~ "SNV", 
+					TRUE ~ "Error")) %>%
+		  mutate(test_ref_ratio = cfDNA_AF/gDNA_AF) %>%
+		  separate(cfDNA_ALD, into = c("cfDNA_ALT_Fw", "cfDNA_ALT_Rv"), sep = ",", remove = TRUE) %>%
+		  separate(cfDNA_RD, into = c("cfDNA_REF_Fw", "cfDNA_REF_Rv"), sep = ",", remove = TRUE) %>%
+		  separate(gDNA_ALD, into = c("gDNA_ALT_Fw", "gDNA_ALT_Rv"), sep = ",", remove = TRUE) %>%
+		  separate(gDNA_RD, into = c("gDNA_REF_Fw", "gDNA_REF_Rv"), sep = ",", remove = TRUE)
 
-	names(df_main) <- c("Sample_name", "Chr", "Start", "Ref", "Alt", "VarFreq", "Reads1", "Reads2", "Mapping_quality", "variant", "FILTER", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "Func.refGene", "Gene.refGene", "Func.knownGene", "Gene.knownGene", "AAChange.refGene", "ExAC_ALL", "gnomAD_exome_ALL", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv")
-	df_main$variant <- tolower(df_main$variant)
 
-	return(df_main)
-
+	return(df)
 }
 
 # do a merge based on column to combine metadata 
-parse_anno_output <- function(DIR_ANNOVAR) {
+parse_anno_output <- function(DIR_variant_tables) {
 
-	anno_df_list <- lapply(as.list(list.files(DIR_ANNOVAR, full.names = TRUE, pattern = "\\.hg38_multianno.txt$")), return_anno_output_vardict)
-	anno_df <- as.data.frame(do.call(rbind, anno_df_list)) %>%
-				mutate(
-					Sample_name = gsub(".hg38_multianno.txt", "", Sample_name), 
-					Start = as.character(Start)) 
-
+	anno_df_list <- lapply(as.list(list.files(DIR_variant_tables, full.names = TRUE, pattern = ".tsv$")), return_anno_output_vardict)
+	anno_df <- as.data.frame(do.call(rbind, anno_df_list))
 	return(anno_df)
-
 }
 
-add_bg_error_rate <- function(variants_df, bg) {
+add_bg_error_rate <- function(vars, bg) {
 
 	# modify the vars df
-	variants_df <- variants_df %>% mutate(error_type = paste0("mean_error", variants_df$Ref, "to", variants_df$Alt))
+	vars <- vars %>% mutate(ERROR_TYPE = paste0("mean_error", vars$REF, "to", vars$ALT))
 	
 	# add the deletions 
-	idx <- which(variants_df$variant == "deletion")
-	variants_df$error_type[idx] <- "mean_errordel"
+	vars$ERROR_TYPE[grepl("Deletion", vars$TYPE)] <- "mean_errordel"
+	vars$ERROR_TYPE[grepl("Insertion", vars$TYPE)] <- "mean_errorins"
 	
-	# add the insertions
-	idx <- which(variants_df$variant == "insertion")
-	variants_df$error_type[idx] <- "mean_errorins"
-
 	# modify the bg error rate df
 	# bg <- read_delim(PATH_bg, delim = "\t")
-	bg$chrom <- paste0("chr", bg$chrom)
 	bg <- gather(bg, "error_type", "error_rate", starts_with("mean_error"))
+	names(bg) <- c("CHROM", "POS", "REF", "ERROR_TYPE", "ERROR_RATE")
 
-	# now if we have a deletion, we want to recover the pos + 1 in the bg file, this is actual place where deletion begins 
-	var_pos <- variants_df$Start
-	deletion_idx <- which(variants_df$variant == "deletion")
-	
-	if (length(deletion_idx) > 0) {
-		var_pos[deletion_idx] <- as.numeric(var_pos[deletion_idx]) + 1 # add 1 to the position of all the deletions
-		variants_df$Start <- var_pos}
-
-	# this merge adds an exta col with the error rate 
-	bg$pos <- as.character(bg$pos)
-	variants_df <- left_join(variants_df, bg, by = c("Chr" = "chrom", "Start" = "pos", "error_type" = "error_type")) # to add the error rates from bg to variants df
-
-	# subtract 1 from the positions after merging
-	if (length(deletion_idx) > 0) {
-		deletion_idx <- which(variants_df$variant == "deletion")
-		variants_df$Start[deletion_idx] <- as.numeric(variants_df$Start[deletion_idx]) - 1}
-
-	return(variants_df)
+	vars <- left_join(vars, bg) # to add the error rates from bg to variants df
+	vars <- mutate(vars, 
+				   VAF_bg_ratio_cfDNA = cfDNA_AF/ERROR_RATE, 
+				   VAF_bg_ratio_gDNA = gDNA_AF/ERROR_RATE)
+	return(vars)
 }
+
+evaluate_strand_bias <- function(combined) {
+	combined <- combined %>%
+		mutate(ALT_Fw_total = ALT_Fw_t + ALT_Fw_n, 
+			   ALT_Rv_total = ALT_Rv_t + ALT_Rv_n) %>%
+		filter(ALT_Fw_total > 0 & ALT_Rv_total > 0)
+
+	return(combined)
+	
+	}
+
+filter_somatic <- function(vars, min_alt_reads_cfDNA, min_ref_reads_gDNA, max_VAF, min_VAF, min_test_ref_ratio, min_VAF_bg_ratio, max_SBF_cfDNA) {
+	vars <- vars %>% 
+		mutate(Status = "Somatic", 
+			   test_ref_ratio = cfDNA_AF/gDNA_AF) %>%
+		filter(Func.refGene == "exonic",
+			   Effects != "synonymous", 
+			   cfDNA_VD >= min_alt_reads_cfDNA, # alt reads in cfDNA
+			   gDNA_DP >= min_ref_reads_gDNA, # total depth at gDNA
+			   cfDNA_AF < max_VAF, # max vaf
+			   cfDNA_AF > min_VAF, # min vaf
+			   test_ref_ratio > min_test_ref_ratio,
+			   VAF_bg_ratio_cfDNA >= min_VAF_bg_ratio, # bg error rate
+			   cfDNA_SBF < max_SBF_cfDNA) # strand bias 
+		
+	return(vars)
+}
+
 
 # main function to run everything
 MAIN <- function(
-					VALUE_Func_refGene, 
-					THRESHOLD_VarFreq, 
-					THRESHOLD_Reads2, 
-					THRESHOLD_VAF_bg_ratio, 
-					DIR_ANNOVAR,
+					max_VAF, 
+					min_VAF,
+					max_SBF_cfDNA,
+					min_alt_reads_cfDNA,
+					min_ref_reads_gDNA,
+					min_test_ref_ratio,
+					min_VAF_bg_ratio, 
+					DIR_variant_tables,
+					DIR_mpileup,
+					DIR_mpileup_filtered_somatic,
 					bg,
-					PATH_panel_genes,
-					PATH_bed,
-					DIR_depth_metrics,
-					PATH_collective_depth_metrics,
-					DIR_temp,
-					DIR_tnvstats,
-					PATH_filter_tnvstats_script, 
-					variant_caller){
+					PATH_before_filtering,
+					PATH_after_filtering){
 
-	variant_caller = variant_caller # just so the function doesn't complain about us not using this argument
-	# DIR_ANNOVAR <- "/groups/wyattgrp/users/amunzur/pipeline/results/data/annovar_outputs/vardict/test"
-	combined <- parse_anno_output(DIR_ANNOVAR)
-	combined <- add_patient_id(combined)
-	combined <- add_bg_error_rate(combined, bg)
-	combined <- add_AAchange_effect(combined)
-	combined <- add_sample_type(combined) # WBC or tumor
+	vars <- parse_anno_output(DIR_variant_tables)
+	vars <- add_bg_error_rate(vars, bg)
+	vars <- add_AAchange_effect(vars)
+	write_csv(vars, PATH_before_filtering)
 
-	combined <- combined %>%
-						mutate(Total_reads = Reads1 + Reads2, 
-								VAF_bg_ratio = VarFreq/error_rate) %>%
-						select(Sample_name, Sample_type, patient_id, Chr, Start, Ref, Alt, VarFreq, Reads1, Reads2, StrandBias_Fisher_pVal, StrandBias_OddsRatio, REF_Fw, REF_Rv, ALT_Fw, ALT_Rv, Func.refGene, Gene.refGene, AAChange.refGene, Protein_annotation, Effects, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads) %>%
-						filter(Func.refGene != VALUE_Func_refGene,
-								VAF_bg_ratio >= THRESHOLD_VAF_bg_ratio, # vaf should be at least 15 times more than the bg error rate
-								StrandBias_Fisher_pVal > 0.05) 
-	names(combined) <- c("Sample_name", "Sample_type", "Patient_ID", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "StrandBias_Fisher_pVal", "StrandBias_OddsRatio", "REF_Fw", "REF_Rv", "ALT_Fw", "ALT_Rv", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
+	vars <- filter_somatic(vars, min_alt_reads_cfDNA, min_ref_reads_gDNA, max_VAF, min_VAF, min_test_ref_ratio, min_VAF_bg_ratio, max_SBF_cfDNA)
+	vars <- add_N_fraction(vars, DIR_mpileup, DIR_mpileup_filtered_somatic, force = FALSE, file_pattern = "*cfDNA*")
+	vars <- add_N_fraction(vars, DIR_mpileup, DIR_mpileup_filtered_somatic, force = TRUE, file_pattern = "*gDNA*")
+	write_csv(vars, PATH_after_filtering)
 
-	combined <- combined %>%
-				filter((Total_reads >= 1000 & VAF >= 0.005) | 
-						(Total_reads <= 1000 & Alt_reads >= 5), 
-						VAF < THRESHOLD_VarFreq)
+ 	return(vars)
 
-	# combined <- subset_to_panel(PATH_bed, combined) # subset to panel
-	combined <- add_depth(DIR_depth_metrics, PATH_collective_depth_metrics, combined) # add depth information at these positions 
-	# combined <- find_and_filter_duplicated_variants(combined, 3) # Remove duplicated variants, and add a new column to mark duplicated variants
-
-	return(combined)
-
-} # end of function
-
-combine_and_save <- function(variants, PATH_validated_variants, PATH_SAVE_chip_variants){
-
-	validated_vars <- compare_with_jacks_figure(PATH_validated_variants, variants)
-	# variants$detected <- variants$Position %in% validated_vars$Position # add a new col to show if the same var was detected in jacks figure
-
-	dir.create(dirname(PATH_validated_variants))
-	dir.create(dirname(PATH_SAVE_chip_variants))
-
-	# PATH_SAVE_chip_variants <- "/groups/wyattgrp/users/amunzur/chip_project/variant_lists/chip_variants.csv"
-	write_csv(variants, PATH_SAVE_chip_variants) # snv + indel, csv
-	write_delim(variants, gsub(".csv", ".tsv", PATH_SAVE_chip_variants), delim = "\t") # snv + indel, tsv
-
-	write_csv(validated_vars, gsub("chip_variants.csv", "validated_variants.csv", PATH_SAVE_chip_variants)) # jack df as csv
-	write_delim(validated_vars, gsub("chip_variants.csv", "validated_variants.tsv", PATH_SAVE_chip_variants), delim = "\t") # jack df as tsv
 }
