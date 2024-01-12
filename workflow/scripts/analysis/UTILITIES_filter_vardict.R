@@ -1,76 +1,38 @@
-return_anno_output_vardict <- function(PATH_variant_table) {
-
-	df <- as.data.frame(read_delim(PATH_variant_table, delim = "\t"))
-	colnames(df) <- gsub("^.*_gDNA_.*\\.", "gDNA_", colnames(df)) 
-	colnames(df) <- gsub("^.*_cfDNA_.*\\.", "cfDNA_", colnames(df)) 
-
-	# Add patient id
-	df$Patient_id <- sub(".*\\/([^\\/]+)_cfDNA.*", "\\1", PATH_variant_table)
-	df <- df[, c("Patient_id", colnames(df)[-which(names(df) == "Patient_id")])] # move to the beginning
-
-	# Indicate insertion, deletion or SNV
-	df <- mutate(df, TYPE = case_when(
-					nchar(REF) > nchar(ALT) ~ "Deletion", 
-					nchar(REF) < nchar(ALT) ~ "Insertion",
-					nchar(REF) == nchar(ALT) ~ "SNV", 
-					TRUE ~ "Error")) %>%
-		  mutate(test_ref_ratio = cfDNA_AF/gDNA_AF) %>%
-		  separate(cfDNA_ALD, into = c("cfDNA_ALT_Fw", "cfDNA_ALT_Rv"), sep = ",", remove = TRUE) %>%
-		  separate(cfDNA_RD, into = c("cfDNA_REF_Fw", "cfDNA_REF_Rv"), sep = ",", remove = TRUE) %>%
-		  separate(gDNA_ALD, into = c("gDNA_ALT_Fw", "gDNA_ALT_Rv"), sep = ",", remove = TRUE) %>%
-		  separate(gDNA_RD, into = c("gDNA_REF_Fw", "gDNA_REF_Rv"), sep = ",", remove = TRUE)
-
-
-	return(df)
-}
-
 # do a merge based on column to combine metadata 
-parse_anno_output <- function(DIR_variant_tables) {
+parse_anno_output <- function(DIR_variant_tables, mode, PATH_sample_list = NULL) {
+	if (is.null(PATH_sample_list)) {
+		if (mode == "somatic") {
+			anno_df_list <- lapply(as.list(list.files(DIR_variant_tables, full.names = TRUE, pattern = ".tsv$")), return_anno_output_vardict_somatic)
+		} else if (mode == "chip") {
+			anno_df_list <- lapply(as.list(list.files(DIR_variant_tables, full.names = TRUE, pattern = ".tsv$")), return_anno_output_vardict_chip)
+		} 
+	} else {
+		# We subset to a certain group of samples.
+		sample_df <- as.data.frame(read_delim(PATH_sample_list, delim = "\t"))
+		samples <- c(sample_df$cfDNA, sample_df$WBC)
 
-	anno_df_list <- lapply(as.list(list.files(DIR_variant_tables, full.names = TRUE, pattern = ".tsv$")), return_anno_output_vardict)
+		# List files in the directory matching the samples
+		files_to_load <- list.files(DIR_variant_tables, full.names = TRUE, pattern = ".tsv$") # all files in the dir
+		files_to_load <- files_to_load[sapply(files_to_load, function(file) any(sapply(samples, grepl, file)))] # choose a subset based on the provided samples file
+		
+		if (mode == "somatic") {
+			anno_df_list <- lapply(as.list(files_to_load), return_anno_output_vardict_somatic)
+		} else if (mode == "chip") {
+			anno_df_list <- lapply(as.list(files_to_load), return_anno_output_vardict_chip)
+		}
+	}
 	anno_df <- as.data.frame(do.call(rbind, anno_df_list))
 	return(anno_df)
 }
 
-add_bg_error_rate <- function(vars, bg) {
-
-	# modify the vars df
-	vars <- vars %>% mutate(ERROR_TYPE = paste0("mean_error", vars$REF, "to", vars$ALT))
-	
-	# add the deletions 
-	vars$ERROR_TYPE[grepl("Deletion", vars$TYPE)] <- "mean_errordel"
-	vars$ERROR_TYPE[grepl("Insertion", vars$TYPE)] <- "mean_errorins"
-	
-	# modify the bg error rate df
-	# bg <- read_delim(PATH_bg, delim = "\t")
-	bg <- gather(bg, "error_type", "error_rate", starts_with("mean_error"))
-	names(bg) <- c("CHROM", "POS", "REF", "ERROR_TYPE", "ERROR_RATE")
-
-	vars <- left_join(vars, bg) # to add the error rates from bg to variants df
-	vars <- mutate(vars, 
-				   VAF_bg_ratio_cfDNA = cfDNA_AF/ERROR_RATE, 
-				   VAF_bg_ratio_gDNA = gDNA_AF/ERROR_RATE)
-	return(vars)
-}
-
-evaluate_strand_bias <- function(combined) {
-	combined <- combined %>%
-		mutate(ALT_Fw_total = ALT_Fw_t + ALT_Fw_n, 
-			   ALT_Rv_total = ALT_Rv_t + ALT_Rv_n) %>%
-		filter(ALT_Fw_total > 0 & ALT_Rv_total > 0)
-
-	return(combined)
-	
-	}
-
-filter_somatic <- function(vars, min_alt_reads_cfDNA, min_ref_reads_gDNA, max_VAF, min_VAF, min_test_ref_ratio, min_VAF_bg_ratio, max_SBF_cfDNA) {
+filter_somatic <- function(vars, min_alt_reads_cfDNA, min_depth_gDNA, max_VAF, min_VAF, min_test_ref_ratio, min_VAF_bg_ratio, max_SBF_cfDNA) {
 	vars <- vars %>% 
 		mutate(Status = "Somatic", 
 			   test_ref_ratio = cfDNA_AF/gDNA_AF) %>%
 		filter(Func.refGene == "exonic",
 			   Effects != "synonymous", 
 			   cfDNA_VD >= min_alt_reads_cfDNA, # alt reads in cfDNA
-			   gDNA_DP >= min_ref_reads_gDNA, # total depth at gDNA
+			   gDNA_DP >= min_depth_gDNA, # total depth at gDNA
 			   cfDNA_AF < max_VAF, # max vaf
 			   cfDNA_AF > min_VAF, # min vaf
 			   test_ref_ratio > min_test_ref_ratio,
@@ -80,33 +42,69 @@ filter_somatic <- function(vars, min_alt_reads_cfDNA, min_ref_reads_gDNA, max_VA
 	return(vars)
 }
 
+MAINsomatic <- function(max_VAF, 
+						min_VAF,
+						max_SBF_cfDNA,
+						min_alt_reads_cfDNA,
+						min_depth_gDNA,
+						min_test_ref_ratio,
+						min_VAF_bg_ratio, 
+						DIR_variant_tables_somatic,
+						DIR_mpileup,
+						DIR_mpileup_filtered_somatic,
+						bg,
+						PATH_before_filtering_chip,
+						PATH_after_filtering){
 
-# main function to run everything
-MAIN <- function(
-					max_VAF, 
-					min_VAF,
-					max_SBF_cfDNA,
-					min_alt_reads_cfDNA,
-					min_ref_reads_gDNA,
-					min_test_ref_ratio,
-					min_VAF_bg_ratio, 
-					DIR_variant_tables,
-					DIR_mpileup,
-					DIR_mpileup_filtered_somatic,
-					bg,
-					PATH_before_filtering,
-					PATH_after_filtering){
-
-	vars <- parse_anno_output(DIR_variant_tables)
+	vars <- parse_anno_output(DIR_variant_tables_somatic, "somatic")
+	vars <- add_patient_information(vars, PATH_sample_information)
 	vars <- add_bg_error_rate(vars, bg)
 	vars <- add_AAchange_effect(vars)
-	write_csv(vars, PATH_before_filtering)
+	write_csv(vars, PATH_before_filtering_chip)
 
-	vars <- filter_somatic(vars, min_alt_reads_cfDNA, min_ref_reads_gDNA, max_VAF, min_VAF, min_test_ref_ratio, min_VAF_bg_ratio, max_SBF_cfDNA)
-	vars <- add_N_fraction(vars, DIR_mpileup, DIR_mpileup_filtered_somatic, force = FALSE, file_pattern = "*cfDNA*")
-	vars <- add_N_fraction(vars, DIR_mpileup, DIR_mpileup_filtered_somatic, force = TRUE, file_pattern = "*gDNA*")
+	vars <- filter_variants_chip_or_germline("chip", vars, min_alt_reads, min_depth, min_VAF_low, max_VAF_low, min_VAF_high, max_VAF_high, min_VAF_bg_ratio, PATH_blacklist = PATH_blacklist)
+	vars <- add_N_fraction(vars, DIR_mpileup, DIR_mpileup_filtered_chip, force = TRUE, file_pattern = "*cfDNA*")
+	vars <- add_N_fraction(vars, DIR_mpileup, DIR_mpileup_filtered_chip, force = TRUE, file_pattern = "*gDNA*")
+	vars$Variant_caller <- "Vardict"
 	write_csv(vars, PATH_after_filtering)
+	
 
  	return(vars)
+}
 
+MAINchip <- function(	min_VAF_low, 
+						max_VAF_low,
+						min_VAF_high,
+						max_VAF_high,
+						max_SBF_cfDNA,
+						min_alt_reads,
+						min_depth_gDNA,
+						min_test_ref_ratio,
+						min_VAF_bg_ratio, 
+						DIR_variant_tables_chip,
+						DIR_mpileup,
+						DIR_mpileup_filtered_somatic,
+						bg,
+						PATH_sample_information,
+						PATH_blacklist,
+						PATH_before_filtering,
+						PATH_after_filtering){
+
+	vars <- parse_anno_output(DIR_variant_tables_chip, "chip")
+	vars <- add_patient_information(vars, PATH_sample_information)
+	vars <- add_bg_error_rate(vars, bg)
+	vars <- add_AAchange_effect(vars, "Vardict")
+	vars <- evaluate_strand_bias(vars)
+	write_csv(vars, PATH_before_filtering)
+
+	vars <- filter_variants_chip_or_germline("chip", vars, min_alt_reads, min_depth, min_VAF_low, max_VAF_low, min_VAF_high, max_VAF_high, min_VAF_bg_ratio, PATH_blacklist, blacklist = TRUE)
+	vars <- add_N_fraction(vars, DIR_mpileup, DIR_mpileup_filtered_chip, force = TRUE)
+	vars$Variant_caller <- "Vardict"
+	write_csv(vars, PATH_after_filtering)
+	
+	vars <- combine_tumor_wbc(vars)
+	vars <- filter(vars, Strand_bias_fishers_n != TRUE & Strand_bias_fishers_t != TRUE)
+	write_csv(vars, PATH_final)
+
+ 	return(vars)
 }

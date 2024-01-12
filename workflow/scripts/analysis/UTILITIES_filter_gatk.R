@@ -1,221 +1,137 @@
-# reformat such that each variant is associated with a sample, vaf etc
-parse_variant_info <- function(PATH_vcf_table){
-	df <- read_delim(PATH_vcf_table, delim = "\t")
-	df_AD <- df[, grep("AD", names(df))] # slice of df with allele count info
-	variant_info <- df[, c(1, 2, 3, 4, 5)]	# info about variants: chrom, pos etc
-	df <- as.data.frame(cbind(variant_info, df_AD)) # put back together 
-	# names(df) <- gsub("\\.GT|\\.AD|\\.DP|\\.GQ|\\.PL", "", names(df)) # remove the ".AD" at the end of the column names
+return_anno_output_mutect_chip <- function(PATH_variant_table) {
+
+	print(PATH_variant_table)
+	df <- as.data.frame(read.delim(PATH_variant_table, sep = "\t", stringsAsFactors = FALSE, check.names = FALSE))
+	colnames(df) <- gsub(paste0(file_path_sans_ext(basename(PATH_variant_table)), "."), "", colnames(df)) 
 
 	df <- df %>%
-			gather("sample_names", "read_depth", ends_with(".AD")) %>%
-			mutate(
-				read_depth = sub(",", "_", read_depth), 
-				ALT = gsub("\\*", 0, ALT), 
-				sample_names = gsub("\\.AD", "", sample_names)) %>%
-			separate(
-				col = read_depth, 
-				into = c("Ref_reads", "Alt_reads"), sep = "_") %>%
-			separate_rows(
-				ALT, 
-				Alt_reads) %>%
-			mutate(
-				Alt_reads = as.numeric(Alt_reads), 
-				Ref_reads = as.numeric(Ref_reads), 
-				VAF = Alt_reads/(Alt_reads + Ref_reads))
+		separate(col = SB, sep = ",", into = c("Ref_forward", "Ref_reverse", "Alt_forward", "Alt_reverse"), remove = TRUE) %>%
+		select(-EVENTLENGTH) %>% # really didnt need to include this column in the variant tables
+		mutate(Sample = gsub(".tsv", "", basename(PATH_variant_table)), 
+			   Sample_type = str_extract(basename(PATH_variant_table), "cfDNA|WBC"),
+			   Sample_name = file_path_sans_ext(basename(PATH_variant_table)),
+			   Date_collected = str_split(Sample_name, "[-_]")  %>% sapply(tail, 1), 
+			   nchar_ref = nchar(REF), 
+			   nchar_alt = nchar(ALT), 
+			   ALT = ifelse(grepl(",", ALT), sub(",.*", "", ALT), ALT)) %>% # Select the first element if ALT contains commas
+		mutate(across(c(Alt_forward, Alt_reverse, Ref_forward, Ref_reverse), as.numeric)) %>%
+		mutate(TYPE = case_when(nchar_ref > nchar_alt ~ "Deletion", 
+			   					   nchar_ref < nchar_alt ~ "Insertion", 
+								   nchar_ref == nchar_alt ~ "SNV"), 
+			   VAF = (Alt_forward+Alt_reverse)/(Ref_forward+Ref_reverse+Alt_forward+Alt_reverse), 
+			   Depth = Ref_forward+Ref_reverse+Alt_forward+Alt_reverse) %>%
+		select(-nchar_ref, -nchar_alt) %>%
+		select(Sample_name, Sample_type, Date_collected, CHROM, POS, REF, ALT, TYPE, VAF, Depth, Alt_forward, Ref_forward, Alt_reverse, Ref_reverse, Func.refGene, Gene.refGene, ExonicFunc.refGene, 
+				 AAChange.refGene, cosmic97_coding, avsnp150, CLNALLELEID, CLNSIG)
 
-	return(df)
-}
-
-# This function is needed to change the format of REF and ALT fields as used in the ANNOVAR. This helps doing a merge later on
-# with the annovar results and the sample information.
-annovariaze_sample_info <- function(sample_info) {
-
-	df <- sample_info %>%
-		mutate(
-			nchar_REF = nchar(REF), 
-			nchar_ALT = nchar(ALT), 
-			nchar_dif = nchar_REF - nchar_ALT, 
-			TYPE = case_when(
-				nchar_dif == 0 ~ "snv", 
-				nchar_dif < 0 ~ "insertion",
-				nchar_dif > 0 ~ "deletion"),
-			POS_new = case_when(
-				nchar_REF == 1 ~ POS, # SNP 
-				nchar_REF > 1 ~ POS + 1, # more than 1 base at REF, add 1 to pos
-				TRUE ~ 9999), 
-			END_new = case_when(
-				nchar_REF == 1 ~ POS, # SNP
-				nchar_REF > 1 ~ POS + nchar_REF - 1, # more than 
-				TRUE ~ 9999), 
-			REF = case_when(
-				TYPE == "snv" ~ REF, 
-				TYPE != "snv" ~ substring(REF, 2)),
-			ALT = case_when(
-				TYPE == "snv" ~ ALT, 
-				TYPE != "snv" ~ substring(ALT, 2)), 
-			REF = case_when(
-				nchar(REF) == 0 ~ "-",
-				nchar(REF) != 0 ~ REF),
-			ALT = case_when(
-				nchar(ALT) == 0 ~ "-",
-				nchar(ALT) != 0 ~ ALT)) %>%
-		select(CHROM, POS, REF, ALT, TYPE, sample_names, Ref_reads, Alt_reads, VAF) %>%
-		rename(
-			Sample_name = sample_names, 
-			variant = TYPE)
-
+	names(df) <- c("Sample_name", "Sample_type", "Date_collected", "Chrom", "Position", "Ref", "Alt", "Type", "VAF", "Depth", "Alt_forward", "Ref_forward", "Alt_reverse", "Ref_reverse", "Function", "Gene", "Consequence", 
+				   "AAchange", "cosmic97_coding", "avsnp150", "CLNALLELEID", "CLNSIG")
 	return(df)
 
 }
 
-# Going back to normal reference and alt alleles after annovarizing them
-normalize_ref_alt <- function(variant_df, sample_info){
+return_anno_output_mutect_somatic <- function(PATH_variant_table) {
 
-	# sample_info has the ref and alt alleles in the format we want, we will do a merge on that
-	# change the "annovarized ref and alt"s back to the format that is in accordance with vardict and varscan. This will help with merging later on.
-	names(sample_info) <- c("Chrom", "Position", "Ref", "Alt", "Variant", "Sample_name", "Ref_reads", "Alt_reads", "VAF")
-	
-	variant_df <- variant_df[, -which(names(variant_df) %in% c("Ref", "Alt"))]
-	variant_df <- variant_df %>% 
-						left_join(sample_info) %>%
-						select(
-							"Sample_name", 
-							"Sample_type", 
-							"Patient_ID", 
-							"Cohort_name", 
-							"Chrom", 
-							"Position", 
-							"Ref", 
-							"Alt", 
-							"VAF", 
-							"Ref_reads", 
-							"Alt_reads", 
-							"Function", 
-							"Gene", 
-							"AAchange",
-							"Protein_annotation", 
-							"Effects", 
-							"ExAC_ALL", 
-							"Variant", 
-							"Error_rate", 
-							"VAF_bg_ratio", 
-							"Total_reads", 
-							"Duplicate", 
-							"Depth")
+	print(PATH_variant_table)
+	df <- as.data.frame(read.delim(PATH_variant_table, stringsAsFactors = FALSE, check.names = FALSE))
+	df$Sample_name_n = str_split(colnames(df)[grep("WBC", colnames(df))][1], "\\.")[[1]][1]
+	colnames(df) <- gsub("^.*[_-]WBC[-_].*\\.", "WBC_", colnames(df)) 
+	colnames(df) <- gsub("^.*[_-]cfDNA[-_].*\\.", "cfDNA_", colnames(df)) 
 
-	return(variant_df)
+	df <- df %>%
+		separate(col = cfDNA_SB, sep = ",", into = c("Ref_forward_t", "Ref_reverse_t", "Alt_forward_t", "Alt_reverse_t"), remove = TRUE) %>%
+		separate(col = WBC_SB, sep = ",", into = c("Ref_forward_n", "Ref_reverse_n", "Alt_forward_n", "Alt_reverse_n"), remove = TRUE) %>%
+		mutate(Patient_id = gsub("GU-", "", str_split(file_path_sans_ext(basename(PATH_variant_table)), "_")[[1]][1]),
+			   Sample_name_t = file_path_sans_ext(basename(PATH_variant_table)),
+			   Date_collected = tail(str_split(file_path_sans_ext(basename(PATH_variant_table)), "[-_]")[[1]], n = 1), 
+			   TYPE = case_when(
+							nchar(REF) > nchar(ALT) ~ "Deletion", 
+							nchar(REF) < nchar(ALT) ~ "Insertion",
+							nchar(REF) == nchar(ALT) ~ "SNV", 
+							TRUE ~ "Error"), 
+			   across(c(Alt_forward_t, Alt_reverse_t, Ref_forward_t, Ref_reverse_t, Alt_forward_n, Alt_reverse_n, Ref_forward_n, Ref_reverse_n), as.numeric), 
+			   VAF_t = (Alt_forward_t + Alt_reverse_t)/(Ref_forward_t + Ref_reverse_t + Alt_forward_t + Alt_reverse_t), 
+			   VAF_n = (Alt_forward_n + Alt_reverse_n)/(Ref_forward_n + Ref_reverse_n + Alt_forward_n + Alt_reverse_n), 
+			   Depth_t = Ref_forward_t + Ref_reverse_t + Alt_forward_t + Alt_reverse_t, 
+			   Depth_n = Ref_forward_n + Ref_reverse_n + Alt_forward_n + Alt_reverse_n, 
+			   tumor_to_normal_VAF_ratio = VAF_t/VAF_n) %>%
+		select(Patient_id, Sample_name_t, Date_collected, CHROM, POS, REF, ALT, TYPE, VAF_t, Depth_t, Alt_forward_t, Ref_forward_t, Alt_reverse_t, Ref_reverse_t, Func.refGene, Gene.refGene, ExonicFunc.refGene, 
+		AAChange.refGene, cosmic97_coding, avsnp150, CLNALLELEID, CLNSIG, Sample_name_n, VAF_n, Depth_n, Alt_forward_n, Ref_forward_n, Alt_reverse_n, Ref_reverse_n, tumor_to_normal_VAF_ratio)
+
+	names(df) <- c("Patient_id", "Sample_name_t", "Date_collected", "Chrom", "Position", "Ref", "Alt", "Type", "VAF_t", "Depth_t", "Alt_forward_t", "Ref_forward_t", "Alt_reverse_t", "Ref_reverse_t", "Function", "Gene", "Consequence", 
+	"AAchange", "cosmic97_coding", "avsnp150", "CLNALLELEID", "CLNSIG", "Sample_name_n", "VAF_n", "Depth_n", "Alt_forward_n", "Ref_forward_n", "Alt_reverse_n", "Ref_reverse_n", "tumor_to_normal_VAF_ratio")
+
+	return(df)
 }
 
-main <- function(
-	PATH_vcf_table, 
-	PATH_ANNOVAR_output,
-	cohort_name, 
-	THRESHOLD_ExAC_ALL, 
-	VALUE_Func_refGene, 
-	THRESHOLD_VarFreq, 
-	THRESHOLD_VAF_bg_ratio,
-	bg, 
-	PATH_bets_somatic, 
-	PATH_bets_germline, 
-	PATH_panel_genes, 
-	PATH_bed, 
-	DIR_depth_metrics, 
-	PATH_collective_depth_metrics, 
-	DIR_finland_bams, 
-	DIR_temp, 
-	DIR_tnvstats, 
-	PATH_filter_tnvstats_script,
-	variant_caller){
+
+# do a merge based on column to combine metadata 
+parse_anno_output <- function(DIR_variant_tables, mode, PATH_sample_list = NULL) {
+	# No subsetting, all files in the directory are used.
+	if (is.null(PATH_sample_list)) {
+		if (mode == "somatic") {
+			anno_df_list <- lapply(as.list(list.files(DIR_variant_tables, full.names = TRUE, pattern = ".tsv$")), return_anno_output_mutect_somatic)
+		} else if (mode == "chip") {
+			anno_df_list <- lapply(as.list(list.files(DIR_variant_tables, full.names = TRUE, pattern = ".tsv$")), return_anno_output_mutect_chip)
+		}
+	} else {
+		# We subset to a certain group of samples.
+		sample_df <- as.data.frame(read_delim(PATH_sample_list, delim = "\t"))
+		samples <- c(sample_df$cfDNA, sample_df$WBC)
+
+		# List files in the directory matching the samples
+		files_to_load <- list.files(DIR_variant_tables, full.names = TRUE, pattern = ".tsv$") # all files in the dir
+		files_to_load <- files_to_load[sapply(files_to_load, function(file) any(sapply(samples, grepl, file)))] # choose a subset based on the provided samples file
 		
-	variant_caller = variant_caller
+		if (mode == "somatic") {
+			anno_df_list <- lapply(as.list(files_to_load), return_anno_output_mutect_somatic)
+		} else if (mode == "chip") {
+			anno_df_list <- lapply(as.list(files_to_load), return_anno_output_mutect_chip)
+		}
+	}
+	anno_df <- as.data.frame(do.call(rbind, anno_df_list))
+	return(anno_df)
+}
 
-	sample_info <- parse_variant_info(PATH_vcf_table) # each row is a sample, each variant is evaluated in each sample
-	sample_info <- annovariaze_sample_info(sample_info)
+# main function to run everything
+MAIN <- function(
+					VALUE_Func_refGene, 
+					THRESHOLD_VarFreq, 
+					THRESHOLD_alt_reads, 
+					THRESHOLD_VAF_bg_ratio, 
+					DIR_variant_tables_chip,
+					DIR_mpileup,
+					DIR_mpileup_filtered,
+					bg,
+					PATH_cancer_type,
+					PATH_panel_genes,
+					PATH_bed,
+					DIR_depth_metrics,
+					PATH_collective_depth_metrics,
+					DIR_temp,
+					variant_caller,
+					PATH_blacklist, 
+					PATH_before_filtering, 
+					PATH_after_filtering, 
+					PATH_final){
 
-	annovar <- read_delim(PATH_ANNOVAR_output, delim = "\t")
-	combined <- left_join(
-					annovar, 
-					sample_info, 
-					by = c(
-						"Chr" = "CHROM", 
-						"Start" = "POS", 
-						"Ref" = "REF", 
-						"Alt" = "ALT")) %>%
-				mutate(Start = as.character(Start))
+	variant_caller = variant_caller # just so the function doesn't complain about us not using this argument
+	vars <- parse_anno_output(DIR_variant_tables_chip)
+	vars <- add_patient_information(vars, PATH_sample_information)
+	vars <- add_bg_error_rate(vars, bg)
+	vars <- add_AAchange_effect(vars, "Mutect2")
+	vars <- evaluate_strand_bias(vars)
+	write_csv(vars, PATH_before_filtering)
 
-	combined <- add_patient_id(combined, cohort_name)
-	combined <- add_bg_error_rate(combined, bg) # background error rate
-	combined <- add_AAchange_effect(combined) # protein annot and the effects
-	combined$Cohort_name <- cohort_name
-	combined <- add_sample_type(combined)
+	vars <- filter_variants_chip(vars, min_alt_reads, min_depth, min_VAF_low, max_VAF_low, min_VAF_high, max_VAF_high, min_VAF_bg_ratio, PATH_blacklist, blacklist = TRUE)
+	vars <- add_N_fraction(vars, DIR_mpileup, DIR_mpileup_filtered_chip, force = FALSE)
+	vars$Variant_caller <- "Mutect2"
+	write_csv(vars, PATH_after_filtering)
+	
+	vars <- combine_tumor_wbc(vars)
+	vars <- filter(vars, Strand_bias_fishers_n != TRUE & Strand_bias_fishers_t != TRUE)
+	write_csv(vars, PATH_final)
 
-	combined <- combined %>%
-						mutate(Total_reads = Ref_reads + Alt_reads, 
-								VAF_bg_ratio = VAF/error_rate, 
-								ExAC_ALL = replace_na(as.numeric(ExAC_ALL), 0), 
-								gnomAD_exome_ALL = replace_na(as.numeric(gnomAD_exome_ALL), 0)) %>%
-						select(Sample_name, Sample_type, patient_id, Cohort_name, Chr, Start, Ref, Alt, VAF, Ref_reads, Alt_reads, Func.refGene, Gene.refGene, AAChange.refGene, Protein_annotation, Effects, ExAC_ALL, variant, error_rate, VAF_bg_ratio, Total_reads) %>%
-						filter(ExAC_ALL <= THRESHOLD_ExAC_ALL, 
-								Func.refGene != VALUE_Func_refGene,
-								VAF_bg_ratio >= THRESHOLD_VAF_bg_ratio) 
+	return(combined)
 
-	# a common naming convention i will be sticking to from now on
-	names(combined) <- c("Sample_name", "Sample_type", "Patient_ID", "Cohort_name", "Chrom", "Position", "Ref", "Alt", "VAF", "Ref_reads", "Alt_reads", "Function", "Gene", "AAchange", "Protein_annotation", "Effects", "ExAC_ALL", "Variant", "Error_rate", "VAF_bg_ratio", "Total_reads")
-
-	idx <- grep("splicing", combined$Function)
-	combined$Effects[idx] <- "splicing"
-
-	# add a new col indicating if the variant is duplicated or not
-	combined <- identify_duplicates(combined)
-
-	# now filtering based on vaf, read support and depth etc. 
-	combined <- combined %>%
-				filter((Total_reads >= 1000 & VAF >= 0.005) | 
-						(Total_reads <= 1000 & Alt_reads >= 5), 
-						VAF < THRESHOLD_VarFreq)
-
-	combined <- subset_to_panel(PATH_bed, combined) # subset to panel
-	combined <- add_depth(DIR_depth_metrics, PATH_collective_depth_metrics, combined) # add depth information at these positions 
-	combined <- compare_with_bets(PATH_bets_somatic, PATH_bets_germline, PATH_panel_genes, combined) # adds three new columns
-
-	# add an extra col for alerting the user if the variant isn't found, despite gene being in the bets
-	combined <- combined %>% mutate(Status = case_when(
-										(In_germline_bets == FALSE & In_panel == TRUE) ~ "ALERT", 
-										(In_germline_bets == TRUE & In_panel == TRUE) ~ "Great",
-										(In_germline_bets == TRUE & In_panel == FALSE) ~ "Error",
-										TRUE ~ "OK"), 
-								Position = as.numeric(Position))
-
-	if (cohort_name == "new_chip_panel"){
-
-		# add the sample ID from the finland bams
-		finland_sample_IDs <- gsub(".bam", "", grep("*.bam$", list.files(DIR_finland_bams), value = TRUE))
-		combined$Sample_name_finland <- unlist(lapply(as.list(gsub("GUBB", "GU", combined$Patient_ID)), function(x) grep(x, finland_sample_IDs, value = TRUE)))
-		combined <- combined %>% relocate(Sample_name_finland, .after = Sample_name)
-
-		# write_csv(combined, "/groups/wyattgrp/users/amunzur/pipeline/results/temp/vardict_combined.csv")
-		# combined <- read_csv("/groups/wyattgrp/users/amunzur/pipeline/results/temp/vardict_combined.csv")
-
-		message("Filtering tnvstats right now.")
-		filtered_tnvstats <- filter_tnvstats_by_variants(
-								variants_df = combined, 
-								DIR_tnvstats = DIR_tnvstats, 
-								PATH_temp = file.path(DIR_temp, variant_caller), 
-								PATH_filter_tnvstats_script = PATH_filter_tnvstats_script, 
-								identifier = variant_caller)
-
-		combined <- add_finland_readcounts(combined, filtered_tnvstats, variant_caller) }
-
-	# Check for duplicated rows just before returning the object.
-	combined <- check_duplicated_rows(combined, TRUE)
-	combined <- normalize_ref_alt(combined, sample_info)
-
-	return(combined)}
-
-combine_and_save <- function(variants, PATH_SAVE_chip_variants){
-
-	dir.create(dirname(PATH_SAVE_chip_variants))
-
-	write_csv(variants, PATH_SAVE_chip_variants) # snv + indel, csv
-	write_delim(variants, gsub(".csv", ".tsv", PATH_SAVE_chip_variants), delim = "\t") # snv + indel, tsv
 }
