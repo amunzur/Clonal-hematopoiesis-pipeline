@@ -1,0 +1,12 @@
+
+    new
+    genome hg38
+    load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS2_final/GU-22-209_cfDNA-Baseline-IDT-2022Aug22.bam
+    load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS2_final/GU-22-209_WBC-Baseline-IDT-2022Aug22.bam
+    snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/somatic_SSCS2_bladder
+    goto chrX:124094039:124094159
+    sort start location
+    sort base
+    snapshot STAG2_p.D1221Ifs*13_chrX_124094099_GU-22-209_cfDNA-Baseline-IDT-2022Aug22.png
+    exit
+    

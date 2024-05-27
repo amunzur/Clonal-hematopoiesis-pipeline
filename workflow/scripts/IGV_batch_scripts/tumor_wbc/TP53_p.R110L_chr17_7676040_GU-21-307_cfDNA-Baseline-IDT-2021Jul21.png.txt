@@ -1,0 +1,12 @@
+
+    new
+    genome hg38
+    load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS2_final/GU-21-307_cfDNA-Baseline-IDT-2021Jul21.bam
+    load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS2_final/GU-21-307_WBC-Baseline-IDT-2021Jul21.bam
+    snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/somatic_SSCS2_bladder
+    goto chr17:7675980:7676100
+    sort start location
+    sort base
+    snapshot TP53_p.R110L_chr17_7676040_GU-21-307_cfDNA-Baseline-IDT-2021Jul21.png
+    exit
+    

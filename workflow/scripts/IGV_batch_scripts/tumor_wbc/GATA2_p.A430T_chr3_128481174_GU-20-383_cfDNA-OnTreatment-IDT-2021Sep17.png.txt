@@ -1,0 +1,12 @@
+
+    new
+    genome hg38
+    load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS2_final/GU-20-383_cfDNA-OnTreatment-IDT-2021Sep17.bam
+    load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS2_final/GU-20-383_WBC-OnTreatment-IDT-2021Sep17.bam
+    snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/somatic_SSCS2_bladder
+    goto chr3:128481114:128481234
+    sort start location
+    sort base
+    snapshot GATA2_p.A430T_chr3_128481174_GU-20-383_cfDNA-OnTreatment-IDT-2021Sep17.png
+    exit
+    

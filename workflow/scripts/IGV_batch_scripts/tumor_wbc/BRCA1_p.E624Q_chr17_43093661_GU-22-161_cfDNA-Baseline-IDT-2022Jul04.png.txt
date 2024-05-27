@@ -1,0 +1,12 @@
+
+    new
+    genome hg38
+    load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS2_final/GU-22-161_cfDNA-Baseline-IDT-2022Jul04.bam
+    load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS2_final/GU-22-161_WBC-Baseline-IDT-2022Jul04.bam
+    snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/somatic_SSCS2_bladder
+    goto chr17:43093601:43093721
+    sort start location
+    sort base
+    snapshot BRCA1_p.E624Q_chr17_43093661_GU-22-161_cfDNA-Baseline-IDT-2022Jul04.png
+    exit
+    

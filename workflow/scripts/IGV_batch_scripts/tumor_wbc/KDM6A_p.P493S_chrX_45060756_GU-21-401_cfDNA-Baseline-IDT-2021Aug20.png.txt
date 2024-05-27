@@ -1,0 +1,12 @@
+
+    new
+    genome hg38
+    load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS2_final/GU-21-401_cfDNA-Baseline-IDT-2021Aug20.bam
+    load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS2_final/GU-21-401_WBC-Baseline-IDT-2021Aug20.bam
+    snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/somatic_SSCS2_bladder
+    goto chrX:45060696:45060816
+    sort start location
+    sort base
+    snapshot KDM6A_p.P493S_chrX_45060756_GU-21-401_cfDNA-Baseline-IDT-2021Aug20.png
+    exit
+    

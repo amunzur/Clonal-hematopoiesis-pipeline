@@ -1,0 +1,1829 @@
+new
+genome hg38
+load /groups/wyattgrp/data/bam/kidney/GU-17-012-cfDNA-UMI-2017Jan17.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-012-gDNA-Baseline-IDT-2017Jan17_S1.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:31169847-31170047
+sort start location
+sort base
+snapshot GUBB-17-012-gDNA-Baseline-IDT-2017Jan17_S1_chr17_31169947.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-094-cfDNA-UMI-2017May25.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-094-gDNA-Baseline-IDT-2017May25_S3.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:25246596-25246796
+sort start location
+sort base
+snapshot GUBB-17-094-gDNA-Baseline-IDT-2017May25_S3_chr2_25246696.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-107-cfDNA-UMI-2017May09.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-107-gDNA-Baseline-IDT-2017May09_S4.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr20:58854509-58854709
+sort start location
+sort base
+snapshot GUBB-17-107-gDNA-Baseline-IDT-2017May09_S4_chr20_58854609.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-110-cfDNA-UMI-2017May03.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:11212320-11212520
+sort start location
+sort base
+snapshot GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5_chr1_11212420.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-110-cfDNA-UMI-2017May03.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr3:47097950-47098150
+sort start location
+sort base
+snapshot GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5_chr3_47098050.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-110-cfDNA-UMI-2017May03.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr4:105243609-105243809
+sort start location
+sort base
+snapshot GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5_chr4_105243709.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-118-cfDNA-UMI-2017Jun06.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-118-gDNA-Baseline-IDT-2017Jun06_S7.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr11:108364982-108365182
+sort start location
+sort base
+snapshot GUBB-17-118-gDNA-Baseline-IDT-2017Jun06_S7_chr11_108365082.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-118-cfDNA-UMI-2017Jun06.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-118-gDNA-Baseline-IDT-2017Jun06_S7.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr4:105236591-105236791
+sort start location
+sort base
+snapshot GUBB-17-118-gDNA-Baseline-IDT-2017Jun06_S7_chr4_105236691.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-144-cfDNA-UMI-2017May23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:31327487-31327687
+sort start location
+sort base
+snapshot GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9_chr17_31327587.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-149-cfDNA-UMI-2017Jun08.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-149-gDNA-Baseline-IDT-2017Jun08_S10.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:25247059-25247259
+sort start location
+sort base
+snapshot GUBB-17-149-gDNA-Baseline-IDT-2017Jun08_S10_chr2_25247159.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-149-cfDNA-UMI-2017Jun08.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-149-gDNA-Baseline-IDT-2017Jun08_S10.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr4:105276096-105276296
+sort start location
+sort base
+snapshot GUBB-17-149-gDNA-Baseline-IDT-2017Jun08_S10_chr4_105276196.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-164-cfDNA-UMI-2017Jun14.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-164-gDNA-Baseline-IDT-2017Jun14_S11.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:7673509-7673709
+sort start location
+sort base
+snapshot GUBB-17-164-gDNA-Baseline-IDT-2017Jun14_S11_chr17_7673609.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-164-cfDNA-UMI-2017Jun14.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-164-gDNA-Baseline-IDT-2017Jun14_S11.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:7675037-7675237
+sort start location
+sort base
+snapshot GUBB-17-164-gDNA-Baseline-IDT-2017Jun14_S11_chr17_7675137.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-178-cfDNA-UMI-2017Jul25.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-178-gDNA-Baseline-IDT-2017Jul25_S12.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr20:32437159-32437359
+sort start location
+sort base
+snapshot GUBB-17-178-gDNA-Baseline-IDT-2017Jul25_S12_chr20_32437259.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-272-cfDNA-UMI-2017Oct11.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-272-gDNA-Baseline-IDT-2017Oct11_S17.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr20:32435299-32435499
+sort start location
+sort base
+snapshot GUBB-17-272-gDNA-Baseline-IDT-2017Oct11_S17_chr20_32435399.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-029-cfDNA-UMI-2018Apr18.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-029-gDNA-Baseline-IDT-2018Apr18_S19.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr8:116856591-116856791
+sort start location
+sort base
+snapshot GUBB-18-029-gDNA-Baseline-IDT-2018Apr18_S19_chr8_116856691.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-088-cfDNA-UMI-2018Jul23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr9:5073670-5073870
+sort start location
+sort base
+snapshot GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21_chr9_5073770.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-129-cfDNA-UMI-2018Mar19.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr11:108227706-108227906
+sort start location
+sort base
+snapshot GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22_chr11_108227806.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-132-cfDNA-UMI-2018Mar27.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-132-gDNA-Baseline-IDT-2018Mar27_S23.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:25245165-25245365
+sort start location
+sort base
+snapshot GUBB-18-132-gDNA-Baseline-IDT-2018Mar27_S23_chr2_25245265.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-139-cfDNA-UMI-2018Jul18.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-139-gDNA-Baseline-IDT-2018Jul18_S24.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:7674184-7674384
+sort start location
+sort base
+snapshot GUBB-18-139-gDNA-Baseline-IDT-2018Jul18_S24_chr17_7674284.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-144-cfDNA-UMI-2017May23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr13:28004067-28004267
+sort start location
+sort base
+snapshot GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9_chr13_28004167.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-370-cfDNA-UMI-2018Aug28.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr13:28004067-28004267
+sort start location
+sort base
+snapshot GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29_chr13_28004167.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-149-cfDNA-UMI-2017Jun08.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-149-gDNA-Baseline-IDT-2017Jun08_S10.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr4:105236414-105236614
+sort start location
+sort base
+snapshot GUBB-17-149-gDNA-Baseline-IDT-2017Jun08_S10_chr4_105236514.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-185-cfDNA-UMI-2017Aug30.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-185-gDNA-Baseline-IDT-2017Aug30_S13.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr4:105236400-105236600
+sort start location
+sort base
+snapshot GUBB-17-185-gDNA-Baseline-IDT-2017Aug30_S13_chr4_105236500.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-267-cfDNA-UMI-2017Oct04.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr4:105235660-105235860
+sort start location
+sort base
+snapshot GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16_chr4_105235760.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-088-cfDNA-UMI-2018Jul23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr16:3757950-3758150
+sort start location
+sort base
+snapshot GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21_chr16_3758050.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-196-cfDNA-UMI-2018Jun11.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-196-gDNA-Baseline-IDT-2018Mar19_S25.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr16:3757950-3758150
+sort start location
+sort base
+snapshot GUBB-18-196-gDNA-Baseline-IDT-2018Mar19_S25_chr16_3758050.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-323-cfDNA-UMI-2018Jul31.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-323-gDNA-Baseline-IDT-2018Jul31_S28.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr16:3757950-3758150
+sort start location
+sort base
+snapshot GUBB-18-323-gDNA-Baseline-IDT-2018Jul31_S28_chr16_3758050.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-139-cfDNA-UMI-2017Nov14.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-139-gDNA-Baseline-IDT-2017Nov14_S8.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr3:128486252-128486452
+sort start location
+sort base
+snapshot GUBB-17-139-gDNA-Baseline-IDT-2017Nov14_S8_chr3_128486352.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-144-cfDNA-UMI-2017May23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr13:28004071-28004271
+sort start location
+sort base
+snapshot GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9_chr13_28004171.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-144-cfDNA-UMI-2017May23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr13:28004072-28004272
+sort start location
+sort base
+snapshot GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9_chr13_28004172.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-221-cfDNA-UMI-2017Jul31.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-221-gDNA-Baseline-IDT-2017Jul31_S14.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr3:38138803-38139003
+sort start location
+sort base
+snapshot GUBB-17-221-gDNA-Baseline-IDT-2017Jul31_S14_chr3_38138903.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-272-cfDNA-UMI-2017Oct11.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-272-gDNA-Baseline-IDT-2017Oct11_S17.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49052029-49052229
+sort start location
+sort base
+snapshot GUBB-17-272-gDNA-Baseline-IDT-2017Oct11_S17_chr12_49052129.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-029-cfDNA-UMI-2018Apr18.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-029-gDNA-Baseline-IDT-2018Apr18_S19.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr20:58840609-58840809
+sort start location
+sort base
+snapshot GUBB-18-029-gDNA-Baseline-IDT-2018Apr18_S19_chr20_58840709.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-059-cfDNA-UMI-2018Mar06.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-059-gDNA-Baseline-IDT-2018Mar06_S20.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr4:1801921-1802121
+sort start location
+sort base
+snapshot GUBB-18-059-gDNA-Baseline-IDT-2018Mar06_S20_chr4_1802021.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-088-cfDNA-UMI-2018Jul23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:197402637-197402837
+sort start location
+sort base
+snapshot GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21_chr2_197402737.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-129-cfDNA-UMI-2018Mar19.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:60663348-60663548
+sort start location
+sort base
+snapshot GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22_chr17_60663448.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-129-cfDNA-UMI-2018Mar19.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr20:58854577-58854777
+sort start location
+sort base
+snapshot GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22_chr20_58854677.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-051-cfDNA-UMI-2017Mar14.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-051-gDNA-Baseline-IDT-2017Mar14_S2.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:150950863-150951063
+sort start location
+sort base
+snapshot GUBB-17-051-gDNA-Baseline-IDT-2017Mar14_S2_chr1_150950963.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-029-cfDNA-UMI-2018Apr18.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-029-gDNA-Baseline-IDT-2018Apr18_S19.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:150950863-150951063
+sort start location
+sort base
+snapshot GUBB-18-029-gDNA-Baseline-IDT-2018Apr18_S19_chr1_150950963.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-051-cfDNA-UMI-2017Mar14.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-051-gDNA-Baseline-IDT-2017Mar14_S2.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:150950864-150951064
+sort start location
+sort base
+snapshot GUBB-17-051-gDNA-Baseline-IDT-2017Mar14_S2_chr1_150950964.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-118-cfDNA-UMI-2017Jun06.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-118-gDNA-Baseline-IDT-2017Jun06_S7.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:150950864-150951064
+sort start location
+sort base
+snapshot GUBB-17-118-gDNA-Baseline-IDT-2017Jun06_S7_chr1_150950964.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-029-cfDNA-UMI-2018Apr18.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-029-gDNA-Baseline-IDT-2018Apr18_S19.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:150950864-150951064
+sort start location
+sort base
+snapshot GUBB-18-029-gDNA-Baseline-IDT-2018Apr18_S19_chr1_150950964.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-178-cfDNA-UMI-2017Jul25.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-178-gDNA-Baseline-IDT-2017Jul25_S12.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:197402639-197402839
+sort start location
+sort base
+snapshot GUBB-17-178-gDNA-Baseline-IDT-2017Jul25_S12_chr2_197402739.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-088-cfDNA-UMI-2018Jul23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:197402639-197402839
+sort start location
+sort base
+snapshot GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21_chr2_197402739.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-088-cfDNA-UMI-2018Jul23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:197402646-197402846
+sort start location
+sort base
+snapshot GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21_chr2_197402746.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-370-cfDNA-UMI-2018Aug28.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:197402646-197402846
+sort start location
+sort base
+snapshot GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29_chr2_197402746.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-094-cfDNA-UMI-2017May25.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-094-gDNA-Baseline-IDT-2017May25_S3.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr20:58853761-58853961
+sort start location
+sort base
+snapshot GUBB-17-094-gDNA-Baseline-IDT-2017May25_S3_chr20_58853861.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-178-cfDNA-UMI-2017Jul25.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-178-gDNA-Baseline-IDT-2017Jul25_S12.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr20:58853761-58853961
+sort start location
+sort base
+snapshot GUBB-17-178-gDNA-Baseline-IDT-2017Jul25_S12_chr20_58853861.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-094-cfDNA-UMI-2017May25.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-094-gDNA-Baseline-IDT-2017May25_S3.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr20:58853762-58853962
+sort start location
+sort base
+snapshot GUBB-17-094-gDNA-Baseline-IDT-2017May25_S3_chr20_58853862.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-178-cfDNA-UMI-2017Jul25.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-178-gDNA-Baseline-IDT-2017Jul25_S12.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr20:58853762-58853962
+sort start location
+sort base
+snapshot GUBB-17-178-gDNA-Baseline-IDT-2017Jul25_S12_chr20_58853862.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-164-cfDNA-UMI-2017Jun14.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-164-gDNA-Baseline-IDT-2017Jun14_S11.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:26696859-26697059
+sort start location
+sort base
+snapshot GUBB-17-164-gDNA-Baseline-IDT-2017Jun14_S11_chr1_26696959.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-164-cfDNA-UMI-2017Jun14.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-164-gDNA-Baseline-IDT-2017Jun14_S11.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr20:58854473-58854673
+sort start location
+sort base
+snapshot GUBB-17-164-gDNA-Baseline-IDT-2017Jun14_S11_chr20_58854573.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-129-cfDNA-UMI-2018Mar19.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr20:58854465-58854665
+sort start location
+sort base
+snapshot GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22_chr20_58854565.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-297-cfDNA-UMI-2018Jul10.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-297-gDNA-Baseline-IDT-2018Jul10_S27.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:150945047-150945247
+sort start location
+sort base
+snapshot GUBB-18-297-gDNA-Baseline-IDT-2018Jul10_S27_chr1_150945147.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-370-cfDNA-UMI-2018Aug28.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:11130532-11130732
+sort start location
+sort base
+snapshot GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29_chr1_11130632.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-339-cfDNA-UMI-2017Dec28.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-339-gDNA-Baseline-IDT-2017Dec28_S18.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr10:87863867-87864067
+sort start location
+sort base
+snapshot GUBB-17-339-gDNA-Baseline-IDT-2017Dec28_S18_chr10_87863967.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-059-cfDNA-UMI-2018Mar06.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-059-gDNA-Baseline-IDT-2018Mar06_S20.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr10:87863867-87864067
+sort start location
+sort base
+snapshot GUBB-18-059-gDNA-Baseline-IDT-2018Mar06_S20_chr10_87863967.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-220-cfDNA-UMI-2018Mar19.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-220-gDNA-Baseline-IDT-2018Mar19_S26.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr16:3757950-3758150
+sort start location
+sort base
+snapshot GUBB-18-220-gDNA-Baseline-IDT-2018Mar19_S26_chr16_3758050.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-110-cfDNA-UMI-2017May03.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr7:148807524-148807724
+sort start location
+sort base
+snapshot GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5_chr7_148807624.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-118-cfDNA-UMI-2017Jun06.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-118-gDNA-Baseline-IDT-2017Jun06_S7.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr7:148807524-148807724
+sort start location
+sort base
+snapshot GUBB-17-118-gDNA-Baseline-IDT-2017Jun06_S7_chr7_148807624.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-221-cfDNA-UMI-2017Jul31.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-221-gDNA-Baseline-IDT-2017Jul31_S14.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr7:148807524-148807724
+sort start location
+sort base
+snapshot GUBB-17-221-gDNA-Baseline-IDT-2017Jul31_S14_chr7_148807624.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-339-cfDNA-UMI-2017Dec28.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-339-gDNA-Baseline-IDT-2017Dec28_S18.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr7:148807524-148807724
+sort start location
+sort base
+snapshot GUBB-17-339-gDNA-Baseline-IDT-2017Dec28_S18_chr7_148807624.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-059-cfDNA-UMI-2018Mar06.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-059-gDNA-Baseline-IDT-2018Mar06_S20.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr7:148807524-148807724
+sort start location
+sort base
+snapshot GUBB-18-059-gDNA-Baseline-IDT-2018Mar06_S20_chr7_148807624.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-139-cfDNA-UMI-2018Jul18.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-139-gDNA-Baseline-IDT-2018Jul18_S24.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr7:148807524-148807724
+sort start location
+sort base
+snapshot GUBB-18-139-gDNA-Baseline-IDT-2018Jul18_S24_chr7_148807624.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-149-cfDNA-UMI-2017Jun08.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-149-gDNA-Baseline-IDT-2017Jun08_S10.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr4:105236414-105236614
+sort start location
+sort base
+snapshot GUBB-17-149-gDNA-Baseline-IDT-2017Jun08_S10_chr4_105236514.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-185-cfDNA-UMI-2017Aug30.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-185-gDNA-Baseline-IDT-2017Aug30_S13.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr4:105236400-105236600
+sort start location
+sort base
+snapshot GUBB-17-185-gDNA-Baseline-IDT-2017Aug30_S13_chr4_105236500.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-267-cfDNA-UMI-2017Oct04.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr4:105235660-105235860
+sort start location
+sort base
+snapshot GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16_chr4_105235760.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-088-cfDNA-UMI-2018Jul23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr16:3757950-3758150
+sort start location
+sort base
+snapshot GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21_chr16_3758050.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-196-cfDNA-UMI-2018Jun11.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-196-gDNA-Baseline-IDT-2018Mar19_S25.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr16:3757950-3758150
+sort start location
+sort base
+snapshot GUBB-18-196-gDNA-Baseline-IDT-2018Mar19_S25_chr16_3758050.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-323-cfDNA-UMI-2018Jul31.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-323-gDNA-Baseline-IDT-2018Jul31_S28.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr16:3757950-3758150
+sort start location
+sort base
+snapshot GUBB-18-323-gDNA-Baseline-IDT-2018Jul31_S28_chr16_3758050.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-012-cfDNA-UMI-2017Jan17.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-012-gDNA-Baseline-IDT-2017Jan17_S1.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49033767-49033967
+sort start location
+sort base
+snapshot GUBB-17-012-gDNA-Baseline-IDT-2017Jan17_S1_chr12_49033867.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-012-cfDNA-UMI-2017Jan17.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-012-gDNA-Baseline-IDT-2017Jan17_S1.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:43045473-43045673
+sort start location
+sort base
+snapshot GUBB-17-012-gDNA-Baseline-IDT-2017Jan17_S1_chr17_43045573.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-012-cfDNA-UMI-2017Jan17.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-012-gDNA-Baseline-IDT-2017Jan17_S1.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr21:34886899-34887099
+sort start location
+sort base
+snapshot GUBB-17-012-gDNA-Baseline-IDT-2017Jan17_S1_chr21_34886999.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-094-cfDNA-UMI-2017May25.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-094-gDNA-Baseline-IDT-2017May25_S3.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:197420264-197420464
+sort start location
+sort base
+snapshot GUBB-17-094-gDNA-Baseline-IDT-2017May25_S3_chr2_197420364.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-094-cfDNA-UMI-2017May25.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-094-gDNA-Baseline-IDT-2017May25_S3.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr3:52662069-52662269
+sort start location
+sort base
+snapshot GUBB-17-094-gDNA-Baseline-IDT-2017May25_S3_chr3_52662169.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-094-cfDNA-UMI-2017May25.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-094-gDNA-Baseline-IDT-2017May25_S3.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr4:105275019-105275219
+sort start location
+sort base
+snapshot GUBB-17-094-gDNA-Baseline-IDT-2017May25_S3_chr4_105275119.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-094-cfDNA-UMI-2017May25.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-094-gDNA-Baseline-IDT-2017May25_S3.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:39711930-39712130
+sort start location
+sort base
+snapshot GUBB-17-094-gDNA-Baseline-IDT-2017May25_S3_chr17_39712030.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-107-cfDNA-UMI-2017May09.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-107-gDNA-Baseline-IDT-2017May09_S4.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:26779946-26780146
+sort start location
+sort base
+snapshot GUBB-17-107-gDNA-Baseline-IDT-2017May09_S4_chr1_26780046.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-107-cfDNA-UMI-2017May09.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-107-gDNA-Baseline-IDT-2017May09_S4.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr3:47062080-47062280
+sort start location
+sort base
+snapshot GUBB-17-107-gDNA-Baseline-IDT-2017May09_S4_chr3_47062180.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-107-cfDNA-UMI-2017May09.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-107-gDNA-Baseline-IDT-2017May09_S4.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr3:179210220-179210420
+sort start location
+sort base
+snapshot GUBB-17-107-gDNA-Baseline-IDT-2017May09_S4_chr3_179210320.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-107-cfDNA-UMI-2017May09.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-107-gDNA-Baseline-IDT-2017May09_S4.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49049090-49049290
+sort start location
+sort base
+snapshot GUBB-17-107-gDNA-Baseline-IDT-2017May09_S4_chr12_49049190.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-107-cfDNA-UMI-2017May09.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-107-gDNA-Baseline-IDT-2017May09_S4.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr20:32433628-32433828
+sort start location
+sort base
+snapshot GUBB-17-107-gDNA-Baseline-IDT-2017May09_S4_chr20_32433728.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-107-cfDNA-UMI-2017May09.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-107-gDNA-Baseline-IDT-2017May09_S4.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr22:28693973-28694173
+sort start location
+sort base
+snapshot GUBB-17-107-gDNA-Baseline-IDT-2017May09_S4_chr22_28694073.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-107-cfDNA-UMI-2017May09.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-107-gDNA-Baseline-IDT-2017May09_S4.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr22:28724944-28725144
+sort start location
+sort base
+snapshot GUBB-17-107-gDNA-Baseline-IDT-2017May09_S4_chr22_28725044.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-110-cfDNA-UMI-2017May03.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:197397905-197398105
+sort start location
+sort base
+snapshot GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5_chr2_197398005.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-110-cfDNA-UMI-2017May03.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr3:10149732-10149932
+sort start location
+sort base
+snapshot GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5_chr3_10149832.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-110-cfDNA-UMI-2017May03.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr3:47086140-47086340
+sort start location
+sort base
+snapshot GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5_chr3_47086240.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-110-cfDNA-UMI-2017May03.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr4:105237172-105237372
+sort start location
+sort base
+snapshot GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5_chr4_105237272.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-110-cfDNA-UMI-2017May03.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49030284-49030484
+sort start location
+sort base
+snapshot GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5_chr12_49030384.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-110-cfDNA-UMI-2017May03.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49046617-49046817
+sort start location
+sort base
+snapshot GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5_chr12_49046717.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-110-cfDNA-UMI-2017May03.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49053990-49054190
+sort start location
+sort base
+snapshot GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5_chr12_49054090.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-110-cfDNA-UMI-2017May03.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr13:48379516-48379716
+sort start location
+sort base
+snapshot GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5_chr13_48379616.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-110-cfDNA-UMI-2017May03.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr16:3767652-3767852
+sort start location
+sort base
+snapshot GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5_chr16_3767752.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-110-cfDNA-UMI-2017May03.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr20:58855024-58855224
+sort start location
+sort base
+snapshot GUBB-17-110-gDNA-Baseline-IDT-2017May03_S5_chr20_58855124.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-114-cfDNA-UMI-2017May24.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-114-gDNA-Baseline-IDT-2017May24_S6.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:43352130-43352330
+sort start location
+sort base
+snapshot GUBB-17-114-gDNA-Baseline-IDT-2017May24_S6_chr1_43352230.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-114-cfDNA-UMI-2017May24.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-114-gDNA-Baseline-IDT-2017May24_S6.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:197396069-197396269
+sort start location
+sort base
+snapshot GUBB-17-114-gDNA-Baseline-IDT-2017May24_S6_chr2_197396169.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-114-cfDNA-UMI-2017May24.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-114-gDNA-Baseline-IDT-2017May24_S6.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr3:128486196-128486396
+sort start location
+sort base
+snapshot GUBB-17-114-gDNA-Baseline-IDT-2017May24_S6_chr3_128486296.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-114-cfDNA-UMI-2017May24.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-114-gDNA-Baseline-IDT-2017May24_S6.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr3:179203555-179203755
+sort start location
+sort base
+snapshot GUBB-17-114-gDNA-Baseline-IDT-2017May24_S6_chr3_179203655.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-114-cfDNA-UMI-2017May24.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-114-gDNA-Baseline-IDT-2017May24_S6.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr11:108281042-108281242
+sort start location
+sort base
+snapshot GUBB-17-114-gDNA-Baseline-IDT-2017May24_S6_chr11_108281142.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-114-cfDNA-UMI-2017May24.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-114-gDNA-Baseline-IDT-2017May24_S6.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr13:28015558-28015758
+sort start location
+sort base
+snapshot GUBB-17-114-gDNA-Baseline-IDT-2017May24_S6_chr13_28015658.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-114-cfDNA-UMI-2017May24.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-114-gDNA-Baseline-IDT-2017May24_S6.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:39711873-39712073
+sort start location
+sort base
+snapshot GUBB-17-114-gDNA-Baseline-IDT-2017May24_S6_chr17_39711973.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-114-cfDNA-UMI-2017May24.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-114-gDNA-Baseline-IDT-2017May24_S6.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:43045644-43045844
+sort start location
+sort base
+snapshot GUBB-17-114-gDNA-Baseline-IDT-2017May24_S6_chr17_43045744.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-114-cfDNA-UMI-2017May24.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-114-gDNA-Baseline-IDT-2017May24_S6.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr21:34892846-34893046
+sort start location
+sort base
+snapshot GUBB-17-114-gDNA-Baseline-IDT-2017May24_S6_chr21_34892946.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-118-cfDNA-UMI-2017Jun06.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-118-gDNA-Baseline-IDT-2017Jun06_S7.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr20:32434631-32434831
+sort start location
+sort base
+snapshot GUBB-17-118-gDNA-Baseline-IDT-2017Jun06_S7_chr20_32434731.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-118-cfDNA-UMI-2017Jun06.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-118-gDNA-Baseline-IDT-2017Jun06_S7.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr21:34886981-34887181
+sort start location
+sort base
+snapshot GUBB-17-118-gDNA-Baseline-IDT-2017Jun06_S7_chr21_34887081.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-139-cfDNA-UMI-2017Nov14.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-139-gDNA-Baseline-IDT-2017Nov14_S8.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:11121961-11122161
+sort start location
+sort base
+snapshot GUBB-17-139-gDNA-Baseline-IDT-2017Nov14_S8_chr1_11122061.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-139-cfDNA-UMI-2017Nov14.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-139-gDNA-Baseline-IDT-2017Nov14_S8.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:11238506-11238706
+sort start location
+sort base
+snapshot GUBB-17-139-gDNA-Baseline-IDT-2017Nov14_S8_chr1_11238606.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-139-cfDNA-UMI-2017Nov14.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-139-gDNA-Baseline-IDT-2017Nov14_S8.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr3:52586333-52586533
+sort start location
+sort base
+snapshot GUBB-17-139-gDNA-Baseline-IDT-2017Nov14_S8_chr3_52586433.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-139-cfDNA-UMI-2017Nov14.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-139-gDNA-Baseline-IDT-2017Nov14_S8.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr11:108250638-108250838
+sort start location
+sort base
+snapshot GUBB-17-139-gDNA-Baseline-IDT-2017Nov14_S8_chr11_108250738.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-139-cfDNA-UMI-2017Nov14.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-139-gDNA-Baseline-IDT-2017Nov14_S8.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:7675997-7676197
+sort start location
+sort base
+snapshot GUBB-17-139-gDNA-Baseline-IDT-2017Nov14_S8_chr17_7676097.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-144-cfDNA-UMI-2017May23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:11114727-11114927
+sort start location
+sort base
+snapshot GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9_chr1_11114827.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-144-cfDNA-UMI-2017May23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:11253862-11254062
+sort start location
+sort base
+snapshot GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9_chr1_11253962.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-144-cfDNA-UMI-2017May23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr3:10141755-10141955
+sort start location
+sort base
+snapshot GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9_chr3_10141855.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-144-cfDNA-UMI-2017May23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49031524-49031724
+sort start location
+sort base
+snapshot GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9_chr12_49031624.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-144-cfDNA-UMI-2017May23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49044843-49045043
+sort start location
+sort base
+snapshot GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9_chr12_49044943.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-144-cfDNA-UMI-2017May23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr15:90090465-90090665
+sort start location
+sort base
+snapshot GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9_chr15_90090565.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-144-cfDNA-UMI-2017May23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr20:32428090-32428290
+sort start location
+sort base
+snapshot GUBB-17-144-gDNA-Baseline-IDT-2017May23_S9_chr20_32428190.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-149-cfDNA-UMI-2017Jun08.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-149-gDNA-Baseline-IDT-2017Jun08_S10.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:197402680-197402880
+sort start location
+sort base
+snapshot GUBB-17-149-gDNA-Baseline-IDT-2017Jun08_S10_chr2_197402780.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-149-cfDNA-UMI-2017Jun08.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-149-gDNA-Baseline-IDT-2017Jun08_S10.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49040702-49040902
+sort start location
+sort base
+snapshot GUBB-17-149-gDNA-Baseline-IDT-2017Jun08_S10_chr12_49040802.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-149-cfDNA-UMI-2017Jun08.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-149-gDNA-Baseline-IDT-2017Jun08_S10.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:31358898-31359098
+sort start location
+sort base
+snapshot GUBB-17-149-gDNA-Baseline-IDT-2017Jun08_S10_chr17_31358998.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-164-cfDNA-UMI-2017Jun14.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-164-gDNA-Baseline-IDT-2017Jun14_S11.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:11150114-11150314
+sort start location
+sort base
+snapshot GUBB-17-164-gDNA-Baseline-IDT-2017Jun14_S11_chr1_11150214.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-164-cfDNA-UMI-2017Jun14.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-164-gDNA-Baseline-IDT-2017Jun14_S11.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr4:1799704-1799904
+sort start location
+sort base
+snapshot GUBB-17-164-gDNA-Baseline-IDT-2017Jun14_S11_chr4_1799804.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-164-cfDNA-UMI-2017Jun14.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-164-gDNA-Baseline-IDT-2017Jun14_S11.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr4:105234965-105235165
+sort start location
+sort base
+snapshot GUBB-17-164-gDNA-Baseline-IDT-2017Jun14_S11_chr4_105235065.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-178-cfDNA-UMI-2017Jul25.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-178-gDNA-Baseline-IDT-2017Jul25_S12.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:26732606-26732806
+sort start location
+sort base
+snapshot GUBB-17-178-gDNA-Baseline-IDT-2017Jul25_S12_chr1_26732706.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-178-cfDNA-UMI-2017Jul25.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-178-gDNA-Baseline-IDT-2017Jul25_S12.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:150927653-150927853
+sort start location
+sort base
+snapshot GUBB-17-178-gDNA-Baseline-IDT-2017Jul25_S12_chr1_150927753.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-178-cfDNA-UMI-2017Jul25.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-178-gDNA-Baseline-IDT-2017Jul25_S12.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:150963428-150963628
+sort start location
+sort base
+snapshot GUBB-17-178-gDNA-Baseline-IDT-2017Jul25_S12_chr1_150963528.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-178-cfDNA-UMI-2017Jul25.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-178-gDNA-Baseline-IDT-2017Jul25_S12.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:39723834-39724034
+sort start location
+sort base
+snapshot GUBB-17-178-gDNA-Baseline-IDT-2017Jul25_S12_chr17_39723934.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-221-cfDNA-UMI-2017Jul31.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-221-gDNA-Baseline-IDT-2017Jul31_S14.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:11231300-11231500
+sort start location
+sort base
+snapshot GUBB-17-221-gDNA-Baseline-IDT-2017Jul31_S14_chr1_11231400.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-221-cfDNA-UMI-2017Jul31.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-221-gDNA-Baseline-IDT-2017Jul31_S14.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:150960933-150961133
+sort start location
+sort base
+snapshot GUBB-17-221-gDNA-Baseline-IDT-2017Jul31_S14_chr1_150961033.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-221-cfDNA-UMI-2017Jul31.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-221-gDNA-Baseline-IDT-2017Jul31_S14.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr15:90085248-90085448
+sort start location
+sort base
+snapshot GUBB-17-221-gDNA-Baseline-IDT-2017Jul31_S14_chr15_90085348.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-221-cfDNA-UMI-2017Jul31.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-221-gDNA-Baseline-IDT-2017Jul31_S14.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr15:90087063-90087263
+sort start location
+sort base
+snapshot GUBB-17-221-gDNA-Baseline-IDT-2017Jul31_S14_chr15_90087163.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-245-cfDNA-UMI-2017Sep12.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-245-gDNA-Baseline-IDT-2017Sep12_S15.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:43337819-43338019
+sort start location
+sort base
+snapshot GUBB-17-245-gDNA-Baseline-IDT-2017Sep12_S15_chr1_43337919.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-245-cfDNA-UMI-2017Sep12.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-245-gDNA-Baseline-IDT-2017Sep12_S15.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:25244479-25244679
+sort start location
+sort base
+snapshot GUBB-17-245-gDNA-Baseline-IDT-2017Sep12_S15_chr2_25244579.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-245-cfDNA-UMI-2017Sep12.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-245-gDNA-Baseline-IDT-2017Sep12_S15.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49021739-49021939
+sort start location
+sort base
+snapshot GUBB-17-245-gDNA-Baseline-IDT-2017Sep12_S15_chr12_49021839.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-245-cfDNA-UMI-2017Sep12.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-245-gDNA-Baseline-IDT-2017Sep12_S15.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49049108-49049308
+sort start location
+sort base
+snapshot GUBB-17-245-gDNA-Baseline-IDT-2017Sep12_S15_chr12_49049208.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-245-cfDNA-UMI-2017Sep12.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-245-gDNA-Baseline-IDT-2017Sep12_S15.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr20:58905372-58905572
+sort start location
+sort base
+snapshot GUBB-17-245-gDNA-Baseline-IDT-2017Sep12_S15_chr20_58905472.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-267-cfDNA-UMI-2017Oct04.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:1787229-1787429
+sort start location
+sort base
+snapshot GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16_chr1_1787329.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-267-cfDNA-UMI-2017Oct04.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:11212373-11212573
+sort start location
+sort base
+snapshot GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16_chr1_11212473.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-267-cfDNA-UMI-2017Oct04.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:25249569-25249769
+sort start location
+sort base
+snapshot GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16_chr2_25249669.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-267-cfDNA-UMI-2017Oct04.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:208239852-208240052
+sort start location
+sort base
+snapshot GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16_chr2_208239952.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-267-cfDNA-UMI-2017Oct04.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr11:119306190-119306390
+sort start location
+sort base
+snapshot GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16_chr11_119306290.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-267-cfDNA-UMI-2017Oct04.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49022491-49022691
+sort start location
+sort base
+snapshot GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16_chr12_49022591.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-267-cfDNA-UMI-2017Oct04.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:7676048-7676248
+sort start location
+sort base
+snapshot GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16_chr17_7676148.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-267-cfDNA-UMI-2017Oct04.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr21:34834466-34834666
+sort start location
+sort base
+snapshot GUBB-17-267-gDNA-Baseline-IDT-2017Oct04_S16_chr21_34834566.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-272-cfDNA-UMI-2017Oct11.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-272-gDNA-Baseline-IDT-2017Oct11_S17.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr3:52408452-52408652
+sort start location
+sort base
+snapshot GUBB-17-272-gDNA-Baseline-IDT-2017Oct11_S17_chr3_52408552.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-272-cfDNA-UMI-2017Oct11.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-272-gDNA-Baseline-IDT-2017Oct11_S17.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49054916-49055116
+sort start location
+sort base
+snapshot GUBB-17-272-gDNA-Baseline-IDT-2017Oct11_S17_chr12_49055016.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-339-cfDNA-UMI-2017Dec28.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-339-gDNA-Baseline-IDT-2017Dec28_S18.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:25247043-25247243
+sort start location
+sort base
+snapshot GUBB-17-339-gDNA-Baseline-IDT-2017Dec28_S18_chr2_25247143.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-339-cfDNA-UMI-2017Dec28.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-339-gDNA-Baseline-IDT-2017Dec28_S18.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr16:3728620-3728820
+sort start location
+sort base
+snapshot GUBB-17-339-gDNA-Baseline-IDT-2017Dec28_S18_chr16_3728720.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-339-cfDNA-UMI-2017Dec28.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-339-gDNA-Baseline-IDT-2017Dec28_S18.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr16:3729324-3729524
+sort start location
+sort base
+snapshot GUBB-17-339-gDNA-Baseline-IDT-2017Dec28_S18_chr16_3729424.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-029-cfDNA-UMI-2018Apr18.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-029-gDNA-Baseline-IDT-2018Apr18_S19.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49052894-49053094
+sort start location
+sort base
+snapshot GUBB-18-029-gDNA-Baseline-IDT-2018Apr18_S19_chr12_49052994.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-059-cfDNA-UMI-2018Mar06.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-059-gDNA-Baseline-IDT-2018Mar06_S20.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr13:28028151-28028351
+sort start location
+sort base
+snapshot GUBB-18-059-gDNA-Baseline-IDT-2018Mar06_S20_chr13_28028251.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-088-cfDNA-UMI-2018Jul23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:197398368-197398568
+sort start location
+sort base
+snapshot GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21_chr2_197398468.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-088-cfDNA-UMI-2018Jul23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:208243447-208243647
+sort start location
+sort base
+snapshot GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21_chr2_208243547.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-088-cfDNA-UMI-2018Jul23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr3:52403119-52403319
+sort start location
+sort base
+snapshot GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21_chr3_52403219.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-088-cfDNA-UMI-2018Jul23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr3:128485729-128485929
+sort start location
+sort base
+snapshot GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21_chr3_128485829.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-088-cfDNA-UMI-2018Jul23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr4:1799220-1799420
+sort start location
+sort base
+snapshot GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21_chr4_1799320.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-088-cfDNA-UMI-2018Jul23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr11:108304689-108304889
+sort start location
+sort base
+snapshot GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21_chr11_108304789.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-088-cfDNA-UMI-2018Jul23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49031530-49031730
+sort start location
+sort base
+snapshot GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21_chr12_49031630.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-088-cfDNA-UMI-2018Jul23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49032596-49032796
+sort start location
+sort base
+snapshot GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21_chr12_49032696.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-088-cfDNA-UMI-2018Jul23.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr16:3729563-3729763
+sort start location
+sort base
+snapshot GUBB-18-088-gDNA-Baseline-IDT-2018Jul23_S21_chr16_3729663.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-129-cfDNA-UMI-2018Mar19.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:1825359-1825559
+sort start location
+sort base
+snapshot GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22_chr1_1825459.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-129-cfDNA-UMI-2018Mar19.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:11234077-11234277
+sort start location
+sort base
+snapshot GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22_chr1_11234177.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-129-cfDNA-UMI-2018Mar19.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:11234099-11234299
+sort start location
+sort base
+snapshot GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22_chr1_11234199.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-129-cfDNA-UMI-2018Mar19.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:197397995-197398195
+sort start location
+sort base
+snapshot GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22_chr2_197398095.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-129-cfDNA-UMI-2018Mar19.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr11:108250745-108250945
+sort start location
+sort base
+snapshot GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22_chr11_108250845.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-129-cfDNA-UMI-2018Mar19.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49032230-49032430
+sort start location
+sort base
+snapshot GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22_chr12_49032330.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-129-cfDNA-UMI-2018Mar19.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49040364-49040564
+sort start location
+sort base
+snapshot GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22_chr12_49040464.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-129-cfDNA-UMI-2018Mar19.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr14:37592202-37592402
+sort start location
+sort base
+snapshot GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22_chr14_37592302.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-129-cfDNA-UMI-2018Mar19.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:39724689-39724889
+sort start location
+sort base
+snapshot GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22_chr17_39724789.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-129-cfDNA-UMI-2018Mar19.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr19:33301913-33302113
+sort start location
+sort base
+snapshot GUBB-18-129-gDNA-Baseline-IDT-2018Mar19_S22_chr19_33302013.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-132-cfDNA-UMI-2018Mar27.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-132-gDNA-Baseline-IDT-2018Mar27_S23.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:7676457-7676657
+sort start location
+sort base
+snapshot GUBB-18-132-gDNA-Baseline-IDT-2018Mar27_S23_chr17_7676557.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-139-cfDNA-UMI-2018Jul18.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-139-gDNA-Baseline-IDT-2018Jul18_S24.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:43338516-43338716
+sort start location
+sort base
+snapshot GUBB-18-139-gDNA-Baseline-IDT-2018Jul18_S24_chr1_43338616.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-139-cfDNA-UMI-2018Jul18.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-139-gDNA-Baseline-IDT-2018Jul18_S24.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr10:87863829-87864029
+sort start location
+sort base
+snapshot GUBB-18-139-gDNA-Baseline-IDT-2018Jul18_S24_chr10_87863929.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-139-cfDNA-UMI-2018Jul18.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-139-gDNA-Baseline-IDT-2018Jul18_S24.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49050375-49050575
+sort start location
+sort base
+snapshot GUBB-18-139-gDNA-Baseline-IDT-2018Jul18_S24_chr12_49050475.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-139-cfDNA-UMI-2018Jul18.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-139-gDNA-Baseline-IDT-2018Jul18_S24.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:31342951-31343151
+sort start location
+sort base
+snapshot GUBB-18-139-gDNA-Baseline-IDT-2018Jul18_S24_chr17_31343051.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-196-cfDNA-UMI-2018Jun11.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-196-gDNA-Baseline-IDT-2018Mar19_S25.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:11234132-11234332
+sort start location
+sort base
+snapshot GUBB-18-196-gDNA-Baseline-IDT-2018Mar19_S25_chr1_11234232.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-196-cfDNA-UMI-2018Jun11.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-196-gDNA-Baseline-IDT-2018Mar19_S25.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr4:1803729-1803929
+sort start location
+sort base
+snapshot GUBB-18-196-gDNA-Baseline-IDT-2018Mar19_S25_chr4_1803829.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-196-cfDNA-UMI-2018Jun11.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-196-gDNA-Baseline-IDT-2018Mar19_S25.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:31338688-31338888
+sort start location
+sort base
+snapshot GUBB-18-196-gDNA-Baseline-IDT-2018Mar19_S25_chr17_31338788.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-220-cfDNA-UMI-2018Mar19.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-220-gDNA-Baseline-IDT-2018Mar19_S26.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr13:48303740-48303940
+sort start location
+sort base
+snapshot GUBB-18-220-gDNA-Baseline-IDT-2018Mar19_S26_chr13_48303840.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-220-cfDNA-UMI-2018Mar19.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-220-gDNA-Baseline-IDT-2018Mar19_S26.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr20:32434457-32434657
+sort start location
+sort base
+snapshot GUBB-18-220-gDNA-Baseline-IDT-2018Mar19_S26_chr20_32434557.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-297-cfDNA-UMI-2018Jul10.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-297-gDNA-Baseline-IDT-2018Jul10_S27.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr4:105272486-105272686
+sort start location
+sort base
+snapshot GUBB-18-297-gDNA-Baseline-IDT-2018Jul10_S27_chr4_105272586.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-297-cfDNA-UMI-2018Jul10.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-297-gDNA-Baseline-IDT-2018Jul10_S27.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:25245240-25245440
+sort start location
+sort base
+snapshot GUBB-18-297-gDNA-Baseline-IDT-2018Jul10_S27_chr12_25245340.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-297-cfDNA-UMI-2018Jul10.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-297-gDNA-Baseline-IDT-2018Jul10_S27.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr16:3729761-3729961
+sort start location
+sort base
+snapshot GUBB-18-297-gDNA-Baseline-IDT-2018Jul10_S27_chr16_3729861.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-297-cfDNA-UMI-2018Jul10.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-297-gDNA-Baseline-IDT-2018Jul10_S27.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:31336697-31336897
+sort start location
+sort base
+snapshot GUBB-18-297-gDNA-Baseline-IDT-2018Jul10_S27_chr17_31336797.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-297-cfDNA-UMI-2018Jul10.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-297-gDNA-Baseline-IDT-2018Jul10_S27.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr22:28689077-28689277
+sort start location
+sort base
+snapshot GUBB-18-297-gDNA-Baseline-IDT-2018Jul10_S27_chr22_28689177.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-323-cfDNA-UMI-2018Jul31.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-323-gDNA-Baseline-IDT-2018Jul31_S28.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr9:5044316-5044516
+sort start location
+sort base
+snapshot GUBB-18-323-gDNA-Baseline-IDT-2018Jul31_S28_chr9_5044416.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-323-cfDNA-UMI-2018Jul31.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-323-gDNA-Baseline-IDT-2018Jul31_S28.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49038710-49038910
+sort start location
+sort base
+snapshot GUBB-18-323-gDNA-Baseline-IDT-2018Jul31_S28_chr12_49038810.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-323-cfDNA-UMI-2018Jul31.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-323-gDNA-Baseline-IDT-2018Jul31_S28.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49055177-49055377
+sort start location
+sort base
+snapshot GUBB-18-323-gDNA-Baseline-IDT-2018Jul31_S28_chr12_49055277.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-323-cfDNA-UMI-2018Jul31.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-323-gDNA-Baseline-IDT-2018Jul31_S28.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr13:32398481-32398681
+sort start location
+sort base
+snapshot GUBB-18-323-gDNA-Baseline-IDT-2018Jul31_S28_chr13_32398581.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-370-cfDNA-UMI-2018Aug28.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:25234270-25234470
+sort start location
+sort base
+snapshot GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29_chr2_25234370.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-370-cfDNA-UMI-2018Aug28.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr2:197409828-197410028
+sort start location
+sort base
+snapshot GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29_chr2_197409928.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-370-cfDNA-UMI-2018Aug28.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr5:1295433-1295633
+sort start location
+sort base
+snapshot GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29_chr5_1295533.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-370-cfDNA-UMI-2018Aug28.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr12:49052963-49053163
+sort start location
+sort base
+snapshot GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29_chr12_49053063.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-370-cfDNA-UMI-2018Aug28.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr16:3731137-3731337
+sort start location
+sort base
+snapshot GUBB-18-370-gDNA-Baseline-IDT-2018Aug28_S29_chr16_3731237.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-178-cfDNA-UMI-2017Jul25.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-178-gDNA-Baseline-IDT-2017Jul25_S12.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:11114745-11114945
+sort start location
+sort base
+snapshot GUBB-17-178-gDNA-Baseline-IDT-2017Jul25_S12_chr1_11114845.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-118-cfDNA-UMI-2017Jun06.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-118-gDNA-Baseline-IDT-2017Jun06_S7.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr1:11199605-11199805
+sort start location
+sort base
+snapshot GUBB-17-118-gDNA-Baseline-IDT-2017Jun06_S7_chr1_11199705.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-272-cfDNA-UMI-2017Oct11.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-272-gDNA-Baseline-IDT-2017Oct11_S17.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr10:87863801-87864001
+sort start location
+sort base
+snapshot GUBB-17-272-gDNA-Baseline-IDT-2017Oct11_S17_chr10_87863901.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-149-cfDNA-UMI-2017Jun08.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-149-gDNA-Baseline-IDT-2017Jun08_S10.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr13:28004067-28004267
+sort start location
+sort base
+snapshot GUBB-17-149-gDNA-Baseline-IDT-2017Jun08_S10_chr13_28004167.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-051-cfDNA-UMI-2017Mar14.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-051-gDNA-Baseline-IDT-2017Mar14_S2.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr16:3757950-3758150
+sort start location
+sort base
+snapshot GUBB-17-051-gDNA-Baseline-IDT-2017Mar14_S2_chr16_3758050.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-139-cfDNA-UMI-2017Nov14.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-139-gDNA-Baseline-IDT-2017Nov14_S8.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr17:43051005-43051205
+sort start location
+sort base
+snapshot GUBB-17-139-gDNA-Baseline-IDT-2017Nov14_S8_chr17_43051105.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-18-132-cfDNA-UMI-2018Mar27.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-18-132-gDNA-Baseline-IDT-2018Mar27_S23.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr19:33301757-33301957
+sort start location
+sort base
+snapshot GUBB-18-132-gDNA-Baseline-IDT-2018Mar27_S23_chr19_33301857.png
+
+new
+load /groups/wyattgrp/data/bam/kidney/GU-17-107-cfDNA-UMI-2017May09.bam
+load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/new_chip_panel/SC_penalty/GUBB-17-107-gDNA-Baseline-IDT-2017May09_S4.bam
+snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/new_chip_panel_ALERT
+goto chr20:58909085-58909285
+sort start location
+sort base
+snapshot GUBB-17-107-gDNA-Baseline-IDT-2017May09_S4_chr20_58909185.png
+
+exit

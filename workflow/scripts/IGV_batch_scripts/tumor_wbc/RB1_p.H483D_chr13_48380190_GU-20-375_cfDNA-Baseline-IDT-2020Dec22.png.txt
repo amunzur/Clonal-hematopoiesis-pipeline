@@ -1,0 +1,12 @@
+
+    new
+    genome hg38
+    load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS2_final/GU-20-375_cfDNA-Baseline-IDT-2020Dec22.bam
+    load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS2_final/GU-20-375_WBC-Baseline-IDT-2020Dec22.bam
+    snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/somatic_SSCS2_bladder
+    goto chr13:48380130:48380250
+    sort start location
+    sort base
+    snapshot RB1_p.H483D_chr13_48380190_GU-20-375_cfDNA-Baseline-IDT-2020Dec22.png
+    exit
+    

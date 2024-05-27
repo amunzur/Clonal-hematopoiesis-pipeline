@@ -1,0 +1,12 @@
+
+    new
+    genome hg38
+    load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS2_final/GU-21-593_cfDNA-Baseline-IDT-2022Jan04.bam
+    load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS2_final/GU-21-593_WBC-Baseline-IDT-2022Jan04.bam
+    snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/somatic_SSCS2_bladder
+    goto chr13:32370417:32370537
+    sort start location
+    sort base
+    snapshot BRCA2_p.L2803V_chr13_32370477_GU-21-593_cfDNA-Baseline-IDT-2022Jan04.png
+    exit
+    

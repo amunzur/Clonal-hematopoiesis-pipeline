@@ -1,0 +1,12 @@
+
+    new
+    genome hg38
+    load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS2_final/GU-21-309_cfDNA-Baseline-IDT-2021Jul19.bam
+    load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS2_final/GU-21-309_WBC-Baseline-IDT-2021Jul19.bam
+    snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/somatic_SSCS2_bladder
+    goto chr10:87952175:87952295
+    sort start location
+    sort base
+    snapshot PTEN_p.P377A_chr10_87952235_GU-21-309_cfDNA-Baseline-IDT-2021Jul19.png
+    exit
+    

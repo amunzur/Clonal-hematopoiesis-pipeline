@@ -1,0 +1,12 @@
+
+    new
+    genome hg38
+    load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS2_final/GU-23-024_cfDNA-Baseline-IDT-2023Jan17.bam
+    load /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS2_final/GU-23-024_WBC-Baseline-IDT-2023Jan17.bam
+    snapshotDirectory /groups/wyattgrp/users/amunzur/pipeline/results/figures/IGV_snapshots/somatic_SSCS2_bladder
+    goto chr13:48463691:48463811
+    sort start location
+    sort base
+    snapshot RB1_p.Y709X_chr13_48463751_GU-23-024_cfDNA-Baseline-IDT-2023Jan17.png
+    exit
+    
