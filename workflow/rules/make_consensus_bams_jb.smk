@@ -3,7 +3,7 @@ rule FastqToBam:
         R1=DIR_trimmed_fastq + "/{wildcard}_1.fq.gz",
         R2=DIR_trimmed_fastq + "/{wildcard}_2.fq.gz",
     output:
-        temp(DIR_bams + "/uBAM/{wildcard}.bam"),
+        DIR_bams + "/uBAM/{wildcard}.bam",
     params:
         sample="{wildcard}",
     run:
@@ -14,6 +14,7 @@ rule FastqToBam:
         --read-structure 3M2S+T 3M2S+T \
         --umi-tag RX \
         --sample {params.sample} \
+        --read-group-id A \
         --library lib1 \
         --platform illumina \
         --sort true"
@@ -30,7 +31,7 @@ rule BamtoFastq:
     threads: 12
     run:
         shell(
-            "picard SamToFastq -Xmx20G I={input} F={output} VALIDATION_STRINGENCY=SILENT INCLUDE_NON_PF_READS=true INCLUDE_NON_PRIMARY_ALIGNMENTS=true INTERLEAVE=true"
+            "picard SamToFastq -Xmx20G I={input} F={output} INTERLEAVE=true"
         )
 
 # Generate mapped bam
@@ -52,7 +53,7 @@ rule MergeBamAlignment:
     params:
         PATH_hg38=PATH_hg38,
     output:
-        temp(DIR_bams + "/mBAM/{wildcard}.bam"),
+        DIR_bams + "/mBAM/{wildcard}.bam",
     threads: 12
     run:
         shell(
@@ -60,16 +61,15 @@ rule MergeBamAlignment:
             UNMAPPED={input.uBAM} \
             ALIGNED={input.mBAM} \
             O={output} \
+            R={params.PATH_hg38} \
             CLIP_OVERLAPPING_READS=false \
             CLIP_ADAPTERS=false \
-            INCLUDE_SECONDARY_ALIGNMENTS=true \
             ALIGNER_PROPER_PAIR_FLAGS=true \
             EXPECTED_ORIENTATIONS=FR \
             MAX_INSERTIONS_OR_DELETIONS=-1 \
             VALIDATION_STRINGENCY=SILENT \
-            REFERENCE_SEQUENCE={params.PATH_hg38} \
-            CREATE_INDEX=true \
-            SORT_ORDER=coordinate" # needs to be sorted for ABRA2
+            SORT_ORDER=coordinate \
+            CREATE_INDEX=true"
         )
 
 rule indel_realignment:
@@ -79,9 +79,8 @@ rule indel_realignment:
         PATH_hg38=PATH_hg38,
     params:
         min_mapping_quality=20,
-        # tumor_normal_pair_input = lambda wildcards: get_relevant_bams_abra2_INPUT(wildcards.wildcard)
     output:
-        temp(DIR_bams + "/abra2/{wildcard}.bam"),
+        DIR_bams + "/abra2/{wildcard}.bam",
     threads: 12
     run:
         shell(
@@ -90,14 +89,13 @@ rule indel_realignment:
         --out {output} \
         --ref {input.PATH_hg38} \
         --threads {threads} \
-        --index \
-        --nosort \
         --no-edge-ci \
-        --sa \
+        --mad 50000 \
+        --nosort \
         --targets {input.PATH_bed} \
         --tmpdir /groups/wyattgrp/users/amunzur/COMPOST_BIN > \
         '/groups/wyattgrp/users/amunzur/pipeline/results/logs_slurm/indel_realignment/{wildcards.wildcard}'"
-        ) # Assembly is skipped in the first run only 
+        )
 
 rule fixmate:
     input:
@@ -107,12 +105,23 @@ rule fixmate:
     threads: 12
     run:
         shell(
-            "picard -Xmx40g FixMateInformation I={input} O={output} SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT"
+            "picard -Xmx40g FixMateInformation I={input} O={output} VALIDATION_STRINGENCY=SILENT"
+        )
+
+rule sort_and_subset_to_proper_pairs:
+    input:
+        DIR_bams + "/fixmate/{wildcard}.bam"
+    output:
+        temp(DIR_bams + "/fixmate_proper_pair_sorted/{wildcard}.bam"),
+    threads: 12
+    run:
+        shell(
+            "sambamba sort {input} -F 'proper_pair' -t 12 -o {output}"
         )
 
 rule recalibrate_bases:
     input:
-        DIR_bams + "/fixmate/{wildcard}.bam",
+        DIR_bams + "/fixmate_proper_pair_sorted/{wildcard}.bam",
     output:
         DIR_recalibrated_base_scores + "/{wildcard}_table",
     params:
@@ -129,16 +138,14 @@ rule recalibrate_bases:
 
 rule apply_base_scores:
     input:
-        fixmate_BAM=DIR_bams + "/fixmate/{wildcard}.bam",
+        fixmate_BAM=DIR_bams + "/fixmate_proper_pair_sorted/{wildcard}.bam",
         base_scores=DIR_recalibrated_base_scores + "/{wildcard}_table",
     output:
-        temp(DIR_bams + "/uncollapsed_BAM/{wildcard}.bam"),
-    params: 
-        PATH_hg38=PATH_hg38
+        uncollapsed_BAM=DIR_bams + "/uncollapsed_BAM/{wildcard}.bam",
     threads: 12
     run:
         shell(
-            "~/gatk-4.2.0.0/gatk ApplyBQSR --reference {params.PATH_hg38} --input {input.fixmate_BAM} --output {output} --bqsr-recal-file {input.base_scores}"
+            "~/gatk-4.2.0.0/gatk ApplyBQSR --input {input.fixmate_BAM} --output {output.uncollapsed_BAM} --bqsr-recal-file {input.base_scores}"
         )
 
 
@@ -147,21 +154,19 @@ rule GroupReadsByUmi:
     input:
         DIR_bams + "/uncollapsed_BAM/{wildcard}.bam",  # output of the fixmate_and_recalibrate_bases rule from the process_bams.smk file
     output:
-        bam = temp(DIR_bams + "/grouped_umi_BAM/{wildcard}.bam"),
-        family_size_hist = DIR_umi_metrics + "/{wildcard}.umi_metrics"
+        temp(DIR_bams + "/grouped_umi_BAM/{wildcard}.bam"),
     params:
         PATH_hg38=PATH_hg38,
-        min_map_quality = 20
     run:
         shell(
-            "fgbio GroupReadsByUmi -Xmx20G --input={input} --output={output.bam} --strategy=paired --edits=1 --min-map-q={params.min_map_quality} --family-size-histogram={output.family_size_hist}"
+            "fgbio GroupReadsByUmi -Xmx20G --input={input} --output={output} --strategy=paired --edits=1 --min-map-q=20"
         )
 
 rule CallMolecularConsensusReads:
     input:
         DIR_bams + "/grouped_umi_BAM/{wildcard}.bam",  # output of the fixmate_and_recalibrate_bases rule from the process_bams.smk file
     output:
-        DIR_bams + "/{consensus_type}_uBAM/{wildcard}.bam",
+        DIR_bams + "/SSCS_uBAM/{wildcard}.bam",
     threads: 12
     params:
         min_reads=1,
@@ -171,7 +176,7 @@ rule CallMolecularConsensusReads:
     run:
         shell(
             "fgbio CallMolecularConsensusReads -Xmx20G --input={input} --output={output} --threads={threads} \
-            --read-name-prefix=singlex \
+            --read-name-prefix=simplex \
             --sort-order=Queryname \
             --consensus-call-overlapping-bases=true \
             --error-rate-pre-umi={params.error_rate_pre_umi} \

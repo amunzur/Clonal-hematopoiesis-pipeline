@@ -17,10 +17,9 @@ rule Haplotype_Caller:
 			--read-filter AllowAllReadsReadFilter \
 			--native-pair-hmm-threads {threads}'
 
-# wildcard below gets replaced with the cohort name, like batch3, 4 etc 
 rule Create_Genomics_DB:
 	input:
-		PATH_sample_map = DIR_sample_maps + "/{wildcard}.txt",
+		PATH_sample_map = DIR_sample_maps + "/sample_maps.txt",
 		PATH_bed = PATH_bed,
 		DIR_temp = DIR_temp
 	output: 

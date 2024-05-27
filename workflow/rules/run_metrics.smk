@@ -1,35 +1,28 @@
 rule run_depth: 
 	input: 
-		BAM = DIR_bams + "/{consensus_type}_filtered/{wildcard}.bam",
+		BAM = DIR_bams + "/{consensus_type}_final/{wildcard}.bam",
 		PATH_bed = PATH_bed 
 	output:
 		DIR_depth_metrics + "/{consensus_type}/{wildcard}.txt"
 	threads: 12
 	shell:
-		"samtools sort {input.BAM} | samtools depth -b {input.PATH_bed} /dev/stdin > {output}"
+		"samtools depth -b {input.PATH_bed} {input.BAM} > {output}"
 
 rule run_mpileup: 
 	input: 
-		BAM = DIR_bams + "/{consensus_type}_clipped/{wildcard}.bam", 
-		BAM_index = DIR_bams + "/{consensus_type}_clipped/{wildcard}.bam.bai",
-		PATH_hg38 = PATH_hg38
-	output:
-		DIR_mpileup + "/temp_{consensus_type}/{wildcard}.mpileup"
-	threads: 12
-	shell:
-		"samtools mpileup -A -f {input.PATH_hg38} {input.BAM} -o {output}"
-
-rule modify_mpileup: 
-	input: 
-		DIR_mpileup + "/temp_{consensus_type}/{wildcard}.mpileup"
+		BAM = DIR_bams + "/{consensus_type}_final/{wildcard}.bam", 
+		BAM_index = DIR_bams + "/{consensus_type}_final/{wildcard}.bam.bai",
+		PATH_hg38 = PATH_hg38, 
+		PATH_bed = PATH_bed,
 	output:
 		DIR_mpileup + "/{consensus_type}/{wildcard}.mpileup"
+	threads: 12
 	shell:
-		"paste <(awk '{{print $1$2}}' {input}) <(cat {input}) > {output}"
+		"samtools mpileup -A -f {input.PATH_hg38} --no-BAQ --positions {input.PATH_bed} --min-MQ 0 --min-BQ 0 {input.BAM} -o {output}"
 
 rule run_insert_size: 
 	input: 
-		DIR_bams + "/{consensus_type}_filtered/{wildcard}.bam"
+		DIR_bams + "/{consensus_type}_final/{wildcard}.bam"
 	output:
 		metrics = DIR_insertsize_metrics + "{consensus_type}/{wildcard}.txt",
 		figures = DIR_insertsize_figures + "{consensus_type}/{wildcard}.pdf"
@@ -43,13 +36,30 @@ rule run_insert_size:
 
 rule run_read_counts: 
 	input: 
-		DIR_merged_fastq + "/{wildcard}_R1.fastq"
+		DIR_merged_fastq + "/{wildcard}_1.fq.gz"
 	params:
 		sample_name = "{wildcard}"
 	output:
 		DIR_readcounts_metrics + "/merged/{wildcard}.txt",
 	shell:
-		"paste <(echo {params}) <(echo $(cat {input}|wc -l)/4|bc) > {output}"
+		"paste <(echo {params}) <(echo $(gunzip -c {input}|wc -l)/4|bc) > {output}"
+
+# Using the baits interval file for both the target regions and the baits input.
+rule hs_metrics: 
+	input: 
+		SSCS_bam = DIR_bams + "/{consensus_type}_final/{wildcard}.bam",
+		PATH_baits = PATH_baits,
+		PATH_bed_intervals = PATH_bed_intervals,
+		PATH_hg38 = PATH_hg38
+	output:
+		DIR_HS_metrics + "/{consensus_type}/{wildcard}.HS_metrics",
+	shell:
+		"picard CollectHsMetrics \
+    		I={input.SSCS_bam} \
+    		O={output} \
+    		R={input.PATH_hg38} \
+    		BAIT_INTERVALS={input.PATH_baits} \
+    		TARGET_INTERVALS={input.PATH_baits}"
 
 # rule run_tnvstats:
 # 	input:
