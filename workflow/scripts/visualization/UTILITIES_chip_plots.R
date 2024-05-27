@@ -21,7 +21,7 @@ cool_theme <-
       axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)))
 
 # Stacked bar plot showing gene function and number of different variants
-MAKE_variant_type_plot <- function(df_main) {
+MAKE_variant_type_plot <- function(df_main, colors_vector) {
 
 	df <- df_main %>% select(Variant, Function)
 	df <- df[!df$Function == ".", ]
@@ -29,7 +29,7 @@ MAKE_variant_type_plot <- function(df_main) {
 	p <- ggplot(data = df, aes(x = Variant, fill = Function)) + 
 		geom_bar(stat = "count") + 
 		scale_y_continuous(breaks = pretty_breaks(10), name = "Count") + 
-		scale_fill_brewer(palette = "Set1") +
+		scale_fill_manual(values = colors_vector) +
 		cool_theme + 
 		ggtitle("Number of variants and functions") 
 
@@ -232,6 +232,7 @@ MAKE_depth_plots <- function(df_main, vaf_plot_variant) {
 	return(p)
 
 }
+
 
 SAVE_plot <- function(PATH_figure_main, NAME_p, height_cm, width_cm, p) {
 
