@@ -5,26 +5,35 @@ import os
 exec(open("workflow/snakemake_functions.py").read())
 # snakemake --reason --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch --exclude=cn[01-05] -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 50
 
-PATH_to_samples = (
-    "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/sample_list.tsv"
-)
+# PATH_to_samples = (
+#     "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/sample_list.tsv"
+# )
+
+PATH_to_samples = ("/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/sample_list_bladder_and_kidney.tsv")
+PATH_to_VIP_samples = ("/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/VIP_normals.tsv")
 
 configfile: "config/config.yaml"
 samples = pd.read_csv(PATH_to_samples, sep="\t")["sample_names"].tolist()
-# samples = ["GUBB-19-562_gDNA_Baseline_IDT_2019Nov13", "GUBB-19-562_cfDNA_Baseline_IDT_2019Nov13", "GUBB-18-471_cfDNA_Baseline_IDT_2018Nov26", "GUBB-18-471_gDNA_Baseline_IDT_2018Nov26"]
+VIP_normals_cfDNA = [x for x in pd.read_csv(PATH_to_VIP_samples, sep="\t", header = None)[0].tolist() if "cfDNA" in x]
+VIP_normals_wbc = [x for x in pd.read_csv(PATH_to_VIP_samples, sep="\t", header = None)[0].tolist() if "WBC" in x]
 
-patients = sorted(list(set([re.sub('_gDNA.*|_cfDNA.*', '', s) for s in samples]))) # used when running mutato
+
+# patients = sorted(list(set([re.sub('_gDNA.*|_cfDNA.*', '', s) for s in samples]))) # used when running mutato
 cfDNA_samples = list(filter(lambda x: "cfDNA" in x, samples))
-WBC_samples = list(filter(lambda x: "gDNA" in x, samples))
+WBC_samples = list(filter(lambda x: "WBC" in x, samples))
+
 # samples = [pd.read_csv(PATH_to_samples, sep = '\t')["sample_names"].tolist() for PATH_to_samples in PATH_to_samples_list]
 
-pair1 = [sample + "_R1" for sample in samples]
-pair2 = [sample + "_R2" for sample in samples]
+pair1 = [sample + "_1" for sample in samples]
+pair2 = [sample + "_2" for sample in samples]
 
 all_pairs = pair1 + pair2
 
 PATH_hg38 = config["PATH_hg38"]
+PATH_hg38_dict = config["PATH_hg38_dict"]
 PATH_bed = config["PATH_bed"]
+PATH_bed_intervals = config["PATH_bed_intervals"]
+PATH_baits = config["PATH_baits"]
 PATH_bg = config["PATH_bg"]
 PATH_adapters = config["PATH_adapters"]
 PATH_bets = config["PATH_bets"]
@@ -63,6 +72,7 @@ DIR_complexity_metrics = config["DIR_complexity_metrics"]
 DIR_dedup_metrics = config["DIR_dedup_metrics"]
 DIR_readcounts_metrics = config["DIR_readcounts_metrics"]
 DIR_HS_metrics = config["DIR_HS_metrics"]
+DIR_umi_metrics = config["DIR_umi_metrics"]
 
 # variant calling
 VarScan_snv = config["VarScan_snv"]
@@ -70,7 +80,8 @@ VarScan_indel = config["VarScan_indel"]
 DIR_Vardict = config["DIR_Vardict"]
 DIR_Mutect = config["DIR_Mutect"]
 DIR_Mutato = config["DIR_Mutato"]
-DIR_Lofreq = config["DIR_Lofreq"]
+DIR_freebayes = config["DIR_freebayes"]
+DIR_results = config["DIR_results"]
 
 # annotating variants from varscan
 ANNOVAR_snv_input = config["ANNOVAR_snv_input"]
@@ -86,9 +97,16 @@ ANNOVAR_mutect_output = config["ANNOVAR_mutect_output"]
 ANNOVAR_mutato_input = config["ANNOVAR_mutato_input"]
 ANNOVAR_mutato_output = config["ANNOVAR_mutato_output"]
 
+DIR_ANNOVAR = config["DIR_ANNOVAR"]
+
 # figures
 DIR_insertsize_figures = config["DIR_insertsize_figures"]
 DIR_insertsize_figures_PNG = config["DIR_insertsize_figures_PNG"]
+
+# cnvkit
+chip_probes_bed = config["chip_probes_bed"]
+cfDNA_reference = config["cfDNA_reference"]
+WBC_reference = config["WBC_reference"]
 
 ###################################################
 # TARGET FILES FOR RULE ALL
@@ -102,28 +120,19 @@ RUN_FastQC_trimmed = expand(
 MASK_FastQ = expand(DIR_masked_fastq + "/{wildcard}_masked.fastq", wildcard=all_pairs)
 
 TRIM_FastQ = [
-    expand(DIR_trimmed_fastq + "/{wildcard}_R1.fastq", wildcard=samples),
-    expand(DIR_trimmed_fastq + "/{wildcard}_R2.fastq", wildcard=samples),
+    expand(DIR_trimmed_fastq + "/{wildcard}_1.fq.gz", wildcard=samples),
+    expand(DIR_trimmed_fastq + "/{wildcard}_2.fq.gz", wildcard=samples),
 ]
 
-Call_SSCS_and_DCS = expand(
-    DIR_bams + "/{consensus_type}_uBAM/{wildcard}.bam",
-    consensus_type=["SSCS"],
+make_consensus = expand(
+    DIR_bams + "/{consensus_type}_fixmate/{wildcard}.bam",
+    consensus_type=["SSCS2"],
     wildcard=samples,
 )
-Map_SSCS_and_DCS = expand(
-    DIR_bams + "/{consensus_type}_mBAM/{wildcard}.bam",
-    consensus_type=["SSCS"],
-    wildcard=samples,
-)
-Fixmates = expand(
-    DIR_bams + "/{consensus_type}_final/{wildcard}.bam",
-    consensus_type=["SSCS"],
-    wildcard=samples,
-)
-Filter_SSCS_and_DCS = expand(
-    DIR_bams + "/{consensus_type}_filtered/{wildcard}.bam",
-    consensus_type=["SSCS1"],
+
+filter_consensus = expand(
+    DIR_bams + "/{consensus_type}_final/{wildcard}.bam.bai",
+    consensus_type=["SSCS2"],
     wildcard=samples,
 )
 
@@ -131,84 +140,131 @@ RUN_fastq_read_counts = expand(
     DIR_readcounts_metrics + "/merged/{wildcard}.txt", wildcard=samples
 )
 
-RUN_Vardict = expand(
-    DIR_Vardict + "/{consensus_type}/{wildcard}.vcf",
-    consensus_type=["SSCS1"],
-    wildcard=samples,
-)
-
-RUN_Lofreq = expand(
-    DIR_Lofreq + "/{consensus_type}/{wildcard}.vcf", 
-    consensus_type=["SSCS1"],
+call_variants_chip = expand(
+    DIR_results + "/variant_calling_chip/{variant_caller}/{consensus_type}/{wildcard}.vcf.gz",
+    variant_caller=["freebayes", "Mutect2", "Vardict"],
+    consensus_type=["SSCS2"],
     wildcard=samples,
     )
 
-ANNOTATE_Vardict = expand(
-    ANNOVAR_Vardict_output + "/{consensus_type}/{wildcard}.hg38_multianno.txt",
-    consensus_type=["SSCS1"],
-    wildcard=samples,
-)
-RUN_Mutect2 = expand(
-    DIR_Mutect + "/{consensus_type}/filtered/{wildcard}_vcf",
-    consensus_type=["SSCS1"],
-    wildcard=samples,
-)
-ANNOTATE_Mutect2 = expand(
-    ANNOVAR_mutect_output + "/{consensus_type}/{wildcard}.hg38_multianno.txt",
-    consensus_type=["SSCS1"],
+call_variants_somatic = expand(
+    DIR_results + "/variant_calling_somatic/{variant_caller}/{consensus_type}/{wildcard}.vcf.gz",
+    variant_caller=["Mutect2", "Vardict"],
+    consensus_type=["SSCS2"],
+    wildcard=cfDNA_samples,
+    )
+
+run_annovar_chip = expand(
+    DIR_results + "/data/annovar_outputs/{variant_caller}/{consensus_type}/{wildcard}.hg38_multianno.txt",
+    variant_caller=["Mutect2", "freebayes", "Vardict"],
+    consensus_type=["SSCS2"],
     wildcard=samples,
 )
 
-ANNOTATE_Mutato = expand(
-    ANNOVAR_mutato_output + "/{wildcard}.hg38_multianno.txt",
-    wildcard=patients,
+run_annovar_somatic = expand(
+    DIR_results + "/data/annovar_outputs_somatic/{variant_caller}/{consensus_type}/{wildcard}.hg38_multianno.vcf",
+    variant_caller=["freebayes"],
+    consensus_type=["SSCS2"],
+    wildcard=cfDNA_samples,
 )
+
+# vcfToTable_chip = expand(
+#     DIR_results + "/data/annovar_outputs/{variant_caller}/{consensus_type}/{wildcard}.hg38_multianno.txt",
+#     variant_caller=["Mutect2", "Vardict", "freebayes"],
+#     consensus_type=["SSCS1"],
+#     wildcard=samples,
+# )
+
 
 run_insert_size = expand(
     DIR_insertsize_metrics + "/{consensus_type}/{wildcard}.txt",
-    consensus_type=["SSCS1"],
-    wildcard=samples,
+    consensus_type=["SSCS2"],
+    wildcard=VIP_normals_cfDNA,
 )
 
 # PDF_to_PNG = expand(DIR_insertsize_figures_PNG + "/{wildcard}.png", wildcard=samples)
 run_depth = expand(
     DIR_depth_metrics + "/{consensus_type}/{wildcard}.txt",
-    consensus_type=["SSCS1"],
+    consensus_type=["SSCS2"],
     wildcard=samples,
 )
+
 RUN_mpileup = expand(
     DIR_mpileup + "/{consensus_type}/{wildcard}.mpileup",
-    consensus_type=["SSCS1"],
+    consensus_type=["SSCS2"],
     wildcard=samples,
 )
+
+collect_HS_metrics = expand(
+    DIR_HS_metrics + "/{consensus_type}/{wildcard}.HS_metrics",
+    consensus_type=["SSCS2"],
+    wildcard=samples,
+)
+
+variant_table_somatic = expand(
+    DIR_results + "/data/variant_tables/somatic/{variant_caller}/{consensus_type}/{wildcard}.tsv",
+    consensus_type=["SSCS2"],
+    wildcard=cfDNA_samples,
+    variant_caller=["Mutect2", "Vardict"],
+)
+
+variant_table_chip = expand(
+    DIR_results + "/data/variant_tables/chip/{variant_caller}/{consensus_type}/{wildcard}.tsv",
+    consensus_type=["SSCS2"],
+    wildcard=samples,
+    variant_caller=["Vardict", "Mutect2", "freebayes"],
+)
+
+# COPY NUMBER RELATED
+generate_target_coverage = expand(DIR_results + "/cnvkit/coverage/SSCS2/{wildcard}.targetcoverage.cnn", wildcard=samples + VIP_normals_cfDNA + VIP_normals_wbc)
+
+cfDNA_corrected = expand(DIR_results + "/cnvkit/coverage_fixed/cfDNA/{wildcard}.cnr", wildcard=cfDNA_samples)
+WBC_corrected = expand(DIR_results + "/cnvkit/coverage_fixed/WBC/{wildcard}.cnr", wildcard=WBC_samples)
+segmented_samples_cfDNA = expand(DIR_results + "/cnvkit/segmented/{sample_type}/{wildcard}.cns", wildcard=cfDNA_samples, sample_type="cfDNA")
+segmented_samples_WBC = expand(DIR_results + "/cnvkit/segmented/{sample_type}/{wildcard}.cns", wildcard=WBC_samples, sample_type="WBC")
 
 # only use expansion here
 rule all:
     input:
         # RUN_FastQC_merged,
-        # MASK_FastQ,
-        # TRIM_FastQ,
         # RUN_FastQC_trimmed,
         # RUN_mpileup,
         # RUN_fastq_read_counts, 
-        # RUN_Mutect2,
-        # run_insert_size, 
-        # PDF_to_PNG,
-        # Call_SSCS_and_DCS,
-        # Map_SSCS_and_DCS,
-        # Fixmates,
-        # Filter_SSCS_and_DCS,
-        # RUN_Vardict,
-        # RUN_Lofreq,
-        # ANNOTATE_Mutect2,
-        # ANNOTATE_Vardict,
+        run_insert_size, 
+        # make_consensus,
+        # filter_consensus,
+        # call_variants_chip,
+        # run_annovar_chip,
+        # call_variants_somatic,
+        # run_annovar_somatic,
         # run_depth, 
+        # collect_HS_metrics,
+        # variant_table_somatic,
+        # variant_table_chip,
+        # DIR_results + "/cnvkit/coverage/SSCS2/Reference_for_CH_CN.cnn",
+        # DIR_results + "/cnvkit/coverage/SSCS2/Reference_for_somatic_CN.cnn",
+        # expand(DIR_results + "/cnvkit/coverage/SSCS2/{wildcard}.targetcoverage.cnn", wildcard = VIP_normals_cfDNA + VIP_normals_wbc),
+        # expand(DIR_results + "/cnvkit/coverage/SSCS2/{wildcard}.antitargetcoverage.cnn", wildcard = VIP_normals_cfDNA + VIP_normals_wbc)
+        # DIR_results + "/cnvkit/references/VIP_cfDNA_reference.cnn",
+        # DIR_results + "/cnvkit/references/VIP_WBC_reference.cnn",
+        # cfDNA_corrected,
+        # WBC_corrected,
+        # segmented_samples_cfDNA,
+        # segmented_samples_WBC,
+        # generate_target_coverage,
+        # cfDNA_corrected,
+        # WBC_corrected
+
+
 
 ##### Modules #####
 include: "rules/process_fastq.smk"
 include: "rules/make_consensus_bams.smk"
 include: "rules/filter_consensus_bams.smk"
-include: "rules/index_bams.smk"
 include: "rules/run_metrics.smk"
 include: "rules/variant_calling.smk"
+include: "rules/variant_calling_somatic.smk"
 include: "rules/annotation.smk"
+include: "rules/index_bams.smk"
+include: "rules/make_bg_error_rate.smk"
+include: "rules/CNestimation.smk"
