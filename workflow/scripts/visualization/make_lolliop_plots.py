@@ -108,8 +108,8 @@ xticklabeldict = {"DNMT3A":["1", "300", "600", "912aa"], "PPM1D":["1", "200", "4
 domains_list = [{"PWWP": [291, 374], "DNA methylase": [634, 767]}, {"PP2C": [67, 368]}, {"P53 TAD": [6, 29], "P53": [95, 288], "P53 tetramer": [318, 358]}]
 
 # LOAD CHIP DATASETS
-all_vars_chip = pd.read_csv(os.path.join(DIR_working, "results/variant_calling/chip_SSCS2_curated_complete.csv"))
-all_vars_chip["Consequence"] = all_vars_chip["Consequence"].replace({"Frameshift deletion": "Frameshift indel","Frameshift insertion": "Frameshift indel", "Nonframeshift deletion": "Nonframeshift indel", "Nonframeshift insertion": "Nonframeshift indel"})
+all_vars_chip = pd.read_csv(os.path.join(DIR_working, "results/variant_calling/chip.csv"))
+all_vars_chip["Consequence"] = all_vars_chip["Consequence"].replace({"Frameshift deletion": "Frameshift indel", "Frameshift Deletion": "Frameshift indel", "Frameshift insertion": "Frameshift indel", "Nonframeshift deletion": "Nonframeshift indel", "Nonframeshift insertion": "Nonframeshift indel", "Startloss": "Missense"})
 baseline_df = all_vars_chip[all_vars_chip["Timepoint"] == "Baseline"].reset_index(drop = True)
 base_kidney_chip = all_vars_chip[(all_vars_chip["Timepoint"] == "Baseline") & (all_vars_chip["Diagnosis"] == "Kidney")].reset_index(drop = True)
 prog_kidney_chip = all_vars_chip[(all_vars_chip["Timepoint"] == "During treatment") & (all_vars_chip["Diagnosis"] == "Kidney")].reset_index(drop = True)

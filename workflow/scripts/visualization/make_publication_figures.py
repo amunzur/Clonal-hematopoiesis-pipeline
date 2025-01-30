@@ -16,7 +16,7 @@ from lifelines import KaplanMeierFitter
 from adjustText import adjust_text
 import matplotlib.gridspec as gridspec
 from matplotlib.lines import Line2D
-from matplotlib.cm import get_cmap
+from matplotlib.cm import get_cmap 
 from datetime import datetime
 import matplotlib.cm as cm
 from lifelines.statistics import logrank_test
@@ -26,6 +26,9 @@ import matplotlib.ticker as ticker
 import upsetplot
 from scipy.stats import mannwhitneyu
 from statsmodels.stats.multitest import multipletests
+from statsmodels.stats.proportion import proportions_ztest
+from scipy.stats import fisher_exact
+
 
 mpl.rcParams['font.size'] = 10
 mpl.rcParams['text.color'] = 'k'
@@ -49,6 +52,8 @@ PATH_mutation_ctfractions = "/groups/wyattgrp/users/amunzur/pipeline/results/var
 figure_dir = os.path.join(DIR_working, "results/figures/amazing_figures")
 source_functions = os.path.join(DIR_working, "workflow/scripts/visualization/UTILITIES_make_chip_plots.py")
 path_gene_exons = os.path.join(DIR_working, "resources/references/panel_genes_exons_refseq.tsv")
+sample_info = pd.read_csv(PATH_sample_information, sep = "\t", names = ["Patient_id", "Date_collected", "Diagnosis", "Timepoint"])
+
 
 color_dict = {"Bladder": "deepskyblue", "Kidney": "orangered"}
 
@@ -59,6 +64,7 @@ exec(script_code)
 
 # LOAD CHIP DATASETS
 all_vars_chip = pd.read_csv(os.path.join(DIR_working, "results/variant_calling/chip.csv"))
+all_vars_chip = all_vars_chip[all_vars_chip["Dependent"] == False]
 base_kidney_chip = all_vars_chip[(all_vars_chip["Timepoint"] == "Baseline") & (all_vars_chip["Diagnosis"] == "Kidney")].reset_index(drop = True)
 prog_kidney_chip = all_vars_chip[(all_vars_chip["Timepoint"] == "During treatment") & (all_vars_chip["Diagnosis"] == "Kidney")].reset_index(drop = True)
 base_bladder_chip = all_vars_chip[(all_vars_chip["Timepoint"] == "Baseline") & (all_vars_chip["Diagnosis"] == "Bladder")].reset_index(drop = True)
@@ -82,8 +88,14 @@ age_df = pd.concat([kidney_age, bladder_age]).reset_index(drop=True)
 baseline = pd.concat([base_kidney_chip, base_bladder_chip]).reset_index(drop = True)
 baseline_somatic = pd.concat([base_kidney_somatic, base_bladder_somatic]).reset_index(drop = True)
 
-kidney_clinical = pd.read_csv(PATH_kidney_clinical)
-bladder_clinical = pd.read_csv(PATH_clinical_bladder)
+kidney_clin = pd.read_csv(PATH_kidney_clinical)
+bladder_clin = pd.read_csv(PATH_clinical_bladder)
+kidney_pts = sample_info[(sample_info["Diagnosis"] == "Kidney") & (sample_info["Timepoint"] == "Baseline")]["Patient_id"].tolist()
+bladder_pts = sample_info[(sample_info["Diagnosis"] == "Bladder") & (sample_info["Timepoint"] == "Baseline")]["Patient_id"].tolist()
+kidney_clin = kidney_clin[kidney_clin["Patient_id"].isin(kidney_pts)]
+bladder_clin = bladder_clin[bladder_clin["Patient_id"].isin(bladder_pts)]
+
+
 
 # START PLOTTING
 # PLOT 1. Number of CH mutations and number of patients plots. One for kidney and one for bladder. They are stacked on top of each other.
@@ -106,9 +118,27 @@ plot_age_plots_stacked(pd.concat([base_kidney_chip, base_bladder_chip]), age_df,
 # PLOT 3. Grouped boxplots for CH+ and CH-. Separated by kidney - bladder as well.
 age_vs_CH_presence_grouped(pd.concat([base_kidney_chip, base_bladder_chip]), age_df, "Age", PATH_sample_information, "Age and CH status", figure_dir, gene = None, min_WBC_VAF_threshold = None, test_to_use = "MWU", fontsize = 10)
 
+# PLOT 3.1 Bars showing fraction of the cohort that is CH+ and CH-. Bars are colored according to sex and diagnosis.
+fig = plt.figure(figsize=(6, 8))
+outer_gs = gridspec.GridSpec(3, 1, height_ratios=[1, 1, 1], hspace = 0, wspace = 0)
+inner_gs_0 = gridspec.GridSpecFromSubplotSpec(1, 3, width_ratios=[1, 1, 0.3], subplot_spec=outer_gs[0], wspace=0.5, hspace = 0.3)
+inner_gs_1 = gridspec.GridSpecFromSubplotSpec(1, 3, width_ratios=[1, 1, 0.3], subplot_spec=outer_gs[1], wspace=0.5, hspace = 0.3)
+inner_gs_2 = gridspec.GridSpecFromSubplotSpec(1, 3, width_ratios=[1, 1, 0.3], subplot_spec=outer_gs[2], wspace=0.5, hspace = 0.3)
+
+sex_df = pd.concat([kidney_clin[["Patient_id", "Sex"]], bladder_clin[["Patient_id", "Sex"]]]).reset_index(drop = True)
+x = pd.concat([base_kidney_chip, base_bladder_chip])
+y = x[x["VAF_n"] > 2]
+z = x[x["VAF_n"] > 10]
+inner_gs_0 = ch_presence_absence_bars(x, PATH_sample_information, sex_df, figure_dir, fig_name = "sex_diagnosis_and_CH_presence", gs = inner_gs_0, title = "All CH mutations", show_x_ticks = False) # all ch mutations
+inner_gs_1 = ch_presence_absence_bars(y, PATH_sample_information, sex_df, figure_dir, fig_name = "sex_diagnosis_and_CH_presence", gs = inner_gs_1, title = "WBC VAF > 2%", show_legend = False, show_ax_titles = False, show_x_ticks = False) # ch>2
+inner_gs_2 = ch_presence_absence_bars(z, PATH_sample_information, sex_df, figure_dir, fig_name = "sex_diagnosis_and_CH_presence", gs = inner_gs_2, title = "WBC VAF > 10%", show_legend = False, show_ax_titles = False) # ch>3
+
+outer_gs.tight_layout(fig)
+fig.savefig(os.path.join(dir_figures, "sex_diagnosis_and_CH_presence.pdf")) 
+
 # PLOT 4. 2 Upset plots. 
-generate_upset_plot(baseline, os.path.join(figure_dir, "TP53_PPM1D_ATM_upset.pdf"), color_dict, genes = ["TP53", "PPM1D", "ATM"])
-generate_upset_plot(baseline, os.path.join(figure_dir, "DTA_upset.pdf"), color_dict, genes = ["DNMT3A", "TET2", "ASXL1"])
+# generate_upset_plot(baseline, os.path.join(figure_dir, "TP53_PPM1D_ATM_upset.pdf"), color_dict, genes = ["TP53", "PPM1D", "ATM"])
+# generate_upset_plot(baseline, os.path.join(figure_dir, "DTA_upset.pdf"), color_dict, genes = ["DNMT3A", "TET2", "ASXL1"])
 
 # PLOT 5. Pie charts for CH presence absence in the two cohorts.
 plot_pie_for_ch_presence_in_df(base_kidney_chip, PATH_sample_information, figure_dir, f"Kidney", f"kidney_pie_cohort_baseline.pdf", color_dict = ["orangered", "#f9b7a7"])
@@ -117,24 +147,21 @@ plot_pie_for_ch_presence_in_df(base_bladder_chip, PATH_sample_information, figur
 # PLOT 6. Scatter plot for vafs
 plot_vaf_scatter(all_vars_chip, figure_dir, f"baseline_vaf_correlation.pdf", color_dict, colorby = "Diagnosis", fontsize = 10)
 
+# Plot 6.5 Age and prevalence of CH in a variety of genes
+CH_gene_and_age_plot_per_category(baseline_chip, age_df, PATH_sample_information, figure_dir, figure_name = "age_chip_per_category")
+
+
 # PLOT 7. Gene counts colored by mut type
-# plot_gene_counts(baseline, figure_dir, "gene_counts.pdf", "Bladder and kidney", unique = True)
+# plot_gene_counts(baseline, figure_dir, "baseline_gene_counts.pdf", "Bladder and kidney", unique = True)
 # plot_gene_counts(base_kidney_chip, figure_dir, "kidney_gene_counts.pdf", "Kidney", unique = True)
 # plot_gene_counts(base_bladder_chip, figure_dizr, "bladder_counts_mirror.pdf", kidney_clinical, bladder_clinical)
 
 gene_list = ["DNMT3A", "TET2", "PPM1D", "ASXL1", "TP53", "ATM", "CHEK2", "GNAS", "KMT2D", "STAG2", "CBL", "RAD21", "BRCC3", "JAK2", "SF3B1"]
-gene_colors = 
-plot_gene_counts_grouped(all_vars_chip, figure_dir, "gene_counts_grouped.pdf", kidney_clinical, bladder_clinical, gene_list = gene_list)
+plot_gene_counts_grouped(all_vars_chip, figure_dir, "gene_counts_grouped.pdf", PATH_sample_information, gene_list = gene_list)
 
-
-
-
-
-
-
-# PLOT 8. 
-plot_gene_counts_percent_miscalled(baseline_somatic, baseline, True, figure_dir, "ctDNA_CH_perc_1_perc.png")
-plot_gene_counts_percent_miscalled(baseline_somatic, baseline, False, figure_dir, "ctDNA_CH_perc.png")
+# PLOT 8. Fraction of mutation calls that are CH
+plot_fraction_of_CH_calls(baseline_somatic, baseline, True, color_dict, figure_dir, "perc_calls_ch_1_perc.pdf")
+plot_fraction_of_CH_calls(baseline_somatic, baseline, False, color_dict, figure_dir, "perc_calls_ch.pdf")
 
 # PLOT 8. DETECTION LIMIT
 fig = plt.figure(figsize=(2.9, 2.7))

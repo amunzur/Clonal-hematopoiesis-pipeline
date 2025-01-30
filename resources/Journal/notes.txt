@@ -61,3 +61,123 @@ AUG 5th 2022
 - Previously done duplicate identification was incorrect, I was doing it before completing all filtering, so naturally even if some variants are lost after filtering
 some of them were being identified as duplicates. Now duplicate identification is done at the very end. 
 - A minor change to the AA identification,changed how I was splitting the string to make sure the protein annotation, starting with p. was correct. 
+
+SEP 1st 2022
+First day of PhD. The new CHIP samples have come from the sequencer already merged. 
+
+SEP 2nd 2022
+Decided to change the framework of snakemake. Will no longer be grouping samples into batches. Work on concatenating the samples together.
+
+SEP 6th 2022 
+Started renaming the fastq files for pool 4 of the second sequencing run.
+The complete sequencing sheet for CHIP samples here: /groups/wyattgrp/users/amunzur/data/sample_sheet.csv
+The sequencing sheet had a mistake with the collection date of the 18-029 samples, corrected on my sample sheet and the server:
+mv GUBB-18-029_cfDNA_Baseline_IDT_2020Aug07_R1.fastq GUBB-18-029_cfDNA_Baseline_IDT_2018Apr18_R1.fastq
+mv GUBB-18-029_cfDNA_Baseline_IDT_2020Aug07_R2.fastq GUBB-18-029_cfDNA_Baseline_IDT_2018Apr18_R2.fastq
+
+some pseudocode for concatting fastq files: 
+
+- get all patient names in ss in seq run 2
+- get all files in seqdir 2
+- do a grep to find their full file paths in seq2 dir
+- get all files in seqdir1
+- grep the related files based on patient ids, get the full name
+- generate a bash file like cat f1 f2 > f3
+
+Goal:
+Have a centralized location for fastq files. gDNA and cfDNA separtae.
+Finished doing that with this script: /groups/wyattgrp/users/amunzur/pipeline/resources/bash_scripts/move_fastq.sh
+
+grep -i -Z 'cfDNA' . | xargs -I{} mv {} /groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/merged/cfDNA
+
+SEP 7th 2022
+Noticed an issue in these merged fastq files for the following samples, both R1 and R2 fastq files:
+GUBB-19-289_gDNA_Baseline_IDT_2019Mar13
+GUBB-19-361_gDNA_Baseline_IDT_2019Jun10
+GUBB-19-362_gDNA_Baseline_IDT_2019Jun17
+GUBB-19-400_gDNA_Baseline_IDT_2019May28
+GUBB-19-469_gDNA_Baseline_IDT_2019Oct25
+GUBB-19-562_gDNA_Baseline_IDT_2019Nov13
+GUBB-19-613_gDNA_Baseline_IDT_2019Nov18
+GUBB-20-039_gDNA_Baseline_IDT_2020Jan22
+GUBB-20-240_gDNA_Baseline_IDT_2020Jun30
+GUBB-20-241_gDNA_Baseline_IDT_2020Jun08
+GUBB-20-261_gDNA_Baseline_IDT_2020Jul16
+GUBB-20-300_gDNA_Baseline_IDT_2020Aug31
+GUBB-21-012_gDNA_Baseline_IDT_2021Mar01
+GUBB-21-041_gDNA_Baseline_IDT_2021Jan12
+ 
+After concatting, the second half of the fastqs doesn't have the read suffixes. Soemthing wrong.
+
+SEP 8th 2022
+Comparing the number of lines in the fastq files, based on the metrics here:
+/groups/wyattgrp/users/amunzur/pipeline/results/metrics/fastq_test
+
+SEP 9TH 2022 - FRIDAY
+To do: 
+- DONE - Run the averaged and median depths for each sample, we have depth information for each position.
+	Trying to locate the related script, couldn't find it so I wrote a new one. 
+	Output in: /groups/wyattgrp/users/amunzur/pipeline/results/metrics/averaged_depth/PICARD_markdup/averaged_depths.txt
+- Figure out how to run "Create_Genomics_DB" rule without having batch id as a wildcard.
+- Continue filtering the varscan output.
+- DONE - Why does the fastq for the patient 18-233 have a size of 18 GB for both cfDNA and gDNA?
+	Because I catted some files, and it is done corre
+- DONE - See if trim galore can work with sliding windows. 
+	Replaced this instead of trimmomatic that has the sliding windows feature. 
+- DONE - Copy all bams (cfDNA left) over to tambio to run mutato on them.
+	Copying over cfDNA bams at the moment. 
+- DONE - Add indel realignment tools to pipeline: ABRA and GATK indel realigner.
+- Make sure subset to panel function runs OK, it always seems like when using varscan I need to filter out too many, but with vardict almost all of them are retained.
+- Modified the Create_Genomics_DB rule, give it a try. Might work now.
+
+SEP 12TH 2022 - MONDAY
+- Finished copying over the chip bams to tambio, now running mutato on the chip samples on tambio.
+mutato call --alt-reads=1 --alt-frac=0.005 /home/vpc/homo_sapiens/hg38.fa bams/*.bam > variants.vcf &
+Copying over the exact genome I used to tambio. 
+
+- Abra2 running. When it is done, retransfer the bams to tambio to run mutato.
+- Abra2 names the index files as .bai instead of .bam.bai Look into that.
+
+SEP 13TH 2022 - TUESDAY
+Finished working on replacing trim galore with trimmomatic. The whole pipeline is running again from scratch. Once done I plan to cat all the variant calling results instead of loading them to R and then catting them, to save time.
+- Once the bams are ready, copy them over to Tambio and try to run Mutato on them.
+
+SEP 14TH 2022 - WEDNESDAY
+Run mutato when the index finishes in rsync
+Start curating variants when snakemake finishes. 
+Realized mutato can't run on indel realigned bams, so transferring the regular sorted and SC penalty bams to Tambio. Will try mutato again when they finish transferring.
+
+SEP WHATEVER DAY IT IS I DONT EVEN KNOW AT THIS POINT
+Transfer chip fastq from server to dropbox
+lab meeting scheduling thing
+chip sample lists for open specimen
+
+
+mutato call --alt-reads=3 --alt-frac=0.01 hg38.fa bams/*.bam > variants.vcf &
+ls /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SC_penalty | xargs -n1 -P6 -I% rsync -Pa % myserver.com:/srv/mail/
+
+SEP 23RD 2022 FRIDAY
+- Contact Elie about outputting 3 following and 3 preceding basepairs of each variant to help with identifying homopolymer stretches
+- Check each variant manually 
+- Check if the wrong variants that passed through our filters appear in Jack's consensus bams
+
+OCT 5TH 2022 WEDNESDAY
+- Make a panel of normals using the WBC VIP normals - running the final command
+- Rerun Mutect2 on all samples using the panel of normals, and filter too 
+- Running mpileup on all samples
+- Run varscan on samples 
+- Added a new rule to annotate mutect2 outputs, will run once the previous mutect2 to dos finish running
+- run annovar on mutect2 and varscan2 results
+
+OCT 14TH FRIDAY:
+Copying some bams to tambio with the following commands:
+rsync -azP -e "ssh -p 99" --include="gDNA" /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/SSCS3_filtered vpc@tambio.uta.fi:/home/vpc/datasets/chip_project/data &
+rsync -azP -e "ssh -p 99" --include="cfDNA" /groups/wyattgrp/users/amunzur/pipeline/results/data/bam/DCS_filtered vpc@tambio.uta.fi:/home/vpc/datasets/chip_project/data &
+These bams havent been subsetted to the panel, it was just too tedious. I will run mutato on these bams, using the reference here: /home/vpc/datasets/chip_project/genome/hg38.fa
+These bams have the alternate contigs in the header as well as the aligned reads, but mutato shouldn't complain. They were also realigned with abra2, but since mutato is updated now to ignore reads starting with insertions, we should be ok.
+
+Right now running mutato on bams withut abra2 alignment. The bams are here: /home/vpc/datasets/chip_project/data/bam_files. The output file is in the same directory, named variants.vcf.
+Once mutato finished i need to reformat it such that ANNOVAR can run on it. And then the regular reformatting of the ANNOVAR output will be done. This is like a trial run, once the abra2 realigned bams finish transferring over to tambio, i will run mutato on them. 
+Command I used is:
+mutato call --alt-reads=1 --alt-frac=0.001 /home/vpc/datasets/chip_project/genome/hg38.fa *.bam > variants.vcf &
+

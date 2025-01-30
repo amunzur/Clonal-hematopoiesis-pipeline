@@ -18,18 +18,18 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 
-
 with open(source_functions, 'r') as file:
     script_code = file.read()
 
 exec(script_code)
 
+run_fishers_exact(data, "CH status", col)
 
 def run_fishers_exact(df, chip_variable, clinical_variable1): 
     """
     Given two variables in a df, make a contingency table and run fishers exact on it. 
     """
-    df_per_pt = df.groupby('Patient_id').apply(lambda group: group.iloc[group[chip_variable].values.argmax()]).reset_index(drop=True) # group is patient id, presence absence of CHIP for each patient
+    df_per_pt = data[["Patient_id", chip_variable]]
     contingency_table = pd.crosstab(df_per_pt[chip_variable], df[clinical_variable1])
         
     if (contingency_table <= 2).any().any():
@@ -51,30 +51,25 @@ def run_mwu(df, categorical_variable, numerical_variable):
     stat, p_value = mannwhitneyu(g1, g2)
     return(p_value)
 
-    
-
-PATH_mutations = "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/chip_SSCS2_curated_complete.csv"
-PATH_clin_data = "/groups/wyattgrp/users/amunzur/pipeline/resources/clinical_data/Kidney/mRCC clinical Data_clean.csv"
-PATH_clin_dict = "/groups/wyattgrp/users/amunzur/pipeline/resources/clinical_data/Clinical data - Data_dictionary.tsv"
+PATH_mutations = "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/chip.csv"
+PATH_clin_data = "/groups/wyattgrp/users/amunzur/pipeline/resources/clinical_data/Supplementary tables - Clinical data - mRCC.tsv"
 PATH_sample_information = "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/sample_information.tsv"
 
 sample_info = pd.read_csv(PATH_sample_information, sep = "\t", names = ["Patient_id", "Diagnosis", "Date_collected", "Timepoint"])
 dict = pd.read_csv(PATH_clin_dict, "\t")
 muts_main = pd.read_csv(PATH_mutations)
-clin_main = pd.read_csv(PATH_clin_data)
+clin_main = pd.read_csv(PATH_clin_data, sep = "\t").rename(columns = {"GUBB ID": "Patient_id"})
 
-# clin = clin_main[["Patient_id", "Sex", "irAE", "Age at GUBB draw", "Charlson_score", "nephrectomy", "IMDC coded", "Mets_at_tx_start"]]
 clin = clin_main[["Patient_id", "irAE", "Age at GUBB draw"]]
+clin = clin[~clin["irAE"].isna()].reset_index(drop = True)
 
-clin["irAe_binary"] = clin["irAE"].map({"1": 1, "0": 0, "2": 1})
-# clin["Sex_binary"] = clin["Sex"].map({"Male": 1, "Female": 0})
-# clin["IMDC coded"] = clin["IMDC coded"].map({"0": 0, "1": 1, "2": 2, "2a": 2, "2b": 2, "3": 3})
-clin = clin[~pd.isnull(clin["irAe_binary"])]
-# clin = clin[~pd.isnull(clin["Mets_at_tx_start"])]
-# clin["Mets_at_tx_start"] = clin["Mets_at_tx_start"].astype(int)
+ch = muts_main[
+    (muts_main["Gene"].isin(["DNMT3A", "TET2", "ASXL1"])) & 
+    (muts_main["Timepoint"] == "Baseline") & 
+    (muts_main['Diagnosis'] == 'Kidney') & 
+    (muts_main["Dependent"] == False)].reset_index(drop = True)
 
-ch = muts_main[(muts_main["Gene"].isin(["DNMT3A", "TET2", "ASXL1"])) & (muts_main["Timepoint"] == "Baseline") & (muts_main['Diagnosis'] == 'Kidney') & (muts_main['n_callers'] != 1) & (~muts_main['Patient_id'].str.startswith('VIP_'))].reset_index(drop = True)
-ch = ch.merge(sample_info["Patient_id"], how = "inner")
+# ch = ch.merge(sample_info["Patient_id"], how = "inner")
 
 median_values = ch.groupby('Patient_id')['VAF_n'].median().reset_index()
 n_mutations = ch.groupby('Patient_id')['VAF_n'].count().reset_index().rename(columns = {"VAF_n": "n_mutations"})
@@ -91,13 +86,11 @@ ch20_status = ch20_status[ch20_status["Timepoint"] == "Baseline"][["Patient_id",
 data = clin.merge(ch_status, how = "left").merge(chip_status, how = "left").merge(ch10_status, how = "left").merge(ch20_status, how = "left").merge(median_values, how = "left").merge(n_mutations, how = "left")
 data["VAF_n"].fillna(0, inplace = True)
 data["n_mutations"].fillna(0, inplace = True)
-data = data.merge(clin[["Patient_id", "irAe_binary"]], how = "left")
 
 for colname in ["CH status", "CHIP status", "CH10 status", "CH20 status"]:
     data[colname] = data[colname].map({"Negative": 0, "Positive": 1})
 
 # data['CH_status_Charlson_score_interaction'] = data['CH status'] * data['Charlson_score']
-
 
 data["irAe_binary"] = data["irAE"].map({True: 1, False: 0})
 data["CH TET2 status binary"] = data["CH TET2 status"].map({"Negative": 0, "Positive": 1})
@@ -157,6 +150,7 @@ col = "irAE"
 clin = clin_main[["Patient_id", "irAE", "Age at GUBB draw", "Charlson_score"]]
 clin = clin[~pd.isnull(clin[col])]
 clin[col] = clin[col].astype(int) > 0
+
 # Clean up muts of interest
 ch = muts_main[(muts_main["Timepoint"] == "Baseline") & (muts_main['Diagnosis'] == 'Kidney') & (muts_main['n_callers'] != 1) & (~muts_main['Patient_id'].str.startswith('VIP_'))].reset_index(drop = True)
 ch = ch.merge(sample_info["Patient_id"], how = "inner")
@@ -177,6 +171,7 @@ chip_dta_status = annotate_mutation_status(ch[ch["VAF_n"] >= 2].reset_index(drop
 ch_dnmt3a_status = annotate_mutation_status(ch, "Kidney", PATH_sample_information, annotate_what = "CHIP", annotate_gene = "DNMT3A", drop_dependent = True).rename(columns = {"CHIP status": "CH DNMT3A status"})
 ch_tet2_status = annotate_mutation_status(ch, "Kidney", PATH_sample_information, annotate_what = "CHIP", annotate_gene = "TET2", drop_dependent = True).rename(columns = {"CHIP status": "CH TET2 status"})
 ch_asxl1_status = annotate_mutation_status(ch, "Kidney", PATH_sample_information, annotate_what = "CHIP", annotate_gene = "ASXL1", drop_dependent = True).rename(columns = {"CHIP status": "CH ASXL1 status"})
+ch_tp53_status = annotate_mutation_status(ch, "Kidney", PATH_sample_information, annotate_what = "CHIP", annotate_gene = "TP53", drop_dependent = True).rename(columns = {"CHIP status": "CH TP53 status"})
 
 ch_status = ch_status[ch_status["Timepoint"] == "Baseline"][["Patient_id", "CH status"]]
 chip_status = chip_status[chip_status["Timepoint"] == "Baseline"][["Patient_id", "CHIP status"]]
@@ -185,9 +180,22 @@ chip_dta_status = chip_dta_status[chip_dta_status["Timepoint"] == "Baseline"][["
 ch_dnmt3a_status = ch_dnmt3a_status[ch_dnmt3a_status["Timepoint"] == "Baseline"][["Patient_id", "CH DNMT3A status"]]
 ch_tet2_status = ch_tet2_status[ch_tet2_status["Timepoint"] == "Baseline"][["Patient_id", "CH TET2 status"]]
 ch_asxl1_status = ch_asxl1_status[ch_asxl1_status["Timepoint"] == "Baseline"][["Patient_id", "CH ASXL1 status"]]
+ch_tp53_status = ch_tp53_status[ch_tp53_status["Timepoint"] == "Baseline"][["Patient_id", "CH TP53 status"]]
 
-
-data = clin.merge(ch_status, how = "left").merge(chip_status, how = "left").merge(ch_dta_status, how = "left").merge(chip_dta_status, how = "left").merge(ch_dnmt3a_status, how = "left").merge(ch_tet2_status, how = "left").merge(ch_asxl1_status, how = "left").merge(median_values, how = "left").merge(n_mutations, how = "left").merge(median_values_dta, how = "left").merge(n_mutations_dta, how = "left").merge(median_values_tet2, how = "left").merge(n_mutations_tet2, how = "left")
+data = clin.merge(ch_status, how = "left").\
+    merge(chip_status, how = "left").\
+    merge(ch_dta_status, how = "left").\
+    merge(chip_dta_status, how = "left").\
+    merge(ch_dnmt3a_status, how = "left").\
+    merge(ch_tet2_status, how = "left").\
+    merge(ch_asxl1_status, how = "left").\
+    merge(ch_tp53_status, how = "left").\
+    merge(median_values, how = "left").\
+    merge(n_mutations, how = "left").\
+    merge(median_values_dta, how = "left").\
+    merge(n_mutations_dta, how = "left").\
+    merge(median_values_tet2, how = "left").\
+    merge(n_mutations_tet2, how = "left")
 
 data["VAF_n"].fillna(0, inplace = True)
 data["n_mutations"].fillna(0, inplace = True)
@@ -196,16 +204,15 @@ data["DTA_n_mutations"].fillna(0, inplace = True)
 data["TET2_VAF_n"].fillna(0, inplace = True)
 data["TET2_n_mutations"].fillna(0, inplace = True)
 
-# data = data.merge(clin[["Patient_id", "irAE"]], how = "left")
-
 # Any CH in any gene, vs CH in DTA genes
 run_fishers_exact(data, "CH status", col)
 run_fishers_exact(data, "CHIP status", col)
-run_fishers_exact(data, "CH DTA status", col) # SIGNIFICANT
+run_fishers_exact(data, "CH DTA status", col)
 run_fishers_exact(data, "CHIP DTA status", col)
 run_fishers_exact(data, "CH DNMT3A status", col) 
-run_fishers_exact(data, "CH TET2 status", col) # SIGNIFICANT
+run_fishers_exact(data, "CH TET2 status", col)
 run_fishers_exact(data, "CH ASXL1 status", col)
+run_fishers_exact(data, "CH TP53 status", col)
 
 # None significant
 run_mwu(data, "irAE", "VAF_n")

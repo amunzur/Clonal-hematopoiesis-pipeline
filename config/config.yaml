@@ -1,23 +1,32 @@
 ---
-PATH_hg38: "/groups/wyattgrp/reference/hg38/hg38.fa"
-PATH_bed: "resources/panel/1000012543_CHIP_Design_selection_results_Version2/capture_targets.bed"
-PATH_bg: "resources/bg_error_rate/bg_error.tsv"
+# PATH_hg38: "/groups/wyattgrp/users/jbacon/reference/CHIP_hg38_fix/GRCh38.u2af1_fix.v1.2020_04_01.filtered.fa"
+PATH_hg38: "/groups/wyattgrp/users/jbacon/reference/matti_hg38/hg38_masked.fa"
+PATH_hg38_dict: "/groups/wyattgrp/users/jbacon/reference/CHIP_hg38_fix/GRCh38.u2af1_fix.v1.2020_04_01.filtered.dict"
+PATH_bed: "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/CHIP/CHIP_targets.bed"
+PATH_bed_intervals: "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/CHIP/CHIP_targets.interval_list"
+PATH_baits: "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/CHIP/CHIP_baits.anno.interval_list"
+PATH_bg: "/groups/wyattgrp/users/jbacon/err_rates/chip/bgerror/chip_errorrate.tsv"
+PATH_germline: "/groups/wyattgrp/users/amunzur/pipeline/resources/Mutect/germline_resources/af-only-gnomad.hg38.vcf.gz"
+PATH_PoN: "/groups/wyattgrp/users/amunzur/pipeline/resources/Mutect/pon.vcf.gz"
 PATH_adapters: "resources/references/adapters.fa"
 PATH_bets: "resources/betastasis/CLEANED_mutations_kidney_cancer_somatic.tsv"
 DIR_sample_maps: "resources/sample_maps"
 DIR_temp: "resources/TEMP"
-PATH_known_indels: "/groups/wyattgrp/users/jbacon/reference/resources_broad_hg38_v0_Homo_sapiens_assembly38.known_indels.vcf.gz"
-PATH_gold_std_indels: "/groups/wyattgrp/users/jbacon/reference/resources_broad_hg38_v0_Mills_and_1000G_gold_standard.indels.hg38.vcf.gz"
-PATH_SNP_db: "/groups/wyattgrp/users/jbacon/reference/resources_broad_hg38_v0_Homo_sapiens_assembly38.dbsnp138.vcf"
+PATH_known_indels: "/groups/wyattgrp/users/jbacon/reference/dbSNP/resources_broad_hg38_v0_Homo_sapiens_assembly38.known_indels.vcf"
+PATH_gold_std_indels: "/groups/wyattgrp/users/jbacon/reference/dbSNP/resources_broad_hg38_v0_Mills_and_1000G_gold_standard.indels.hg38.vcf"
+PATH_SNP_db: "/groups/wyattgrp/users/jbacon/reference/dbSNP/resources_broad_hg38_v0_Homo_sapiens_assembly38.dbsnp138.vcf"
 
 # data files
+DIR_fastq: "results/data/fastq"
 DIR_raw_fastq: "results/data/fastq/raw"
-DIR_merged_fastq: "results/data/fastq/merged"
+DIR_merged_fastq: "results/data/fastq/merged/all"
 DIR_masked_fastq: "results/data/fastq/masked"
 DIR_extracted_fastq: "results/data/fastq/extracted"
 DIR_trimmed_fastq: "results/data/fastq/trimmed"
 DIR_trimmed_unpaired_fastq: "results/data/fastq/trimmed_unpaired"
 DIR_bams: "results/data/bam"
+# DIR_bams: "/groups/wyattgrp/users/amunzur/pipeline/results/wbc_downsampling/bam/depth_500"
+DIR_bams_mutato: "results/data/bam/mutato"
 DIR_recalibrated_base_scores: "results/base_recalc_info"
 
 # fastqc reports 
@@ -34,6 +43,10 @@ DIR_mpileup: "results/metrics/mpileup"
 DIR_complexity_metrics: "results/metrics/library_complexity"
 DIR_dedup_metrics: "results/metrics/dedup"
 DIR_readcounts_metrics: "results/metrics/read_counts"
+DIR_HS_metrics: "results/metrics/PICARD_HS_metrics"
+DIR_results: "/groups/wyattgrp/users/amunzur/pipeline/results"
+# DIR_results: "/groups/wyattgrp/users/amunzur/pipeline/results/wbc_downsampling/depth_500"
+DIR_umi_metrics: "results/metrics/umi_metrics"
 
 # variant calling
 DIR_varscan: "results/variant_calling/VarScan2"
@@ -41,10 +54,14 @@ VarScan_snv: "results/variant_calling/VarScan2/snv"
 VarScan_indel: "results/variant_calling/VarScan2/indel"
 
 DIR_Mutect: "results/variant_calling/Mutect2"
+DIR_Mutato: "results/variant_calling/Mutato/with_ABRA2"
 DIR_Haplotype: "results/variant_calling/Haplotype_caller"
 
 DIR_Vardict: "results/variant_calling/Vardict"
 DIR_Vardict_reformatted: "results/variant_calling/Vardict_reformatted"
+
+DIR_Lofreq: "results/variant_calling/Lofreq"
+DIR_freebayes: "results/variant_calling/freebayes"
 
 # VarDict_snv_output: "results/variant_calling/Vardict/snv"
 # VarDict_indel_output: "results/variant_calling/Vardict/indel"
@@ -58,7 +75,16 @@ ANNOVAR_Vardict_input: "results/data/annovar_inputs/vardict"
 ANNOVAR_Vardict_output: "results/data/annovar_outputs/vardict"
 ANNOVAR_GATK_input: "results/data/annovar_inputs/haplotype_caller"
 ANNOVAR_GATK_output: "results/data/annovar_outputs/haplotype_caller"
+ANNOVAR_mutect_output: "results/data/annovar_outputs/Mutect2"
+ANNOVAR_mutato_input: "results/data/annovar_inputs/mutato"
+ANNOVAR_mutato_output: "results/data/annovar_outputs/mutato"
+DIR_ANNOVAR: "results/data/annovar_outputs"
 
+# cnvkit
+cnvkit_targets_bed: "resources/cnvkit/my_targets.bed"
+cfDNA_reference: "results/cnvkit/references/VIP_cfDNA_reference.cnn"
+WBC_reference: "results/cnvkit/references/VIP_WBC_reference.cnn"
+chip_probes_bed: "/groups/wyattgrp/users/jbacon/reference/bed_files/CHIP/CHIP_probes.bed"
 
 # filtering varscan2 results using R, based on thresholds etc
 # PATH_SAVE_chip_variants: "results/variant_calling/VarScan2/finalized/{cohort_wildcard}/chip_variants.csv"

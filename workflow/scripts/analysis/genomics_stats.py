@@ -10,21 +10,21 @@ The main clinical data we use is the patient specific treatment landscape.
 import pandas as pd
 import os
 from statsmodels.stats.multitest import multipletests
-
+from scipy.stats import fisher_exact
 
 PATH_sample_information = "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/sample_information.tsv"
 PATH_treatment = "/groups/wyattgrp/users/amunzur/pipeline/resources/clinical_data/bladder/treatment.csv"
 PATH_date_surgery = "/groups/wyattgrp/users/amunzur/pipeline/resources/clinical_data/bladder/operations.csv"
-PATH_CHIP = "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/chip_SSCS2_curated_complete.csv"
+PATH_CHIP = "/groups/wyattgrp/users/amunzur/pipeline/results/variant_calling/chip.csv"
 PATH_panel_genes = "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/chip_panel_gene_categories.tsv"
 
-PATH_kidney_clean = "/groups/wyattgrp/users/amunzur/pipeline/resources/clinical_data/kidney_clin_clean.csv"
-PATH_clinical_bladder = "/groups/wyattgrp/users/amunzur/pipeline/resources/clinical_data/Bladder_enrollment.csv"
+PATH_clinical_kidney = "/groups/wyattgrp/users/amunzur/pipeline/resources/clinical_data/bladder/clinical_data.csv"
+PATH_clinical_bladder = "/groups/wyattgrp/users/amunzur/pipeline/resources/clinical_data/CHIP Supplementary tables - Clinical_data_mRCC.csv"
 ########################################################
 # 1. CH prevalence and platinum chemo
 ########################################################
 
-gene = "TP53"
+gene = "PPM1D"
 source_functions = "/groups/wyattgrp/users/amunzur/pipeline/workflow/scripts/visualization/UTILITIES_make_chip_plots.py"
 
 with open(source_functions, 'r') as file:
@@ -47,11 +47,9 @@ def is_platinum(row):
 def convert_to_boolean(value):
     return value > 0
 
-
 treatment_main = pd.read_csv(PATH_treatment)
 treatment_main['Date start'] = pd.to_datetime(treatment_main['Date start'])
 treatment_main['Date discontinuation'] = pd.to_datetime(treatment_main['Date discontinuation'])
-
 
 sample_info_main = pd.read_csv(PATH_sample_information, sep = "\t", names = ["Patient_id", "Date_collected", "Diagnosis", "Timepoint"])
 sample_info_main['Date_collected'] = pd.to_datetime(sample_info_main['Date_collected'], format='%Y%b%d')
@@ -59,7 +57,7 @@ sample_info_bladder = sample_info_main[sample_info_main["Diagnosis"] == "Bladder
 
 # Annotate gene status for all samples
 all_vars_chip = pd.read_csv(PATH_CHIP)
-ch_bladder = all_vars_chip[(all_vars_chip["Timepoint"] == "Baseline") & (all_vars_chip["Dependent"] == False) & (all_vars_chip["Diagnosis"] == "Bladder")]
+ch_bladder = all_vars_chip[(all_vars_chip["Timepoint"] == "Baseline") & (all_vars_chip["Dependent"] == False) & (all_vars_chip["Diagnosis"] == "Bladder")].reset_index(drop = True)
 # chip_bladder = all_vars_chip[(all_vars_chip["Timepoint"] == "Baseline") & (all_vars_chip["Dependent"] == False) & (all_vars_chip["Diagnosis"] == "Bladder") & (all_vars_chip["VAF_n"] > 2)]
 
 status_ch = annotate_mutation_status(ch_bladder, "Bladder", PATH_sample_information, annotate_what = "CHIP", annotate_gene = gene).merge(sample_info_main, how = "left")
@@ -98,28 +96,32 @@ print(f'P-value: {p_value}')
 ########################################################
 
 # LOAD CHIP DATASETS
-all_vars_chip = pd.read_csv(os.path.join(DIR_working, "results/variant_calling/chip_SSCS2_curated_complete.csv"))
+all_vars_chip = pd.read_csv(os.path.join(DIR_working, "results/variant_calling/chip.csv"))
+all_vars_chip = all_vars_chip[(all_vars_chip["Timepoint"] == "Baseline") & (all_vars_chip["Dependent"] == False)]
 base_kidney_chip = all_vars_chip[(all_vars_chip["Timepoint"] == "Baseline") & (all_vars_chip["Diagnosis"] == "Kidney")].reset_index(drop = True)
 base_bladder_chip = all_vars_chip[(all_vars_chip["Timepoint"] == "Baseline") & (all_vars_chip["Diagnosis"] == "Bladder")].reset_index(drop = True)
 
 # LOAD SOMATIC DATASETS
-all_vars_somatic = pd.read_csv(os.path.join(DIR_working, "results/variant_calling/somatic_SSCS2_curated_complete.csv"))
+all_vars_somatic = pd.read_csv(os.path.join(DIR_working, "results/variant_calling/somatic.csv"))
 all_vars_somatic = all_vars_somatic[~all_vars_somatic["Patient_id"].isin(["20-313", "21-184", "21-430"])] # exclude some samples due to oxidative damage
 base_kidney_somatic = all_vars_somatic[(all_vars_somatic["Timepoint"] == "Baseline") & (all_vars_somatic["Diagnosis"] == "Kidney")].reset_index(drop = True)
 base_bladder_somatic = all_vars_somatic[(all_vars_somatic["Timepoint"] == "Baseline") & (all_vars_somatic["Diagnosis"] == "Bladder")].reset_index(drop = True)
 
 # pull sex data
 c1 = pd.read_csv(PATH_clinical_bladder)[["Patient_id", 'Sex']]
-c2 = pd.read_csv(PATH_kidney_clean)[["Patient_id", 'Sex']]
+c2 = pd.read_csv(PATH_clinical_kidney)[["Patient_id", 'Sex']].drop_duplicates().reset_index(drop = True)
 sex_df = pd.concat([c1, c2]).reset_index(drop = True)
 
 p_values = []
 results = []
 
+panel_genes = pd.read_csv("/groups/wyattgrp/users/amunzur/pipeline/resources/panel/chip_panel_gene_categories.tsv", sep = "\t")["Panel genes"].tolist()
+
 for gene in panel_genes:
     if all_vars_chip["Gene"].str.contains(gene).any():
         print(gene)
-        p_value = check_mutation_prevalence_and_sex(all_vars_chip, sex_df, diagnosis, PATH_sample_information, annotate_what, annotate_gene=gene)
+        diagnosis = "Both"
+        p_value = check_mutation_prevalence_and_sex(all_vars_chip, sex_df, diagnosis, PATH_sample_information, annotate_what = "CHIP", annotate_gene=gene)
         if p_value is not None:
             p_values.append(p_value)
             results.append((gene, p_value))

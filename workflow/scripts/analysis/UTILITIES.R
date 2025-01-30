@@ -27,11 +27,11 @@ add_bg_error_rate <- function(variants_df, bg) {
 
 	# add the deletions 
 	idx <- which(tolower(variants_df$Type) == "deletion")
-	variants_df$error_type[idx] <- "mean_errorindel"
+	variants_df$error_type[idx] <- "mean_errordel"
 	
 	# add the insertions
 	idx <- which(tolower(variants_df$Type) == "insertion")
-	variants_df$error_type[idx] <- "mean_errorindel"
+	variants_df$error_type[idx] <- "mean_errorins"
 
 	# modify the bg error rate df
 	bg <- gather(bg, "error_type", "error_rate", starts_with("mean_error"))
@@ -388,12 +388,17 @@ add_cfDNA_information <- function(variants_df, DIR_basecounts_DCS, DIR_basecount
 	return(variants_df)
 }
 
-combine_tumor_wbc <- function(vars){
+combine_tumor_wbc <- function(vars, match_cfDNA_and_WBC_dates = TRUE){
+	# Same collection date set to TRUE will require matching entries for Timepoint and Date_collected columns.
 
 	tumor <- vars %>% filter(Sample_type == "cfDNA") %>% select(-Sample_type)
 	wbc <- vars %>% filter(Sample_type == "WBC") %>% select(-Sample_type)
 
-    combined <- inner_join(tumor, wbc, by = c("Patient_id", "Date_collected", "Timepoint", "Diagnosis", "Chrom", "Position", "Ref", "Alt", "Type", "Function", "Gene", "Consequence", "AAchange", "Protein_annotation", "Effects", "cosmic97_coding", "avsnp150", "CLNALLELEID", "CLNSIG", "Variant_caller"))
+	if (match_cfDNA_and_WBC_dates == TRUE ) {
+    	combined <- inner_join(tumor, wbc, by = c("Patient_id", "Date_collected", "Timepoint", "Diagnosis", "Chrom", "Position", "Ref", "Alt", "Type", "Function", "Gene", "Consequence", "AAchange", "Protein_annotation", "Effects", "cosmic97_coding", "avsnp150", "CLNALLELEID", "CLNSIG", "Variant_caller"))
+	} else {
+    	combined <- inner_join(tumor, wbc, by = c("Patient_id", "Diagnosis", "Chrom", "Position", "Ref", "Alt", "Type", "Function", "Gene", "Consequence", "AAchange", "Protein_annotation", "Effects", "cosmic97_coding", "avsnp150", "CLNALLELEID", "CLNSIG", "Variant_caller"))
+	}
     names(combined) <- gsub("\\.x", "_t", names(combined)) 
     names(combined) <- gsub("\\.y", "_n", names(combined)) 
 
@@ -491,19 +496,24 @@ add_N_fraction <- function(vars, DIR_mpileup, DIR_mpileup_filtered, force) {
 
 }
 
-filter_variants_chip_or_germline <- function(mode, vars, min_alt_reads, min_depth, min_VAF_low, max_VAF_low, min_VAF_high, max_VAF_high, min_VAF_bg_ratio, PATH_blacklist, blacklist = TRUE) {
-	vars$error_rate <- na.fill(vars$error_rate, fill = 0)
+filter_variants_chip_or_germline <- function(mode, vars, min_alt_reads, min_depth, min_VAF_low, max_VAF_low, min_VAF_high, max_VAF_high, min_VAF_bg_ratio, PATH_blacklist, blacklist = TRUE, filter_by_min_depth = TRUE) {
+	vars$VAF_bg_ratio <- na.fill(vars$VAF_bg_ratio, fill = 9999999)
 	# When gnomad is undefined replace it with 0.
 	vars$gnomad40_exome_AF <- as.numeric(vars$gnomad40_exome_AF)
 	mask <- is.na(vars$gnomad40_exome_AF)
 	vars$gnomad40_exome_AF[mask] <- 0
+	
 	vars <- vars %>% 
-			mutate(Status = toupper(mode), 
-			       VAF_bg_ratio = VAF/error_rate) %>% 
-			filter(Alt_forward + Ref_forward + Alt_reverse + Ref_reverse >= min_depth,
-			       Alt_forward + Alt_reverse >= min_alt_reads,
+			mutate(Status = toupper(mode)) %>% 
+			filter(Alt_forward + Alt_reverse >= min_alt_reads,
 			       VAF_bg_ratio >= min_VAF_bg_ratio, 
-				   gnomad40_exome_AF < 0.0005)	
+				   gnomad40_exome_AF < 0.0005)
+	
+	if (filter_by_min_depth) {
+		vars <- vars %>% 
+			filter(Alt_forward + Ref_forward + Alt_reverse + Ref_reverse >= min_depth)
+	} 
+	
 	if (toupper(mode) == "CHIP") {
 		vars <- vars %>%
 			filter((VAF >= min_VAF_low & VAF <= max_VAF_low) | (VAF >= min_VAF_high & VAF <= max_VAF_high), 

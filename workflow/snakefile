@@ -12,11 +12,21 @@ exec(open("workflow/snakemake_functions.py").read())
 PATH_to_samples = ("/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/sample_list_bladder_and_kidney.tsv")
 PATH_to_VIP_samples = ("/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/VIP_normals.tsv")
 
+PATH_to_samples = "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/sample_information.tsv"
+patients_df = pd.read_csv(PATH_to_samples, sep = "\t", names = ["Patient_id", "Date_collected", "Diagnosis", "Timepoint"])
+patients = patients_df[patients_df["Diagnosis"] != "Healthy"]["Patient_id"].tolist()
+# patients = ["21-390", "17-051", "21-420", "21-391", "18-029", "17-114", "17-118", "19-046", "20-300", "17-339", "18-418", "18-129"]
+
+all_samples = os.listdir("/groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/merged/all")
+samples = [file.replace("_1.fq.gz", "") for file in all_samples if any(patient in file for patient in patients) and file.endswith("_1.fq.gz")]
+
+
+# bams = os.listdir("/groups/wyattgrp/users/amunzur/pipeline/results/wbc_downsampling/bam/depth_1500/SSCS2_final")
+# samples = [file.replace(".bam", "") for file in bams if file.endswith(".bam") and "Baseline" in file]
+
 configfile: "config/config.yaml"
-samples = pd.read_csv(PATH_to_samples, sep="\t")["sample_names"].tolist()
 VIP_normals_cfDNA = [x for x in pd.read_csv(PATH_to_VIP_samples, sep="\t", header = None)[0].tolist() if "cfDNA" in x]
 VIP_normals_wbc = [x for x in pd.read_csv(PATH_to_VIP_samples, sep="\t", header = None)[0].tolist() if "WBC" in x]
-
 
 # patients = sorted(list(set([re.sub('_gDNA.*|_cfDNA.*', '', s) for s in samples]))) # used when running mutato
 cfDNA_samples = list(filter(lambda x: "cfDNA" in x, samples))
@@ -179,7 +189,7 @@ run_annovar_somatic = expand(
 run_insert_size = expand(
     DIR_insertsize_metrics + "/{consensus_type}/{wildcard}.txt",
     consensus_type=["SSCS2"],
-    wildcard=VIP_normals_cfDNA,
+    wildcard=samples,
 )
 
 # PDF_to_PNG = expand(DIR_insertsize_figures_PNG + "/{wildcard}.png", wildcard=samples)
@@ -258,12 +268,12 @@ rule all:
 
 
 ##### Modules #####
-include: "rules/process_fastq.smk"
-include: "rules/make_consensus_bams.smk"
-include: "rules/filter_consensus_bams.smk"
+# include: "rules/process_fastq.smk"
+# include: "rules/make_consensus_bams.smk"
+# include: "rules/filter_consensus_bams.smk"
 include: "rules/run_metrics.smk"
-include: "rules/variant_calling.smk"
-include: "rules/variant_calling_somatic.smk"
+# include: "rules/variant_calling.smk"
+# include: "rules/variant_calling_somatic.smk"
 include: "rules/annotation.smk"
 include: "rules/index_bams.smk"
 include: "rules/make_bg_error_rate.smk"

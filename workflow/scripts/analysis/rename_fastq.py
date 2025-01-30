@@ -72,7 +72,7 @@ def get_sequencing_id(some_fastq, PATH_barcode_sheet, reverse_compliment = False
 
 def write_script(file_names, DIR_output, PATH_script):
     '''
-    Writes a bash script to rename move the fastq files into a new location. You would then simply run that script to rename the fastqs.
+    Writes a bash script to rename move the fastq files into a new location. You would then run that script to rename the fastqs.
     file_names: the list of dictionaries, outputted by the get_sequencing_id function.
     DIR_output: the dir to save the renamed fastq files.
     PATH_script: The bash script that will be generated to rename and move files.
@@ -90,90 +90,158 @@ def write_script(file_names, DIR_output, PATH_script):
             file.write(command)
             file.write("\n")    
 
+def execute_script(PATH_script, dry_run=False):
+    if dry_run:
+        print(f"Dry run: the following bash script would be executed:\n")
+        with open(PATH_script, 'r') as file:
+            print(file.read())
+    else:
+        try:
+            subprocess.run(f"bash {PATH_script}", check=True, shell=True)
+            print(f"Bash script executed successfully.")
+        except subprocess.CalledProcessError as e:
+            print(f"Error executing bash script: {e}")
 
-# FEB 26TH 2024 WGS SAMPLES
-for sequencing_date in ["wgs_26feb2024", "wgs_29feb2024", "wgs_06march2024"]:
-    DIR_data=f"/groups/wyattgrp/data/fq/{sequencing_date}"
-    DIR_output="/groups/wyattgrp/data/fq/deep_wgs/fq"
-    PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/wgs/resources/sample_maps.tsv"
-    PATH_script=f"/groups/wyattgrp/users/amunzur/wgs/scripts/batch_scripts/{sequencing_date}.bash"
-    file_names = find_fastq_files(DIR_data)   
-    file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
-    write_script(file_names, DIR_output, PATH_script)
+# Main function to parse arguments and run the renaming process
+def main():
+    # Argument parsing
+    parser = argparse.ArgumentParser(description="Rename FastQ files based on barcode matching")
+    parser.add_argument("--input_dir", required=True, help="Directory containing the FastQ files")
+    parser.add_argument("--barcode_sheet", required=True, help="CSV file containing barcode mapping")
+    parser.add_argument("--output_dir", required=True, help="Directory where renamed FastQ files will be saved")
+    parser.add_argument("--script_path", required=True, help="Path to save the generated bash script")
+    parser.add_argument("--reverse_complement", action='store_true', help="Flag to reverse complement barcodes")
+    parser.add_argument("--dry_run", action='store_true', help="Flag to show the bash script without executing it")
+    
+    args = parser.parse_args()
+    
+    # If user asks for help, print it and exit
+    if "--help" in sys.argv:
+        print_help()
+        sys.exit()
+    
+    # Find all FastQ files in the input directory
+    file_names = find_fastq_files(args.input_dir)
+    
+    renamed_files = []
+    for file in file_names:
+        try:
+            file_info = get_sequencing_id(file, args.barcode_sheet, args.reverse_compliment)
+            renamed_files.append(file_info)
+        except ValueError as e:
+            print(f"Error: {e}")
+    
+    # Write bash script to rename and move files
+    write_script(renamed_files, args.output_dir, args.script_path)
+    print(f"Bash script has been written to: {args.script_path}")
+    
+    # Execute the bash script if not a dry run
+    execute_script(args.script_path, dry_run=args.dry_run)
 
-# Doing this one separately
-DIR_data=f"/groups/wyattgrp/data/fq/wgs_08march2024"
-DIR_output="/groups/wyattgrp/data/fq/deep_wgs/fq_08march2024"
-PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/wgs/resources/sample_maps.tsv"
-PATH_script=f"/groups/wyattgrp/users/amunzur/wgs/scripts/batch_scripts/wgs_08march2024.bash"
-file_names = find_fastq_files(DIR_data)   
-file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
-write_script(file_names, DIR_output, PATH_script)
-
-
-
-
-
-# FEB 29TH 2024 WGS SAMPLES
-DIR_data="/groups/wyattgrp/data/fq/wgs_29feb2024"
-DIR_output="/groups/wyattgrp/data/fq/deep_wgs/fq"
-PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/wgs/resources/sample_maps.tsv"
-PATH_script="/groups/wyattgrp/users/amunzur/wgs/scripts/batch_scripts/wgs_29feb2024.bash"
-file_names = find_fastq_files(DIR_data)   
-file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
-write_script(file_names, DIR_output, PATH_script)
-
-# MATCH 6TH 2024 WGS SAMPLES
-DIR_data="/groups/wyattgrp/data/fq/wgs_26feb2024"
-DIR_output="/groups/wyattgrp/data/fq/deep_wgs/fq"
-PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/wgs/resources/sample_maps.tsv"
-PATH_script="/groups/wyattgrp/users/amunzur/wgs/scripts/batch_scripts/wgs_26feb2024.bash"
-file_names = find_fastq_files(DIR_data)   
-file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
-write_script(file_names, DIR_output, PATH_script)
-
-# MARCH 8TH 2024 WGS SAMPLES
-DIR_data="/groups/wyattgrp/data/fq/wgs_26feb2024"
-DIR_output="/groups/wyattgrp/data/fq/deep_wgs/fq"
-PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/wgs/resources/sample_maps.tsv"
-PATH_script="/groups/wyattgrp/users/amunzur/wgs/scripts/batch_scripts/wgs_26feb2024.bash"
-file_names = find_fastq_files(DIR_data)   
-file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
-write_script(file_names, DIR_output, PATH_script)
+if __name__ == "__main__":
+    main()
 
 
-# POOL 6
-DIR_data="/groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/merged/GU-BCa_CHIP_28Apr2023_Pool6" # directory where the fastq files are saved, right out of the sequencer
-DIR_output="/groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/merged"
-PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/pipeline/resources/sample_maps/GU-BCa_CHIP_28Apr2023_Pool6_barcodes.tsv"
-PATH_script="/groups/wyattgrp/users/amunzur/pipeline/resources/bash_scripts/GU-BCa_CHIP_28Apr2023_Pool6.bash"
-file_names = find_fastq_files(DIR_data)   
-file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
-write_script(file_names,  DIR_output, PATH_script)
 
-# POOL 5
-DIR_data="/groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/merged/GU-BCa_CHIP_Pool5"
-DIR_output="/groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/merged"
-PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/pipeline/resources/sample_maps/GU-BCa_CHIP_Pool5_barcodes.tsv"
-PATH_script="/groups/wyattgrp/users/amunzur/pipeline/resources/bash_scripts/GU-BCa_CHIP_Pool5.bash"
-file_names = find_fastq_files(DIR_data)   
-file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
-write_script(file_names,  DIR_output, PATH_script)
 
-# POOLS 1,2,3,4
-DIR_data="/groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/merged/GU-BCa_CHIP_26Apr2023_Pool1_2_3_4"
-DIR_output="/groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/merged"
-PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/pipeline/resources/sample_maps/GU-BCa_CHIP_28Apr2023_Pool1_2_3_4_barcodes.tsv"
-PATH_script="/groups/wyattgrp/users/amunzur/pipeline/resources/bash_scripts/GU-BCa_CHIP_Pool1_2_3_4.bash"
-file_names = find_fastq_files(DIR_data)   
-file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
-write_script(file_names,  DIR_output, PATH_script)
 
-# Kidney OT samples
-DIR_data="/groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/kidney_OT"
-DIR_output="/groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/merged/kidney"
-PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/pipeline/resources/sample_maps/kidney_OT_Jan31_2024.tsv"
-PATH_script="/groups/wyattgrp/users/amunzur/pipeline/resources/bash_scripts/kidneyOT.bash"
-file_names = find_fastq_files(DIR_data)   
-file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
-write_script(file_names,  DIR_output, PATH_script)
+
+
+
+# # FEB 26TH 2024 WGS SAMPLES
+# for sequencing_date in ["wgs_26feb2024", "wgs_29feb2024", "wgs_06march2024"]:
+#     DIR_data=f"/groups/wyattgrp/data/fq/{sequencing_date}"
+#     DIR_output="/groups/wyattgrp/data/fq/deep_wgs/fq"
+#     PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/wgs/resources/sample_maps.tsv"
+#     PATH_script=f"/groups/wyattgrp/users/amunzur/wgs/scripts/batch_scripts/{sequencing_date}.bash"
+#     file_names = find_fastq_files(DIR_data)   
+#     file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
+#     write_script(file_names, DIR_output, PATH_script)
+
+# # Doing this one separately
+# DIR_data=f"/groups/wyattgrp/data/fq/wgs_08march2024"
+# DIR_output="/groups/wyattgrp/data/fq/deep_wgs/fq_08march2024"
+# PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/wgs/resources/sample_maps.tsv"
+# PATH_script=f"/groups/wyattgrp/users/amunzur/wgs/scripts/batch_scripts/wgs_08march2024.bash"
+# file_names = find_fastq_files(DIR_data)   
+# file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
+# write_script(file_names, DIR_output, PATH_script)
+
+# # IMgenomics panel test
+# DIR_data=f"/groups/wyattgrp/users/amunzur/hla_pipeline/results/data/fq/hla_panel_test/IX12674/22KF3GLT3_8"
+# DIR_output="/groups/wyattgrp/users/amunzur/hla_pipeline/results/data/fq/hla_panel_test"
+# PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/hla_pipeline/resources/sequencing_sheets/ImGenomics test sequencing plan - For wet lab use.csv"
+# PATH_script=f"/groups/wyattgrp/users/amunzur/hla_pipeline/workflow/batch_scripts/rename_fastq/panel_test_2024May24.bash"
+# file_names = find_fastq_files(DIR_data)   
+# file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
+# write_script(file_names, DIR_output, PATH_script)
+
+
+# /groups/wyattgrp/users/amunzur/hla_pipeline/resources/sequencing_sheets
+
+
+
+
+# # FEB 29TH 2024 WGS SAMPLES
+# DIR_data="/groups/wyattgrp/data/fq/wgs_29feb2024"
+# DIR_output="/groups/wyattgrp/data/fq/deep_wgs/fq"
+# PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/wgs/resources/sample_maps.tsv"
+# PATH_script="/groups/wyattgrp/users/amunzur/wgs/scripts/batch_scripts/wgs_29feb2024.bash"
+# file_names = find_fastq_files(DIR_data)   
+# file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
+# write_script(file_names, DIR_output, PATH_script)
+
+# # MATCH 6TH 2024 WGS SAMPLES
+# DIR_data="/groups/wyattgrp/data/fq/wgs_26feb2024"
+# DIR_output="/groups/wyattgrp/data/fq/deep_wgs/fq"
+# PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/wgs/resources/sample_maps.tsv"
+# PATH_script="/groups/wyattgrp/users/amunzur/wgs/scripts/batch_scripts/wgs_26feb2024.bash"
+# file_names = find_fastq_files(DIR_data)   
+# file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
+# write_script(file_names, DIR_output, PATH_script)
+
+# # MARCH 8TH 2024 WGS SAMPLES
+# DIR_data="/groups/wyattgrp/data/fq/wgs_26feb2024"
+# DIR_output="/groups/wyattgrp/data/fq/deep_wgs/fq"
+# PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/wgs/resources/sample_maps.tsv"
+# PATH_script="/groups/wyattgrp/users/amunzur/wgs/scripts/batch_scripts/wgs_26feb2024.bash"
+# file_names = find_fastq_files(DIR_data)   
+# file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
+# write_script(file_names, DIR_output, PATH_script)
+
+
+# # POOL 6
+# DIR_data="/groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/merged/GU-BCa_CHIP_28Apr2023_Pool6" # directory where the fastq files are saved, right out of the sequencer
+# DIR_output="/groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/merged"
+# PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/pipeline/resources/sample_maps/GU-BCa_CHIP_28Apr2023_Pool6_barcodes.tsv"
+# PATH_script="/groups/wyattgrp/users/amunzur/pipeline/resources/bash_scripts/GU-BCa_CHIP_28Apr2023_Pool6.bash"
+# file_names = find_fastq_files(DIR_data)   
+# file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
+# write_script(file_names,  DIR_output, PATH_script)
+
+# # POOL 5
+# DIR_data="/groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/merged/GU-BCa_CHIP_Pool5"
+# DIR_output="/groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/merged"
+# PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/pipeline/resources/sample_maps/GU-BCa_CHIP_Pool5_barcodes.tsv"
+# PATH_script="/groups/wyattgrp/users/amunzur/pipeline/resources/bash_scripts/GU-BCa_CHIP_Pool5.bash"
+# file_names = find_fastq_files(DIR_data)   
+# file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
+# write_script(file_names,  DIR_output, PATH_script)
+
+# # POOLS 1,2,3,4
+# DIR_data="/groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/merged/GU-BCa_CHIP_26Apr2023_Pool1_2_3_4"
+# DIR_output="/groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/merged"
+# PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/pipeline/resources/sample_maps/GU-BCa_CHIP_28Apr2023_Pool1_2_3_4_barcodes.tsv"
+# PATH_script="/groups/wyattgrp/users/amunzur/pipeline/resources/bash_scripts/GU-BCa_CHIP_Pool1_2_3_4.bash"
+# file_names = find_fastq_files(DIR_data)   
+# file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
+# write_script(file_names,  DIR_output, PATH_script)
+
+# # Kidney OT samples
+# DIR_data="/groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/kidney_OT"
+# DIR_output="/groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/merged/kidney"
+# PATH_barcode_sheet="/groups/wyattgrp/users/amunzur/pipeline/resources/sample_maps/kidney_OT_Jan31_2024.tsv"
+# PATH_script="/groups/wyattgrp/users/amunzur/pipeline/resources/bash_scripts/kidneyOT.bash"
+# file_names = find_fastq_files(DIR_data)   
+# file_names = [get_sequencing_id(some_fastq, PATH_barcode_sheet) for some_fastq in file_names]
+# write_script(file_names,  DIR_output, PATH_script)

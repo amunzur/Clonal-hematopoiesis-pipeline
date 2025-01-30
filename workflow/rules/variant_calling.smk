@@ -71,7 +71,7 @@ rule run_freebayes_chip:
         -t {params.PATH_bed} \
         --pooled-continuous \
         --min-alternate-fraction 0.001 \
-        --min-alternate-count 4 | bcftools norm -m-both -f {params.PATH_hg38} -o {output}"
+        --min-alternate-count 1 | bcftools norm -m-both -f {params.PATH_hg38} -o {output}"
 
 rule zip_vcf_files_vardict:
     input:

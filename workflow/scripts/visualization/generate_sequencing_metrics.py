@@ -6,6 +6,7 @@ import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+from scipy.stats import mannwhitneyu
 
 
 
@@ -103,6 +104,7 @@ sequencing_metrics.to_csv(PATH_output, sep = "\t", index = False)
 
 PATH_seq_metrics = "/groups/wyattgrp/users/amunzur/pipeline/results/metrics/seq_quality_metrics/seq_quality_metrics.tsv"
 DIR_figures = "/groups/wyattgrp/users/amunzur/pipeline/results/figures/seq_metrics"
+PATH_sample_info = "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/sample_information.tsv"
 
 def enumerate_col(df, old_col, new_col):
     df[new_col] = df[old_col].map({gene: number + 1 for number, gene in enumerate(df[old_col].unique())})
@@ -203,6 +205,9 @@ def make_WBC_cfDNA_depth_plot_DIFFERENCE(df, DIR_figures, plot_name):
 #############################################
 # BLADDER
 df_main = pd.read_csv(PATH_seq_metrics, sep = "\t")
+sample_info = pd.read_csv(PATH_SAMPLE_INFO, sep = "\t", names = ["Patient", "Date", "Diagnosis", "Timepoint"])
+df_main = sample_info.merge(df_main, how = "inner")
+
 df_bladder = (
     df_main
     .loc[df_main['Diagnosis'] == "Bladder"]
@@ -211,12 +216,6 @@ df_bladder = (
             Patient_id = df_main["Sample_name"].str.replace("(_WBC.*|_cfDNA.*)", ""))
 )
 df_bladder["Patient_time_point_identifier"] = df_bladder["Sample_name"].str.replace("(_WBC*|_cfDNA*)", "")
-
-fig, ax = plt.subplots(figsize=(8, 4))
-ax = make_WBC_cfDNA_depth_plot(df_bladder, ax, "Median depth SSCS2", legend = True)
-ax.set_title("Median depth SSCS2 in bladder samples")
-fig.savefig(os.path.join(DIR_figures, "bladder_consensus_depth.png"))
-fig.savefig(os.path.join(DIR_figures, "bladder_consensus_depth.pdf"))
 
 # make_WBC_cfDNA_depth_plot_DIFFERENCE(df_bladder, DIR_figures, "SSCS1 and SSCS2 depth difference bladder.png")
 # return_sequencing_metrics(df_bladder, "SSCS1")
@@ -233,14 +232,32 @@ df_kidney = (
             Patient_id = df_main["Sample_name"].str.replace("(_WBC.*|_cfDNA.*)", ""))
 )
 df_kidney["Patient_time_point_identifier"] = df_kidney["Sample_name"].str.replace("(_WBC*|_cfDNA*)", "")
-fig, ax = plt.subplots(figsize=(8, 4))
-
-ax = make_WBC_cfDNA_depth_plot(df_kidney, ax, "Median depth SSCS2", legend = True)
-ax.set_title("Median depth SSCS2 in kidney samples")
-fig.savefig(os.path.join(DIR_figures, "kidney_consensus_depth.png"))
-fig.savefig(os.path.join(DIR_figures, "kidney_consensus_depth.pdf"))
-
 # make_WBC_cfDNA_depth_plot_DIFFERENCE(df_kidney, DIR_figures, "SSCS1 and SSCS2 depth difference kidney.png")
 # return_sequencing_metrics(df_kidney, "SSCS1")
 # return_sequencing_metrics(df_kidney, "SSCS2")
 #############################################
+
+
+# Plotting
+fig = plt.figure(figsize=(7, 7))
+gs = gridspec.GridSpec(2, 1, height_ratios=[1, 1])
+ax1 = plt.subplot(gs[0])
+ax2 = plt.subplot(gs[1])
+
+ax1 = make_WBC_cfDNA_depth_plot(df_kidney, ax1, "Median depth SSCS2", legend = True)
+ax1.set_title("Median depth in mRCC samples")
+ax1.set_ylabel("Median sequencing depth")
+ax2 = make_WBC_cfDNA_depth_plot(df_bladder, ax2, "Median depth SSCS2", legend = True)
+ax2.set_title("Median depth in mUC samples")
+ax2.set_ylabel("Median sequencing depth")
+
+gs.tight_layout(fig)
+fig.savefig(os.path.join(DIR_figures, "consensus_depth.png"))
+fig.savefig(os.path.join(DIR_figures, "consensus_depth.pdf"))
+
+return_sequencing_metrics(pd.concat([df_kidney, df_bladder]), "SSCS2")
+
+u_statistic, p_value = mannwhitneyu(df_kidney["Median depth SSCS2"], df_bladder["Median depth SSCS2"])
+
+print(f"U statistic: {u_statistic}")
+print(f"P-value: {p_value}")

@@ -58,10 +58,9 @@ with open(source_functions, 'r') as file:
 exec(script_code)
 
 # LOAD CHIP DATASETS
-all_vars_chip = pd.read_csv(os.path.join(DIR_working, "results/variant_calling/chip_SSCS2_curated_complete.csv"))
+all_vars_chip = pd.read_csv(os.path.join(DIR_working, "results/variant_calling/chip.csv"))
 sample_info = pd.read_csv(PATH_sample_information, sep = "\t", names = ["Patient_id", "Date_collected", "Diagnosis", "Timepoint"])
 all_vars_chip = sample_info.merge(all_vars_chip, how = "inner")
-
 
 base_kidney_chip = all_vars_chip[(all_vars_chip["Timepoint"] == "Baseline") & (all_vars_chip["Diagnosis"] == "Kidney")].reset_index(drop = True)
 prog_kidney_chip = all_vars_chip[(all_vars_chip["Timepoint"] == "During treatment") & (all_vars_chip["Diagnosis"] == "Kidney")].reset_index(drop = True)
@@ -69,7 +68,7 @@ base_bladder_chip = all_vars_chip[(all_vars_chip["Timepoint"] == "Baseline") & (
 prog_bladder_chip = all_vars_chip[(all_vars_chip["Timepoint"] == "During treatment") & (all_vars_chip["Diagnosis"] == "Bladder")].reset_index(drop = True)
 
 # LOAD SOMATIC DATASETS
-all_vars_somatic = pd.read_csv(os.path.join(DIR_working, "results/variant_calling/somatic_SSCS2_curated_complete.csv"))
+all_vars_somatic = pd.read_csv(os.path.join(DIR_working, "results/variant_calling/somatic.csv"))
 all_vars_somatic = all_vars_somatic[~all_vars_somatic["Patient_id"].isin(["20-313", "21-184", "21-430"])] # exclude some samples due to oxidative damage
 base_kidney_somatic = all_vars_somatic[(all_vars_somatic["Timepoint"] == "Baseline") & (all_vars_somatic["Diagnosis"] == "Kidney")].reset_index(drop = True)
 prog_kidney_somatic = all_vars_somatic[(all_vars_somatic["Timepoint"] == "During treatment") & (all_vars_somatic["Diagnosis"] == "Kidney")].reset_index(drop = True)
@@ -163,11 +162,13 @@ age_vs_CH_presence(prog, "Haemoglobin", PATH_sample_info, clin, "CH status at pr
 age_vs_CH_presence(base, "LDH", PATH_sample_info, clin, "CH status at baseline vs LDH", figure_dir)
 age_vs_CH_presence(prog, "LDH", PATH_sample_info, clin, "CH status at progression vs LDH", figure_dir)
 
-# SURVIVAL ANALYSIS
+# SURVIVAL ANALYSISf
 figure_dir_bladder = "/groups/wyattgrp/users/amunzur/pipeline/results/figures/amazing_figures/bladder"
 dir_bladder_survival = "/groups/wyattgrp/users/amunzur/pipeline/results/figures/amazing_figures/bladder/survival"
 do_survival_analysis(PATH_clinical_bladder, PATH_sample_information, base_bladder_chip, "CHIP", "Bladder_KM_CHIP.png", plot_title = "KM stratified by presence of any CH event", annotate_gene = False, figure_dir = dir_bladder_survival)
-do_survival_analysis(PATH_clinical_bladder, PATH_sample_information, base_bladder_somatic, "ctDNA", "Bladder_KM_ctDNA.pdf", plot_title = "KM stratified by presence of ctDNA", annotate_gene = False, figure_dir = dir_bladder_survival)
+do_survival_analysis(PATH_clinical_bladder, PATH_sample_information, base_bladder_somatic, "ctDNA", "Bladder_KM_ctDNA.png", plot_title = "KM stratified by presence of ctDNA", annotate_gene = False, figure_dir = dir_bladder_survival)
+
+
 
 # 1% and 2% cutoff
 base_bladder_chip_1_perc = base_bladder_chip[base_bladder_chip["VAF_n"] >= 1].reset_index(drop = True)
@@ -277,6 +278,8 @@ make_mutation_count_histograms(base_bladder_chip, figure_dir)
 ###########################################################################
 kidney_figure_dir = os.path.join(DIR_working, "results/figures/amazing_figures/kidney")
 figures_survival_kidney = os.path.join(DIR_working, "results/figures/amazing_figures/kidney/survival")
+PATH_kidney_clean = "/groups/wyattgrp/users/amunzur/pipeline/resources/clinical_data/kidney_clin_clean.csv"
+
 diagnosis = "Kidney"
 
 clin_df_kidney = pd.read_csv(PATH_kidney_clinical)
@@ -376,9 +379,9 @@ cats = {"DTA genes": ["DNMT3A", "TET2", "ASXL1"], "DDR genes": ["BRCA1", "BRCA2"
 for cat in cats.keys(): 
     genes = cats[cat]
     print(f"Working on {cat}")
-    do_survival_analysis(PATH_clinical, PATH_sample_information, base_combined, "CHIP", f"{cat}_CHIP_{diagnosis}_KM.png", plot_title = f"KM stratified by presence of any CH in {cat}", annotate_gene = genes, diagnosis = diagnosis, figure_dir = dir_combined_survival)
-    do_survival_analysis(PATH_clinical, PATH_sample_information, df_2_perc, "CHIP", f"{cat}_CHIP_2_percent_{diagnosis}_KM.png", plot_title = f"KM stratified by presence CH>2% in {cat}", annotate_gene = genes, diagnosis = diagnosis, figure_dir = dir_combined_survival)
-    do_survival_analysis(PATH_clinical, PATH_sample_information, base_combined_somatic, "ctDNA", f"{cat}_ctDNA_{diagnosis}_KM.png", f"KM stratified by presence of ctDNA in {cat}", annotate_gene = genes, diagnosis = diagnosis, figure_dir = dir_combined_survival)
+    do_survival_analysis(PATH_clinical, PATH_sample_information, base_combined, "CHIP", f"{cat}_CHIP_{diagnosis}_KM.pdf", plot_title = f"KM stratified by presence of any CH in {cat}", annotate_gene = genes, diagnosis = diagnosis, figure_dir = dir_combined_survival)
+    do_survival_analysis(PATH_clinical, PA
+    TH_sample_information, base_combined_somatic, "ctDNA", f"{cat}_ctDNA_{diagnosis}_KM.pdf", f"KM stratified by presence of ctDNA in {cat}", annotate_gene = genes, diagnosis = diagnosis, figure_dir = dir_combined_survival)
 
 # non DNMT3A chip
 base_combined_non_dnmt3a = base_combined[base_combined["Gene"] != "DNMT3A"]

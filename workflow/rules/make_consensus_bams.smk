@@ -81,7 +81,7 @@ rule indel_realignment:
         min_mapping_quality=20,
         # tumor_normal_pair_input = lambda wildcards: get_relevant_bams_abra2_INPUT(wildcards.wildcard)
     output:
-        temp(DIR_bams + "/abra2/{wildcard}.bam"),
+        DIR_bams + "/abra2/{wildcard}.bam",
     threads: 12
     run:
         shell(

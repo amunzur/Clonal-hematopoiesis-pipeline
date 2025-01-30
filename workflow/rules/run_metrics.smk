@@ -25,13 +25,14 @@ rule run_insert_size:
 		DIR_bams + "/{consensus_type}_final/{wildcard}.bam"
 	output:
 		metrics = DIR_insertsize_metrics + "{consensus_type}/{wildcard}.txt",
-		figures = DIR_insertsize_figures + "{consensus_type}/{wildcard}.pdf"
+		figures = DIR_insertsize_figures + "{consensus_type}/{wildcard}.png"
 	threads: 12
 	shell:
 		"picard CollectInsertSizeMetrics \
 			I={input} \
 			O={output.metrics} \
 			H={output.figures} \
+			W=2000 \
 			M=0.5"
 
 rule run_read_counts: 
