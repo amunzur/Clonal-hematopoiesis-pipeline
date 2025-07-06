@@ -25,7 +25,7 @@ rule run_insert_size:
 		DIR_bams + "/{consensus_type}_final/{wildcard}.bam"
 	output:
 		metrics = DIR_insertsize_metrics + "{consensus_type}/{wildcard}.txt",
-		figures = DIR_insertsize_figures + "{consensus_type}/{wildcard}.png"
+		figures = DIR_insertsize_figures + "{consensus_type}/{wildcard}.pdf"
 	threads: 12
 	shell:
 		"picard CollectInsertSizeMetrics \
@@ -37,13 +37,13 @@ rule run_insert_size:
 
 rule run_read_counts: 
 	input: 
-		DIR_merged_fastq + "/{wildcard}_1.fq.gz"
+		DIR_fastq + "/merged/{wildcard}_1.fq.gz"
 	params:
 		sample_name = "{wildcard}"
 	output:
-		DIR_readcounts_metrics + "/merged/{wildcard}.txt",
+		DIR_readcounts_metrics + "{wildcard}.txt",
 	shell:
-		"paste <(echo {params}) <(echo $(gunzip -c {input}|wc -l)/4|bc) > {output}"
+		"paste <(echo {params}) <(echo $(( ($(gunzip -c {input} | wc -l) / 4) * 2 )) ) > {output}"
 
 # Using the baits interval file for both the target regions and the baits input.
 rule hs_metrics: 
@@ -52,44 +52,28 @@ rule hs_metrics:
 		PATH_baits = PATH_baits,
 		PATH_bed_intervals = PATH_bed_intervals,
 		PATH_hg38 = PATH_hg38
+	conda:
+		"../envs/picard.yaml"
 	output:
 		DIR_HS_metrics + "/{consensus_type}/{wildcard}.HS_metrics",
 	shell:
 		"picard CollectHsMetrics \
-    		I={input.SSCS_bam} \
-    		O={output} \
-    		R={input.PATH_hg38} \
-    		BAIT_INTERVALS={input.PATH_baits} \
-    		TARGET_INTERVALS={input.PATH_baits}"
+			I={input.SSCS_bam} \
+			O={output} \
+			R={input.PATH_hg38} \
+			BAIT_INTERVALS={input.PATH_baits} \
+			TARGET_INTERVALS={input.PATH_baits}"
 
-# rule run_tnvstats:
-# 	input:
-# 		BAM_tumor_path=DIR_bams + "/SSCS1_clipped/{wildcard}.bam",
-# 		BAM_normal_path=
-# 		BAM_normal_name=
-# 				BAM_index=DIR_bams + "/SSCS1_clipped/{wildcard}.bam.bai",
-
-# 	params:
-# 	output:
-# 	conda:
-#         "../envs/pysamstat_v2.yaml"
-# 	shell:
-# 		'script_dir="/groups/wyattgrp/users/amunzur/gene_panel_pipeline/scripts";
-# 		mkdir -p /groups/wyattgrp/users/amunzur/chip_project/tnvstats/kidney_samples; # output dir to place all tnvstats
-# 		configfile="/groups/wyattgrp/users/amunzur/gene_panel_pipeline/scripts/config.txt"; # conda envs and stuff
-
-# 		source ${configfile};
-# 		source ${conda_profile_path};
-# 		conda activate ${conda_pysam_env};
-
-# 		while read name_tumor path_tumor name_normal path_normal
-# 		do
-# 		    echo $name_tumor
-# 		    echo $name_normal
-# 		    outputdir="/groups/wyattgrp/users/amunzur/chip_project/tnvstats/kidney_samples/${name_tumor}";
-
-# 		    # tbam=$(readlink -ve ${path_tumor})
-# 		    # nbam=$(readlink -ve ${path_normal})
-# 		    printf "bash ${script_dir}/make_tnvstat_file.bash ${path_tumor} ${path_normal} ${name_tumor} ${name_normal} ${outputdir} ${configfile}\n";
-# 		    sbatch ${script_dir}/make_tnvstat_file.bash ${path_tumor} ${path_normal} ${name_tumor} ${name_normal} ${outputdir} ${configfile};
-# 		done < /groups/wyattgrp/users/amunzur/pipeline/results/metrics/tnvstats/kidney_samples/bam_subset.txt'
+rule alignment_summary_metrics: 
+	input: 
+		bam = DIR_bams + "/{consensus_type}_final/{wildcard}.bam",
+		PATH_hg38 = PATH_hg38
+	conda:
+		"../envs/picard.yaml"
+	output:
+		DIR_metrics + "/PICARD_alignment_summary/{consensus_type}/{wildcard}.alignment_summary_metrics"
+	shell:
+		"picard CollectAlignmentSummaryMetrics \
+			I={input.bam} \
+			R={input.PATH_hg38} \
+			O={output}"
