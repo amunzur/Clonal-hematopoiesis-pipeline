@@ -8,7 +8,7 @@ rule FastqToBam:
         sample="{wildcard}",
     run:
         shell(
-            "fgbio FastqToBam -Xmx20G \
+            "fgbio FastqToBam -Xmx50G \
         --input {input.R1} {input.R2} \
         --output {output} \
         --read-structure 3M2S+T 3M2S+T \
