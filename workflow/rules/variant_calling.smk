@@ -1,6 +1,7 @@
 rule run_mutect2:
     input:
-        DIR_bams + "/{consensus_type}_final/{wildcard}.bam",
+        bam=DIR_bams + "/{consensus_type}_final/{wildcard}.bam",
+        index=DIR_bams + "/{consensus_type}_final/{wildcard}.bam.bai",
     output:
         vcf=temp(DIR_results + "/variant_calling_raw/Mutect2/{consensus_type}/{wildcard}.vcf.gz"),
         stats=DIR_results + "/variant_calling_raw/Mutect2/{consensus_type}/{wildcard}.vcf.gz.stats",
@@ -12,15 +13,18 @@ rule run_mutect2:
         PATH_bed=PATH_bed,
     threads: 12
     shell:
-        "/home/amunzur/gatk-4.2.0.0/gatk Mutect2 \
+        """
+        export PATH=/usr/bin:$PATH
+        /home/amunzur/gatk-4.2.0.0/gatk Mutect2 \
             --reference {params.PATH_hg38} \
             --intervals {params.PATH_bed} \
-            --input {input} \
+            --input {input.bam} \
             --output {output.vcf} \
             --bamout {output.bamout} \
             --force-active true \
             --initial-tumor-lod 0 \
-            --tumor-lod-to-emit 0"
+            --tumor-lod-to-emit 0
+        """
 
 rule unzip_mutect:
     input:
@@ -49,7 +53,7 @@ rule run_VarDict_chip:
         -N {params.sample_name} \
         -r {params.min_variant_reads} \
         -b {input} \
-        -k 1 -c 1 -S 2 -E 3 -g 4 {params.PATH_bed} | \
+        -k 0 -c 1 -S 2 -E 3 -g 4 {params.PATH_bed} | \
         /home/amunzur/VarDictJava/build/install/VarDict/bin/teststrandbias.R | \
         /home/amunzur/VarDictJava/build/install/VarDict/bin/var2vcf_valid.pl \
         -f {params.THRESHOLD_VarFreq} > {output}"
