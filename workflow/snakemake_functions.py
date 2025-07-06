@@ -14,8 +14,8 @@
     # return(PATH_complete)
 
 def get_wbc(wildcards, consensus, bam_type):
-    DIR_bams=f"/groups/wyattgrp/users/amunzur/pipeline/results/data/bam/{consensus}_{bam_type}"
-    sample_list_path = f"/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/paired_samples.tsv"
+    DIR_bams=f"/groups/wyattgrp/users/amunzur/lu_chip/results/bam/{consensus}_{bam_type}"
+    sample_list_path = f"/groups/wyattgrp/users/amunzur/lu_chip/resources/sample_lists/paired_samples.tsv"
     samples_df = pd.read_csv(sample_list_path, sep = "\t")
     wbc_name = samples_df[samples_df["cfDNA"] == wildcards]["WBC"].iloc[0]
     wbc_bam_path = DIR_bams + "/" + wbc_name + ".bam"
@@ -23,7 +23,7 @@ def get_wbc(wildcards, consensus, bam_type):
     return([wbc_bam_path, wbc_bai_path])
 
 def get_wbc_name(wildcards):
-    sample_list_path = f"/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/paired_samples.tsv"
+    sample_list_path = f"/groups/wyattgrp/users/amunzur/lu_chip/resources/sample_lists/paired_samples.tsv"
     with open(sample_list_path, "r") as f:
         for line in f:
             wbc_sample, cfDNA_sample = line.strip().split("\t")
