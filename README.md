@@ -1,49 +1,167 @@
-# Bioinfo_pipeline
+# Comprehensive Snakemake Workflow for Genomic Data Processing and Variant Calling
 
-This pipeline is developed with the purpose of scanning targeted sequencing data from cancer patients in order to identify CHIP mutations.
-It uses Snakemake as a framework with a combination of R, Python and Bash scripts. Note that this project is still in development! 
+## Table of Contents
 
-It consists of the following steps:
-- Merging FastQ files from different lanes into R1 and R2 separately for each sample
-- Processing the merged FastQ files (trimming, masking the low quality reads with a base quality less than 30)
-- Generating FastQC reports before and afte processing
-- Aligning the FastQ files against the Hg38
-- Processing the BAM files (sorting, indexing, marking duplicates, adding read groups, 3' and 5' clipping, filtering)
-- Running metrics such as insert size distribution, pileup files and coverage
-- Variant calling using VarScan2, VarDict and HaplotypeCaller from GATK
-- Visualization and generating patient reports
+- [Overview](#overview)  
+- [Directory Structure and Variables](#directory-structure-and-variables)  
+- [Pipeline Workflow](#pipeline-workflow)  
+  - [Fastq Processing](#fastq-processing)  
+  - [Bam Processing and Consensus BAM Generation](#bam-processing-and-consensus-bam-generation)  
+  - [Quality Control](#quality-control)  
+  - [Depth, Coverage and Metrics](#depth-coverage-and-metrics)  
+  - [Variant Calling](#variant-calling)  
+    - [Somatic Variant Calling](#somatic-variant-calling)  
+    - [CHIP Variant Calling](#chip-variant-calling)  
+  - [VCF Post-processing](#vcf-post-processing)  
+- [Tools and Environments](#tools-and-environments)  
+- [Usage](#usage)  
+- [Contact](#contact)  
 
-`workflow/scripts/analysis` contains the following scripts to further process the called variants. They should be run in the given order after processing the individual samples through the pipeline:
-- **compute_averaged_depth.sh**: Computes the average depth of the BAM files, only considers regions in the panel.
-- **seq_quality_metrics.py**: Combined sequencing quality metrics such as number of reads taken from raw FastQ files, average and median depth of aligned and processed bams and percentage of duplicates. Should be run for every cohort outside of the framework of Snakemake.
-- **filter_vardict.R**, **filter_VarScan.R** and **filter_gatk.R** combines and filters the variants called by 3 variant callers across all samples in cohort based on the user defined parameters and thresholds. As output, it generates batch specific files.
-- **combine_variant_callers.R**: Combines the output from all 3 variant callers into one large file where one unique variant is found in each line. It also adds 3 new columns to indicate which variant callers identified the variant. It also counts how many callers identified the variant of interest.
-- **compare_with_tumor.R**: In the cases where both WBC and tumor samples are available, outputs a table only with variants with read support in both sample types. It also combined all the batch files into one large file, so no more batch specific results!
+---
 
-Utilities functions used by some scripts above are found here:
-- **UTILITIES_filter_vardict.R**: Utilities functions for `filter_vardict.R`
-- **UTILITIES_filter_varscan.R**: Utilities functions for `filter_VarScan.R`
-- **UTILITIES_filter_gatk.R**: Utilities functions for `filter_gatk.R`
-- **UTILITIES.R**: Utilities functions for both `filter_vardict.R` and `filter_VarScan.R`
+## Overview
 
-These scripts are used in various steps of the pipeline:
-- **make_anno_input_indel.R**: Modifies the indel outputs to put in a format acceptable by ANNOVAR.
-- **make_anno_input_vardict.R**: Modifies the outputs by VarDict to put in a format acceptable by ANNOVAR.
-- **pdf_to_png.sh**: Converts the PDF images to PNG, mainly used for visuzalizing the insert size plots.
-- **process_bets.R**: Cleans up and melts the betastasis tables to retain only the called variants.
-- **reformat_vardict.R**: Minor reformatting
-- **filter_tnvstats.sh**: Filters the tnvstats to only retain the regions in the panel.
+This Snakemake pipeline is designed for processing paired-end sequencing data to generate high-quality BAM files and perform comprehensive variant calling. It covers:
 
-### Before running the pipeline
-The pipeline needs a couple files to be present before it can start processing the files. These files need to be present for each batch, and they are: 
-1. A text outlining the sample names, each sample name should be in a new line. 
-2. Dummy files for raw FastQs. Sometimes the files come already merged from the sequencer, but these empty dummy files need to be created so that Snakemake doesn't complain about missing input files. `workflow/scripts/analysis/create_dummy_files.py` uses the identifier excel sheets to create these files. NOTE TO SELF: This is no longer needed.
-3. The raw FastQs from the sequencer MUST BE UNZIPPED and placed into the `results/data/fastq/raw/batch#` directory. The first step of the pipeline, renaming the fastq files and later on merging, treats them as regular text files. 
+- Fastq quality control, trimming, and read count metrics  
+- BAM file generation from fastq, including consensus read calling using UMIs  
+- Alignment, indel realignment, base quality score recalibration  
+- Depth and insert size metrics calculations  
+- Variant calling using multiple callers: Mutect2, VarDict, FreeBayes  
+- VCF normalization, sorting, indexing, and decomposition for downstream analysis
+---
 
-### Renaming FastQ files
-Before we can do any analysis on the data, the raw FastQ files from the sequencer need to be renamed, that is the molecular identifiers in the file names need to be
-match with the sample names. We use the identifier sheets found in `workflow/results/identifiers`. Scripts that are not a part of the pipeline (yet!) process the 
-molecular IDs and rename the files accordingly. This process consists of finding the reverse compliment of the second barcode and matching it with the sequencing id. The FastQ files with modified names are saved to `results/data/fastq/raw/batch#` for further processing. 
+## Directory Structure and Variables
 
-### Log files
-Logs from Snakemake are saved to `results/logs_slurm`. The subdirectories here are the names of the rules, and the name of the actual text file is the name of the sample. Before running Snakemake through Slurm, make a new directory here manually with the name of the rule.
+The workflow expects several directory variables to be set in the `config.yaml` file:
+
+- `DIR_trimmed_fastq`: directory with trimmed fastq files  
+- `DIR_fastq`: directory with raw or merged fastq files  
+- `DIR_bams`: directory for all BAM outputs (including intermediate and final BAMs, subset BAM directories will be automatically generated)  
+- `DIR_results`: main results directory for variant calling, metrics, and other outputs  
+- `DIR_umi_metrics`: directory for UMI family size histograms  
+- `DIR_readcounts_metrics`: directory for read count metrics  
+- `DIR_depth_metrics`: directory for depth of coverage outputs  
+- `DIR_insertsize_metrics` & `DIR_insertsize_figures`: insert size metrics and plots  
+- `DIR_HS_metrics`: hybrid selection metrics output  
+- `DIR_metrics`: directory for other picard metrics (alignment summary etc.)  
+- `PATH_hg38`: path to the hg38 reference fasta file  
+- `PATH_bed`: target regions BED file  
+- `PATH_baits` & `PATH_bed_intervals`: bait and intervals BED files for hybrid capture  
+- `PATH_known_indels`, `PATH_gold_std_indels`, `PATH_SNP_db`: known sites for base recalibration  
+
+---
+
+## Pipeline Workflow
+
+### Fastq Processing
+
+- `run_fastqc_merged`: Run FastQC on merged raw fastq files, producing `.zip` and `.html` reports.  
+- `fastq_read_counts`: Calculate read counts from fastq files and output sample-wise counts as text.  
+- `trim_fastq`: Trim adapters and low-quality bases using `fastp`, generating trimmed fastq with reports (HTML/JSON).  
+- `run_fastqc_trimmed`: Run FastQC again on trimmed fastq files for quality confirmation.
+
+You can then run MultiQC on these files to generate one QC report.
+
+---
+
+### BAM Processing and Consensus BAM Generation
+
+- `FastqToBam`: Converts paired fastq files into unaligned BAMs (uBAM) using `fgbio FastqToBam` preserving UMIs.  
+- `BamtoFastq`: Convert uBAMs back to fastq for remapping.  
+- `mapBAM`: Map fastq reads to reference genome using `bwa mem`.  
+- `MergeBamAlignment`: Merge aligned BAM with original unaligned BAM to retain original info using Picard.  
+- `indel_realignment`: Realign indels using ABRA2.  
+- `fixmate`: Fix mate information and sort BAMs with Picard.  
+- `recalibrate_bases` and `apply_base_scores`: Perform GATK base quality score recalibration.  
+- `GroupReadsByUmi`: Group reads by UMI to identify consensus families.  
+- `CallMolecularConsensusReads`: Generate consensus reads (consensus BAMs) based on UMI families.
+
+---
+
+### Quality Control
+
+- `index_bams`: Index BAM files using `samtools index`.  
+- `run_depth`: Calculate depth of coverage across target regions with `samtools depth`.  
+- `run_mpileup`: Generate pileup files with `samtools mpileup`.  
+- `run_insert_size`: Collect insert size metrics and plots using Picard.  
+- `run_read_counts`: Calculate read counts for merged fastq files.  
+- `hs_metrics`: Collect hybrid selection (capture) metrics using Picard.  
+- `alignment_summary_metrics`: Generate alignment summary metrics using Picard.
+
+---
+
+### Variant Calling
+
+#### Somatic Variant Calling
+
+- `run_VarDict_somatic`: Run VarDict paired variant caller on cfDNA and matched WBC BAMs.  
+- `run_mutect2_somatic`: Run GATK Mutect2 somatic variant caller on tumor and matched normal BAMs.  
+- `run_freebayes_somatic`: Run FreeBayes variant caller on paired BAMs.  
+- Post-process VCF files by compressing, indexing, sorting, normalizing, and decomposing using `bgzip`, `tabix`, `bcftools`, and `vt`.
+
+#### Clonal Hematopoiesis Variant Calling
+
+- `run_mutect2`: Run Mutect2 on consensus BAMs.  
+- `unzip_mutect`: Decompress Mutect2 VCFs.  
+- `run_VarDict_chip`: Run VarDict on consensus BAMs with lower thresholds appropriate for CHIP detection.  
+- `run_freebayes_chip`: Run FreeBayes on consensus BAMs.  
+- Post-processing steps similar to somatic workflow for compressing, indexing, sorting, normalizing, and decomposing VCFs.
+
+---
+
+### VCF Post-processing
+
+- Compression of VCFs with `bgzip`.  
+- Indexing of compressed VCFs using `tabix`.  
+- Sorting of VCFs with `bcftools sort`.  
+- Normalizing variants (splitting multiallelics, left-aligning indels) with `bcftools norm`.  
+- Decomposing complex block substitutions into simpler forms with `vt decompose_blocksub`.
+
+---
+
+## Tools and Environments
+
+- **Alignment & BAM manipulation:** `bwa mem`, `picard`, `samtools`, `fgbio`, `abra2`  
+- **Quality Control:** `fastp`, `FastQC`, Picard tools  
+- **Variant Calling:** `GATK Mutect2`, `VarDictJava`, `FreeBayes`  
+- **VCF processing:** `bcftools`, `tabix`, `bgzip`, `vt`  
+- **Base Recalibration:** `GATK BaseRecalibrator`, `ApplyBQSR`  
+- **UMI consensus:** `fgbio` GroupReadsByUmi and CallMolecularConsensusReads  
+
+Conda environment YAML files are specified for reproducibility and are provided in the `envs` directory. Snakemake will automatically generate the required environments.
+
+---
+
+## Post-processing tools
+
+Following variant calling, a series of custom R and Python scripts are used to filter, combine, curate, and visualize variants for downstream interpretation. Please refer to each individual script for example usage.
+
+### STEP1_filter_variants.R  
+Applies initial filtering criteria to raw variant call files to remove low-quality and likely false-positive calls.
+
+### STEP2_combine_variant_callers.R  
+Merges variant calls from multiple callers into a unified dataset, resolving overlaps and conflicts.
+
+### STEP3_make_IGV_snapshots.py  
+Automates generation of IGV screenshots around variants of interest to facilitate manual review. After running this script the user needs to go through IGV screenshots and delete those that fail manual inspection.
+
+### STEP4_curate_mutations.py  
+Performs additional mutation curation based on manually curated IGV screenshots.
+
+### STEP5_perform_dependent_calling.py  
+Executes dependent or secondary variant calling steps that leverage curated variant lists or additional input data.
+
+### combine_variant_callers_UTILITIES.R & UTILITIES.R  
+Contain helper functions and utilities used across the above scripts for data manipulation, annotation, and quality control.
+
+---
+
+## Usage
+
+1. Configure your environment variables and directory paths (e.g., `DIR_bams`, `DIR_results`, `PATH_hg38`, `PATH_bed`, etc.) in the Snakemake config or directly in the workflow script.  
+2. Prepare input data: paired-end FASTQ files.  
+3. Run the pipeline with Snakemake, specifying number of cores, e.g.:  
+   ```bash
+   snakemake --cores 12
+
