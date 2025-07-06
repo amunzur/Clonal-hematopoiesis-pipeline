@@ -5,39 +5,17 @@ import os
 exec(open("workflow/snakemake_functions.py").read())
 # snakemake --reason --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch --exclude=cn[01-05] -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 50
 
-# PATH_to_samples = (
-#     "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/sample_list.tsv"
-# )
-
-PATH_to_samples = ("/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/sample_list_bladder_and_kidney.tsv")
-PATH_to_VIP_samples = ("/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/VIP_normals.tsv")
-
-PATH_to_samples = "/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/sample_information.tsv"
-patients_df = pd.read_csv(PATH_to_samples, sep = "\t", names = ["Patient_id", "Date_collected", "Diagnosis", "Timepoint"])
-patients = patients_df[patients_df["Diagnosis"] != "Healthy"]["Patient_id"].tolist()
-# patients = ["21-390", "17-051", "21-420", "21-391", "18-029", "17-114", "17-118", "19-046", "20-300", "17-339", "18-418", "18-129"]
-
-all_samples = os.listdir("/groups/wyattgrp/users/amunzur/pipeline/results/data/fastq/merged/all")
-samples = [file.replace("_1.fq.gz", "") for file in all_samples if any(patient in file for patient in patients) and file.endswith("_1.fq.gz")]
-
-
-# bams = os.listdir("/groups/wyattgrp/users/amunzur/pipeline/results/wbc_downsampling/bam/depth_1500/SSCS2_final")
-# samples = [file.replace(".bam", "") for file in bams if file.endswith(".bam") and "Baseline" in file]
-
-configfile: "config/config.yaml"
-VIP_normals_cfDNA = [x for x in pd.read_csv(PATH_to_VIP_samples, sep="\t", header = None)[0].tolist() if "cfDNA" in x]
-VIP_normals_wbc = [x for x in pd.read_csv(PATH_to_VIP_samples, sep="\t", header = None)[0].tolist() if "WBC" in x]
-
-# patients = sorted(list(set([re.sub('_gDNA.*|_cfDNA.*', '', s) for s in samples]))) # used when running mutato
+# samples = ["Prince-BXH-006_WBC_Baseline_2020Sep16"]
+samples = pd.read_csv("/groups/wyattgrp/users/amunzur/lu_chip/resources/sample_lists/therap_wbc_progression.tsv", sep = "\t")["sample_names"].tolist()
+# samples = ["TheraP-289_cfDNA_FirstProgression_2021Jun22.log"]
 cfDNA_samples = list(filter(lambda x: "cfDNA" in x, samples))
 WBC_samples = list(filter(lambda x: "WBC" in x, samples))
 
-# samples = [pd.read_csv(PATH_to_samples, sep = '\t')["sample_names"].tolist() for PATH_to_samples in PATH_to_samples_list]
-
-pair1 = [sample + "_1" for sample in samples]
-pair2 = [sample + "_2" for sample in samples]
-
+pair1 = [sample+"_1.fq.gz" for sample in samples]
+pair2 = [sample+"_2.fq.gz" for sample in samples]
 all_pairs = pair1 + pair2
+
+configfile: "config/config.yaml"
 
 PATH_hg38 = config["PATH_hg38"]
 PATH_hg38_dict = config["PATH_hg38_dict"]
@@ -46,8 +24,6 @@ PATH_bed_intervals = config["PATH_bed_intervals"]
 PATH_baits = config["PATH_baits"]
 PATH_bg = config["PATH_bg"]
 PATH_adapters = config["PATH_adapters"]
-PATH_bets = config["PATH_bets"]
-DIR_sample_maps = config["DIR_sample_maps"]
 DIR_temp = config["DIR_temp"]
 PATH_known_indels = config["PATH_known_indels"]
 PATH_gold_std_indels = config["PATH_gold_std_indels"]
@@ -57,39 +33,29 @@ PATH_PoN = config["PATH_PoN"]
 
 # data files
 DIR_fastq = config["DIR_fastq"]
-DIR_raw_fastq = config["DIR_raw_fastq"]
 DIR_merged_fastq = config["DIR_merged_fastq"]
 DIR_masked_fastq = config["DIR_masked_fastq"]
 DIR_trimmed_fastq = config["DIR_trimmed_fastq"]
 DIR_trimmed_unpaired_fastq = config["DIR_trimmed_unpaired_fastq"]
-DIR_extracted_fastq = config["DIR_extracted_fastq"]
 DIR_bams = config["DIR_bams"]
-DIR_bams_mutato = config["DIR_bams_mutato"]
-DIR_recalibrated_base_scores = config["DIR_recalibrated_base_scores"]
 
 # fastqc reports
 DIR_merged_fastqc = config["DIR_merged_fastqc"]
 DIR_trimmed_fastqc = config["DIR_trimmed_fastqc"]
-
-# metrics files
-DIR_insertsize_metrics = config["DIR_insertsize_metrics"]
-DIR_markdup_metrics = config["DIR_markdup_metrics"]
-DIR_markdup_perc_metrics = config["DIR_markdup_perc_metrics"]
-DIR_depth_metrics = config["DIR_depth_metrics"]
-DIR_depth_metrics_dedup = config["DIR_depth_metrics_dedup"]
-DIR_mpileup = config["DIR_mpileup"]
-DIR_complexity_metrics = config["DIR_complexity_metrics"]
-DIR_dedup_metrics = config["DIR_dedup_metrics"]
-DIR_readcounts_metrics = config["DIR_readcounts_metrics"]
-DIR_HS_metrics = config["DIR_HS_metrics"]
+DIR_recalibrated_base_scores = config["DIR_recalibrated_base_scores"]
 DIR_umi_metrics = config["DIR_umi_metrics"]
 
+# metrics files
+DIR_metrics = config["DIR_metrics"]
+DIR_insertsize_metrics = config["DIR_insertsize_metrics"]
+DIR_depth_metrics = config["DIR_depth_metrics"]
+DIR_mpileup = config["DIR_mpileup"]
+DIR_readcounts_metrics = config["DIR_readcounts_metrics"]
+DIR_HS_metrics = config["DIR_HS_metrics"]
+
 # variant calling
-VarScan_snv = config["VarScan_snv"]
-VarScan_indel = config["VarScan_indel"]
 DIR_Vardict = config["DIR_Vardict"]
 DIR_Mutect = config["DIR_Mutect"]
-DIR_Mutato = config["DIR_Mutato"]
 DIR_freebayes = config["DIR_freebayes"]
 DIR_results = config["DIR_results"]
 
@@ -147,7 +113,7 @@ filter_consensus = expand(
 )
 
 RUN_fastq_read_counts = expand(
-    DIR_readcounts_metrics + "/merged/{wildcard}.txt", wildcard=samples
+    DIR_readcounts_metrics + "/{wildcard}.txt", wildcard=samples
 )
 
 call_variants_chip = expand(
@@ -211,6 +177,12 @@ collect_HS_metrics = expand(
     wildcard=samples,
 )
 
+collect_alignment_summary_metrics = expand(
+    DIR_metrics + "/PICARD_alignment_summary/{consensus_type}/{wildcard}.alignment_summary_metrics",
+    consensus_type=["SSCS2"],
+    wildcard=samples,
+)
+
 variant_table_somatic = expand(
     DIR_results + "/data/variant_tables/somatic/{variant_caller}/{consensus_type}/{wildcard}.tsv",
     consensus_type=["SSCS2"],
@@ -225,36 +197,38 @@ variant_table_chip = expand(
     variant_caller=["Vardict", "Mutect2", "freebayes"],
 )
 
-# COPY NUMBER RELATED
-generate_target_coverage = expand(DIR_results + "/cnvkit/coverage/SSCS2/{wildcard}.targetcoverage.cnn", wildcard=samples + VIP_normals_cfDNA + VIP_normals_wbc)
+# SV callers
+run_gridss = expand(DIR_results + "/gridss/{wildcard}.vcf.gz", wildcard=cfDNA_samples)
 
-cfDNA_corrected = expand(DIR_results + "/cnvkit/coverage_fixed/cfDNA/{wildcard}.cnr", wildcard=cfDNA_samples)
-WBC_corrected = expand(DIR_results + "/cnvkit/coverage_fixed/WBC/{wildcard}.cnr", wildcard=WBC_samples)
-segmented_samples_cfDNA = expand(DIR_results + "/cnvkit/segmented/{sample_type}/{wildcard}.cns", wildcard=cfDNA_samples, sample_type="cfDNA")
-segmented_samples_WBC = expand(DIR_results + "/cnvkit/segmented/{sample_type}/{wildcard}.cns", wildcard=WBC_samples, sample_type="WBC")
+# COPY NUMBER RELATED
+# generate_target_coverage = expand(DIR_results + "/cnvkit/coverage/SSCS2/{wildcard}.targetcoverage.cnn", wildcard=samples + VIP_normals_cfDNA + VIP_normals_wbc)
+
+# cfDNA_corrected = expand(DIR_results + "/cnvkit/coverage_fixed/cfDNA/{wildcard}.cnr", wildcard=cfDNA_samples)
+# WBC_corrected = expand(DIR_results + "/cnvkit/coverage_fixed/WBC/{wildcard}.cnr", wildcard=WBC_samples)
+# segmented_samples_cfDNA = expand(DIR_results + "/cnvkit/segmented/{sample_type}/{wildcard}.cns", wildcard=cfDNA_samples, sample_type="cfDNA")
+# segmented_samples_WBC = expand(DIR_results + "/cnvkit/segmented/{sample_type}/{wildcard}.cns", wildcard=WBC_samples, sample_type="WBC")
 
 # only use expansion here
 rule all:
     input:
         # RUN_FastQC_merged,
         # RUN_FastQC_trimmed,
-        # RUN_mpileup,
-        # RUN_fastq_read_counts, 
-        run_insert_size, 
-        # make_consensus,
-        # filter_consensus,
-        # call_variants_chip,
-        # run_annovar_chip,
+        RUN_mpileup,
+        RUN_fastq_read_counts, 
+        # run_insert_size, 
+        make_consensus,
+        filter_consensus,
+        call_variants_chip,
+        run_annovar_chip,
         # call_variants_somatic,
         # run_annovar_somatic,
-        # run_depth, 
+        run_depth, 
         # collect_HS_metrics,
+        collect_alignment_summary_metrics,
         # variant_table_somatic,
-        # variant_table_chip,
+        variant_table_chip,
         # DIR_results + "/cnvkit/coverage/SSCS2/Reference_for_CH_CN.cnn",
         # DIR_results + "/cnvkit/coverage/SSCS2/Reference_for_somatic_CN.cnn",
-        # expand(DIR_results + "/cnvkit/coverage/SSCS2/{wildcard}.targetcoverage.cnn", wildcard = VIP_normals_cfDNA + VIP_normals_wbc),
-        # expand(DIR_results + "/cnvkit/coverage/SSCS2/{wildcard}.antitargetcoverage.cnn", wildcard = VIP_normals_cfDNA + VIP_normals_wbc)
         # DIR_results + "/cnvkit/references/VIP_cfDNA_reference.cnn",
         # DIR_results + "/cnvkit/references/VIP_WBC_reference.cnn",
         # cfDNA_corrected,
@@ -263,18 +237,19 @@ rule all:
         # segmented_samples_WBC,
         # generate_target_coverage,
         # cfDNA_corrected,
-        # WBC_corrected
-
+        # WBC_corrected,
+        # run_gridss
 
 
 ##### Modules #####
-# include: "rules/process_fastq.smk"
-# include: "rules/make_consensus_bams.smk"
-# include: "rules/filter_consensus_bams.smk"
+include: "rules/process_fastq.smk"
+include: "rules/make_consensus_bams.smk"
+include: "rules/filter_consensus_bams.smk"
 include: "rules/run_metrics.smk"
-# include: "rules/variant_calling.smk"
-# include: "rules/variant_calling_somatic.smk"
+include: "rules/variant_calling.smk"
+include: "rules/variant_calling_somatic.smk"
 include: "rules/annotation.smk"
 include: "rules/index_bams.smk"
 include: "rules/make_bg_error_rate.smk"
 include: "rules/CNestimation.smk"
+include: "rules/SV_caller.smk"
