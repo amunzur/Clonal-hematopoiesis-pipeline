@@ -1,0 +1,111 @@
+Gene,Protein_annotation,Notes,Chrom,Position
+GNAS,p.P459R,Messy region,chr20,58854641
+GNAS,p.P459delinsPDAPADPDSGAAR,Messy region,chr20,
+GNAS,p.P471R,Messy region,chr20,
+GNAS,p.D448A,,chr20,
+GNAS,p.E472D,,chr20,
+GNAS,p.R383Q,,chr20,
+CREBBP,p.V1956G,,chr16,
+ASXL1,p.G643fs,Homopolymer,chr20,
+SETDB1,p.G394fs,,chr1,
+ARID1A,p.186_187del,,chr1,
+ARID1A,p.186_187del,,chr1,
+ARID1A,p.P1326delinsPQ,,chr1,
+CUX1,,Homopolymer,chr7,102277947
+PTEN,,"1 bp intron, likely mapping error",chr10,87864104
+KMT2D,p.761_770del,Likely germline,chr12,49051374
+RUNX1,p.S424A,clustered events,chr21,
+RUNX1,p.E422A,clustered events,chr21,
+CREBBP,p.K1495N,manual curating,chr16,3736725
+DNMT3A,p.731_732del,manual curating,chr2,25240429
+KMT2D,p.758_848del,manual curating,chr12,49051140
+KMT2D,p.P774S,manual curating,chr12,49051363
+KMT2D,p.P774S,manual curating,chr12,49051363
+KMT2D,p.596_713del,manual curating,chr12,49051363
+GNAS,p.Q371R,manual curating,chr20,58854564
+GNAS,p.A436D,this is germline,chr20,58854572
+CEBPA,p.P223delinsPS,shitty,chr19,33301851
+CEBPA,p.P224H,shitty,chr19,33301849
+CEBPA,p.S225P,shitty,chr19,33301847
+BRCA1,p.K654fs,string of Ts,chr17,43093569
+BRCA1,p.K654fs,string of Ts,chr17,43093571
+CUX1,p.K345fs,string of As,chr7,102178641
+BRCA2,p.G602fs,string of As,chr13,32333285
+BRCA2,p.A1689fs,string of As,chr13,32339423
+BRCA1,p.K339fs,string of Ts,chr17,43094516
+GNAS,p.P530fs,string of Cs,chr20,58854854
+BCORL1,p.S1753fs,string of Cs,chrX,130056037
+CUX1,p.N791fs,string of Cs,chr7,102201638
+CUX1,p.E1385fs,problematic,chr7,102248645
+PPM1D,p.F100fs,string of Ts,chr17,60600713
+ARID1A,p.Q1334_R1335insQ,repetitve region,chr1,26773690
+SETDB1,p.T397Nfs*15,,chr1,150945147
+,,,chr1,26773691
+,,,chr13,28100489
+,,,chr20,32434639
+,,,chr11,108250743
+,,,chr11,108250748
+,,,chr17,43093221
+,,,chr13,32355245
+,,,chr22,28734442
+,,,chr16,3728421
+,,,chr7,102104399
+,,,chr2,25246632
+,,,chr17,31320418
+,,,chr12,49033483
+,,,chr12,49040289
+,,,chr1,11238573
+,,,chr17,31219013
+,,,chr17,31219054
+,,,chr17,31219059
+,,,chr17,31219067
+,,,chr17,31219067
+,,,chr17,31219075
+,,,chr17,31219076
+,,,chr17,31219076
+,,,chr3,179234231
+,,,chr13,48379606
+,,,chr13,48379620
+,,,chr13,48379620
+,,,chr3,47101553
+,,,chrX,124071171
+,,,chr17,7676153
+,,,chr4,105275671
+,,,chr1,11130616
+GNAS,p.A416V,manual_curation,,
+BRCA1,p.E111Gfs*3,manual_curation,,
+NF1,p.E1387Gfs*8,manual_curation,,
+ATM,p.E2304Gfs*69,manual_curation,,
+SETD2,p.E282Rfs*9,manual_curation,,
+RUNX1,p.E422K,manual_curation,,
+U2AF1\x3bU2AF1L5,p.E83X,manual_curation,,
+STAG2,p.F468Lfs*5,manual_curation,,
+AR,p.G462_G473del,manual_curation,,
+RB1,p.G617Rfs*36,manual_curation,,
+ASXL1,p.G645Vfs*58,manual_curation,,
+ASXL1,p.G646Vfs*58,manual_curation,,
+ASXL1,p.G646Wfs*12,manual_curation,,
+EVI2A,p.G8E,manual_curation,,
+PTEN,p.L1P,manual_curation,,
+SH2B3,p.L347Afs*38,manual_curation,,
+AR,p.L57_Q58del,manual_curation,,
+AR,p.L57_Q59del,manual_curation,,
+TET2,p.N1118Kfs*12,manual_curation,,
+SETD2,p.N1601Tfs*9,manual_curation,,
+BRCA2,p.N319Kfs*8,manual_curation,,
+ARID1A,p.P1326Q,manual_curation,,
+ARID1A,p.P21_S22insP,manual_curation,,
+GNAS,p.P417A,manual_curation,,
+ARID1A,p.Q1334_R1335insQ,manual_curation,,
+TET2,p.Q1539K,manual_curation,,
+KMT2D,p.Q3745_H3746insQ,manual_curation,,
+TET2,p.R1440Tfs*38,manual_curation,,
+RUNX1,p.R423H,manual_curation,,
+ZRSR2,p.R448_R449insSR,manual_curation,,
+AR,p.R85Sfs*91,manual_curation,,
+BRCA2,p.S1788F,manual_curation,,
+ATM,p.S214Ffs*40,manual_curation,,
+RUNX1,p.S424X,manual_curation,,
+BRCA2,p.T3085Nfs*26,manual_curation,,
+SETDB1,p.T397Nfs*15,manual_curation,,
+CBL,p.D460_E461insD,repeat,chr11,119278645
