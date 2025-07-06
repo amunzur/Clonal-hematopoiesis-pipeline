@@ -1,3 +1,4 @@
+
 rule run_fastqc_merged:
     input:
         DIR_merged_fastq + "/{wildcard}.fq.gz",
