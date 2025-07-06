@@ -1,7 +1,7 @@
 
 rule run_fastqc_merged:
     input:
-        DIR_merged_fastq + "/{wildcard}.fq.gz",
+        DIR_merged_fastq + "/{wildcard}",
     output:
         output_zip=DIR_merged_fastqc + "/{wildcard}_fastqc.zip",
         output_html=DIR_merged_fastqc + "/{wildcard}_fastqc.html",
@@ -46,16 +46,12 @@ rule trim_fastq:
 
 rule run_fastqc_trimmed:
     input:
-        R1=DIR_trimmed_fastq + "/{wildcard}_1.fq.gz",
-        R2=DIR_trimmed_fastq + "/{wildcard}_2.fq.gz",
+        DIR_trimmed_fastq + "/{wildcard}",
     output:
-        output_zip_R1=DIR_trimmed_fastqc + "/{wildcard}_1_fastqc.zip",
-        output_html_R1=DIR_trimmed_fastqc + "/{wildcard}_1_fastqc.html",
-        output_zip_R2=DIR_trimmed_fastqc + "/{wildcard}_2_fastqc.zip",
-        output_html_R2=DIR_trimmed_fastqc + "/{wildcard}_2_fastqc.html",
+        output_zip=DIR_trimmed_fastqc + "/{wildcard}_fastqc.zip",
+        output_html=DIR_trimmed_fastqc + "/{wildcard}_fastqc.html",
     threads: 5
     shell:
         """
-        /home/amunzur/FastQC/fastqc {input.R1} --outdir=`dirname {output.output_zip_R1}`
-        /home/amunzur/FastQC/fastqc {input.R2} --outdir=`dirname {output.output_zip_R2}` 
+        /home/amunzur/FastQC/fastqc {input} --outdir=`dirname {output}`
         """
