@@ -120,8 +120,8 @@ def CH_presence_line_thresholds(df_CH, age_df, PATH_sample_information, ax, axfo
     Plos the fraction of the cohort that is CH positive in each age.
     """
     import scipy.stats as stats
-    sample_info = pd.read_csv(PATH_sample_information, sep = "\t", names = ["Patient_id", "Date_collected", "Diagnosis", "Timepoint"])
-    sample_info = sample_info[(sample_info["Timepoint"] == "Baseline")].reset_index(drop = True)
+    sample_info = pd.read_csv(PATH_sample_information, sep = "\t", names = ["Patient_id", "Date_collected", "Cohort", "Diagnosis", "Timepoint"])
+    sample_info = sample_info[(sample_info["Timepoint"] == "Baseline") & (sample_info["Cohort"]=="TheraP")].reset_index(drop = True)
     
     # Generate dfs of varying thresholds and annotate their CHIP mutation status
     ch1 = annotate_mutation_status(df_CH[(df_CH["VAF_n"] <= 2)], "Both", PATH_sample_information, annotate_what = "CHIP").merge(age_df, how = "left").dropna()
@@ -1364,6 +1364,10 @@ def plot_variance_per_pt(baseline, ax, scatter_color, bar_color):
     cv_per_pt = cv_per_pt.dropna(subset = "CV").reset_index(drop = True)
     cv_per_pt = cv_per_pt.reset_index()
     
+    # Line through median
+    median_cv=round(np.median(cv_per_pt["CV"]), 2)
+    ax.axhline(y=median_cv, color="black", linewidth=0.5, linestyle="--")
+    
     # Pull the WBC VAF of all mutations in these patients
     baseline["VAF_n"] = np.log10(baseline["VAF_n"])
     vaf_df = baseline[["Patient_id", "VAF_n"]]
@@ -1386,7 +1390,7 @@ def plot_variance_per_pt(baseline, ax, scatter_color, bar_color):
     ax.spines["bottom"].set_zorder(1000)
     ax.set_ylabel("Coefficient of variance")
     
-    ax_twin.set_ylim((np.log10(0.25), np.log10(60)))
+    ax_twin.set_ylim((np.log10(0.2), np.log10(60)))
     ax_twin.set_yticks([np.log10(0.25), np.log10(1), np.log10(2), np.log10(10), np.log10(50)])
     ax_twin.set_yticklabels([".25", "1", "2", "10", "50"])
     
@@ -1400,6 +1404,8 @@ def plot_variance_per_pt(baseline, ax, scatter_color, bar_color):
     ax.set_xlim((xmax, xmin))
     ax_twin.set_xlim((xmax, xmin))
     ax_twin.set_xlabel("Baseline samples with >1 CH mutation")
+    
+    ax.text(xmax-1, median_cv, f"Median CV: {median_cv}", ha='left', va='bottom', fontsize=8, color='black')
     
     return(ax, ax_twin)
 

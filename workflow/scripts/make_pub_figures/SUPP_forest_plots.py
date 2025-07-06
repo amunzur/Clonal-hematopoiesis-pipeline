@@ -72,11 +72,13 @@ def plot_single_HR(ax, ypos, cox_dict, color):
     p = float(cox_dict["p"])
     
     # Calculate the error margins for the confidence intervals
-    ci_half_width = (ci_upper - ci_lower) / 2
+    lower_error = hr - ci_lower
+    upper_error = ci_upper - hr
+    asymmetric_error = [[lower_error], [upper_error]]
     
     # Plotting
     # ax.scatter(hr, ypos, s=1, edgecolor=None, color=color)
-    ax.errorbar(hr, ypos, xerr=ci_half_width, fmt='o', color=color, capsize=2, elinewidth = 1, markersize = 4)
+    ax.errorbar(hr, ypos, xerr=asymmetric_error, fmt='o', color=color, capsize=2, elinewidth = 1, markersize = 4)
     
     return ax
 
@@ -135,7 +137,7 @@ bladder_pts = all_pts[all_pts["Diagnosis"] == "Bladder"]["Patient_id"].unique()
 
 # Generate survival DFs from bladder and kidney
 kidney_clin_df = pd.read_csv(PATH_kidney_clinical)
-sex_and_age_df, cci_df, mets_df, imdc_df, subtype_df, kidney_surv_df = prepare_clinical_data(clin_df)
+sex_and_age_df, cci_df, mets_df, imdc_df, subtype_df, kidney_surv_df = prepare_clinical_data(kidney_clin_df)
 kidney_surv_df = kidney_surv_df[kidney_surv_df["Patient_id"].isin(kidney_pts)]
 
 bladder_clin_df = pd.read_csv(PATH_clinical_bladder)
