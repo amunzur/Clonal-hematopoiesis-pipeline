@@ -165,4 +165,8 @@ Contain helper functions and utilities used across the above scripts for data ma
 4. Run the pipeline with Snakemake from the root directory of the pipeline, specifying number of cores, e.g.:  
    ```bash
    snakemake --cores 12
-
+   ```
+   Following command can also be used when running Snakemake in an HPC setting:
+   ```bash
+   snakemake --reason --rerun-incomplete --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch -N {cluster.nodes} -c {cluster.cpus-per-task} -o {cluster.output} --mem={cluster.mem} --time={cluster.time} --job-name={rule}' -j 100
+   ```
