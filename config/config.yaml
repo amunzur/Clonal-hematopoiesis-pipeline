@@ -19,7 +19,7 @@ PATH_SNP_db: "/groups/wyattgrp/users/jbacon/reference/dbSNP/resources_broad_hg38
 # data files
 DIR_fastq: "results/data/fastq"
 DIR_raw_fastq: "results/data/fastq/raw"
-DIR_merged_fastq: "results/data/fastq/merged/all"
+DIR_merged_fastq: "results/data/fastq/merged/"
 DIR_masked_fastq: "results/data/fastq/masked"
 DIR_extracted_fastq: "results/data/fastq/extracted"
 DIR_trimmed_fastq: "results/data/fastq/trimmed"
