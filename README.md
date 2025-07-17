@@ -161,7 +161,8 @@ Contain helper functions and utilities used across the above scripts for data ma
 
 1. Configure your environment variables and directory paths (e.g., `DIR_bams`, `DIR_results`, `PATH_hg38`, `PATH_bed`, etc.) in the Snakemake config or directly in the workflow script.  
 2. Prepare input data: paired-end FASTQ files.  
-3. Run the pipeline with Snakemake, specifying number of cores, e.g.:  
+3. Generate the snakemake environment using the .yaml file in `envs/snakemake_env.yaml`
+4. Run the pipeline with Snakemake, specifying number of cores, e.g.:  
    ```bash
    snakemake --cores 12
 
