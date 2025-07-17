@@ -5,6 +5,170 @@ __default__:
   cpus-per-task: 12
   nodes: 1
 
-# snakemake --cluster-config config/cluster.yaml --cluster 'sbatch -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 40
+BamtoFastq: 
+  mem: "8GB"
+  time: "00-1:00:00"
 
-# snakemake --cluster "sbatch -t {cluster.time} -p {cluster.partition} -N {cluster.nodes}" --cluster-config config/cluster.yaml --jobs 2 --latency-wait=15
+BamtoFastq2: 
+  mem: "8GB"
+  time: "00-1:00:00"
+
+CallMolecularConsensusReads: 
+  mem: "16GB"
+  time: "00-4:00:00"
+
+FastqToBam: 
+  mem: "2000MB"
+  time: "00-00:29:00"
+
+FilterConsensusReads_SSCS: 
+  mem: "16GB"
+  time: "00-4:00:00"
+
+GroupReadsByUmi: 
+  mem: "16GB"
+  time: "00-4:00:00"
+
+MergeBamAlignment: 
+  mem: "16GB"
+  time: "00-4:00:00"
+
+MergeBamAlignment2: 
+  mem: "16GB"
+  time: "00-4:00:00"
+
+add_rg_for_freebayes_somatic: 
+  mem: "16GB"
+  time: "00-4:00:00"
+
+alignment_summary_metrics: 
+  mem: "2000MB"
+  time: "00-00:29:00"
+
+apply_base_scores: 
+  mem: "16GB"
+  time: "00-4:00:00"
+
+decompose_blocksubstitutions_chip: 
+  mem: "16GB"
+  time: "00-3:00:00"
+
+fixmate: 
+  mem: "16GB"
+  time: "00-4:00:00"
+
+fixmate2: 
+  mem: "16GB"
+  time: "00-4:00:00"
+
+indel_realignment: 
+  mem: "32GB"
+  time: "00-5:00:00"
+
+indel_realignment2: 
+  mem: "32GB"
+  time: "00-5:00:00"
+
+index_rg_bams: 
+  mem: "500MB"
+  time: "00-00:10:00"
+
+index_sorted_subsetted_bams: 
+  mem: "500MB"
+  time: "00-00:10:00"
+
+index_sorted_vcf_files: 
+  mem: "500MB"
+  time: "00-00:10:00"
+
+index_vcf_files: 
+  mem: "500MB"
+  time: "00-00:10:00"
+
+mapBAM: 
+  mem: "32GB"
+  time: "00-5:00:00"
+
+mapBAM2: 
+  mem: "32GB"
+  time: "00-5:00:00"
+
+normalize_variants: 
+  mem: "2000MB"
+  time: "00-00:29:00"
+
+recalibrate_bases: 
+  mem: "8GB"
+  time: "00-2:00:00"
+
+run_ANNOVAR_chip: 
+  mem: "8GB"
+  time: "00-2:00:00"
+
+run_VarDict_chip: 
+  mem: "16GB"
+  time: "00-4:00:00"
+
+run_depth: 
+  mem: "16MB"
+  time: "00-1:30:00"
+
+run_fastqc_merged: 
+  mem: "2000MB"
+  time: "00-00:29:00"
+
+run_fastqc_trimmed: 
+  mem: "2000MB"
+  time: "00-00:29:00"
+
+run_freebayes_chip: 
+  mem: "16GB"
+  time: "00-6:00:00"
+
+run_mpileup: 
+  mem: "2000MB"
+  time: "00-1:00:00"
+
+run_mutect2: 
+  mem: "16GB"
+  time: "00-4:00:00"
+
+run_read_counts: 
+  mem: "500MB"
+  time: "00-00:29:00"
+
+sort_subsetted_bams: 
+  mem: "16GB"
+  time: "00-4:00:00"
+
+sort_vcf_chip: 
+  mem: "2000MB"
+  time: "00-00:29:00"
+
+subset_to_proper_pairs: 
+  mem: "2000MB"
+  time: "00-00:29:00"
+
+trim_fastq: 
+  mem: "8GB"
+  time: "00-1:30:00"
+
+vcfToTable_Mutect2_chip: 
+  mem: "2000MB"
+  time: "00-00:29:00"
+
+vcfToTable_Vardict_chip: 
+  mem: "2000MB"
+  time: "00-00:29:00"
+
+vcfToTable_freebayes_chip: 
+  mem: "2000MB"
+  time: "00-00:29:00"
+
+zip_vcf_files_freebayes: 
+  mem: "2000MB"
+  time: "00-00:29:00"
+
+zip_vcf_files_vardict: 
+  mem: "2000MB"
+  time: "00-00:29:00"
