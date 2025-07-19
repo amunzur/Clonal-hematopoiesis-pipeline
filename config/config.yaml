@@ -5,24 +5,19 @@ PATH_hg38_dict: "/groups/wyattgrp/users/jbacon/reference/CHIP_hg38_fix/GRCh38.u2
 PATH_bed: "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/CHIP/CHIP_targets.bed"
 PATH_bed_intervals: "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/CHIP/CHIP_targets.interval_list"
 PATH_baits: "/groups/wyattgrp/users/amunzur/pipeline/resources/panel/CHIP/CHIP_baits.anno.interval_list"
-PATH_bg: "/groups/wyattgrp/users/jbacon/err_rates/chip/bgerror/chip_errorrate.tsv"
 PATH_germline: "/groups/wyattgrp/users/amunzur/pipeline/resources/Mutect/germline_resources/af-only-gnomad.hg38.vcf.gz"
 PATH_PoN: "/groups/wyattgrp/users/amunzur/pipeline/resources/Mutect/pon.vcf.gz"
 PATH_adapters: "resources/references/adapters.fa"
-PATH_bets: "resources/betastasis/CLEANED_mutations_kidney_cancer_somatic.tsv"
 DIR_sample_maps: "resources/sample_maps"
-DIR_temp: "resources/TEMP"
 PATH_known_indels: "/groups/wyattgrp/users/jbacon/reference/dbSNP/resources_broad_hg38_v0_Homo_sapiens_assembly38.known_indels.vcf"
 PATH_gold_std_indels: "/groups/wyattgrp/users/jbacon/reference/dbSNP/resources_broad_hg38_v0_Mills_and_1000G_gold_standard.indels.hg38.vcf"
 PATH_SNP_db: "/groups/wyattgrp/users/jbacon/reference/dbSNP/resources_broad_hg38_v0_Homo_sapiens_assembly38.dbsnp138.vcf"
 
 # data files
+DIR_results: "results"
 DIR_fastq: "results/data/fastq"
 DIR_bams: "results/data/bam"
 DIR_metrics: "results/metrics"
-
-# metrics files 
-DIR_results: "/groups/wyattgrp/users/amunzur/pipeline/results"
 
 # cnvkit
 cnvkit_targets_bed: "resources/cnvkit/my_targets.bed"
