@@ -270,9 +270,7 @@ add_AAchange_effect <- function(vars, variant_caller){
 	vars$Protein_annotation <- unlist(mapply("[", p_list, idx_list))
 	vars$Effects <- unlist(mapply("[", effects, idx_list))
 	vars$Effects[grep("splicing", vars$Function)] <- "splicing"
-
-	# write_csv(vars, "/groups/wyattgrp/users/amunzur/pipeline/results/test.csv")
-
+	
 	# move the newly added columsn to the beginning of the dataframe
 	# alt_col_index <- which(names(vars) == "Alt")
 	# vars <- vars %>% 
@@ -550,7 +548,7 @@ parse_anno_output <- function(DIR_variant_tables, mode, variant_caller, PATH_sam
 		somatic_func = get("return_anno_output_mutect_somatic")
 		chip_func = get("return_anno_output_mutect_chip")
 	} else if (toupper(variant_caller) == "FREEBAYES") {
-		somatic_func = get("return_anno_output_freebayes_somatic")
+		# somatic_func = get("return_anno_output_freebayes_somatic")
 		chip_func = get("return_anno_output_freebayes_chip")
 	} else {
 		stop("Invalid variant caller specified.")}
@@ -677,76 +675,6 @@ return_anno_output_freebayes_chip <- function(PATH_variant_table) {
 	
 	return(df)
 }
-
-# return_anno_output_freebayes_somatic <- function(PATH_variant_table) {
-
-# 	# get wbc name
-# 	paired_samples <- read_delim("/groups/wyattgrp/users/amunzur/pipeline/resources/sample_lists/paired_samples.tsv", delim = "\t") %>%
-# 		filter(cfDNA == str_split(basename(PATH_variant_table), "\\.")[[1]][1])
-
-# 	df <- as.data.frame(read.delim(PATH_variant_table, stringsAsFactors = FALSE, check.names = FALSE))
-# 	df$Sample_name_n = paired_samples$WBC
-
-
-
-# 	df <- df %>%
-# 		rename(Ref_forward = SRF, Ref_reverse = SRR, Alt_forward = SAF, Alt_reverse = SAR) %>%
-# 		mutate_at(c("POS", "Ref_forward", "Ref_reverse", "Alt_forward", "Alt_reverse"), as.numeric) %>%
-# 		mutate(Sample = gsub(".tsv", "", basename(PATH_variant_table)), 
-# 			   Sample_name = file_path_sans_ext(basename(PATH_variant_table)),
-# 			   Sample_type = str_extract(basename(PATH_variant_table), "cfDNA|WBC"),
-# 			   Date_collected = str_split(Sample_name, "[-_]")  %>% sapply(tail, 1),
-# 			   nchar_ref = nchar(REF), 
-# 			   nchar_alt = nchar(ALT), 
-# 			   ALT = ifelse(grepl(",", ALT), sub(",.*", "", ALT), ALT)) %>% # Select the first element if ALT contains commas
-# 		mutate(TYPE = case_when(nchar_ref > nchar_alt ~ "Deletion", 
-# 			   					   nchar_ref < nchar_alt ~ "Insertion", 
-# 								   nchar_ref == nchar_alt ~ "SNV"), 
-# 			   VAF = (Alt_forward+Alt_reverse)/(Ref_forward+Ref_reverse+Alt_forward+Alt_reverse), 
-# 			   Depth = Ref_forward+Ref_reverse+Alt_forward+Alt_reverse) %>%
-# 		select(-nchar_ref, -nchar_alt) %>%
-# 		select(Sample_name, Sample_type, Date_collected, CHROM, POS, REF, ALT, TYPE, VAF, Depth, Alt_forward, Ref_forward, Alt_reverse, Ref_reverse, Func.refGene, Gene.refGene, ExonicFunc.refGene, 
-# 				 AAChange.refGene, cosmic97_coding, avsnp150, gnomad40_exome_AF, CLNALLELEID, CLNSIG)
-
-# 		names(df) <- c("Sample_name", "Sample_type", "Date_collected", "Chrom", "Position", "Ref", "Alt", "Type", "VAF", "Depth", "Alt_forward", "Ref_forward", "Alt_reverse", "Ref_reverse", "Function", "Gene", "Consequence", 
-# 		"AAchange", "cosmic97_coding", "avsnp150", "gnomad40_exome_AF", "CLNALLELEID", "CLNSIG")
-
-
-
-
-
-
-# 	# Indicate insertion, deletion or SNV
-# 	df <- df %>% select(-"") %>%
-# 				 rename(Ref_forward = SRF, Ref_reverse = SRR, Alt_forward = SAF, Alt_reverse = SAR) %>%
-# 				 mutate_at(c("POS", "Ref_forward", "Ref_reverse", "Alt_forward", "Alt_reverse"), as.numeric) %>%
-# 				 mutate(Patient_id = gsub("GU-", "", str_split(file_path_sans_ext(basename(PATH_variant_table)), "_")[[1]][1]),
-# 						Sample_name_t = file_path_sans_ext(basename(PATH_variant_table)),
-# 						Date_collected = tail(str_split(file_path_sans_ext(basename(PATH_variant_table)), "[-_]")[[1]], n = 1), 
-# 						TYPE = case_when(
-# 							nchar(REF) > nchar(ALT) ~ "Deletion", 
-# 							nchar(REF) < nchar(ALT) ~ "Insertion",
-# 							nchar(REF) == nchar(ALT) ~ "SNV", 
-# 							TRUE ~ "Error"), 
-# 		   		 		VAF_t = cfDNA_VD/cfDNA_DP, 
-# 						VAF_n = WBC_VD/WBC_DP, 
-# 						tumor_to_normal_VAF_ratio = VAF_t/VAF_n) %>%
-# 				 filter(STATUS %in% c("StrongSomatic", "LikelySomatic")) %>%
-# 				 rename(Depth_t = cfDNA_DP, Depth_n = WBC_DP) %>%
-# 				 select(-cfDNA_VD, -WBC_VD, -cfDNA_AF, -WBC_AF) %>%
-# 		  		 separate(cfDNA_ALD, into = c("Alt_forward_t", "Alt_reverse_t"), sep = ",", remove = TRUE) %>%
-# 		  		 separate(cfDNA_RD, into = c("Ref_forward_t", "Ref_reverse_t"), sep = ",", remove = TRUE) %>%
-# 		  		 separate(WBC_ALD, into = c("Alt_forward_n", "Alt_reverse_n"), sep = ",", remove = TRUE) %>%
-# 		  		 separate(WBC_RD, into = c("Ref_forward_n", "Ref_reverse_n"), sep = ",", remove = TRUE) %>%
-# 				 select(Patient_id, Sample_name_t, Date_collected, STATUS, CHROM, POS, REF, ALT, TYPE, VAF_t, Depth_t, Alt_forward_t, Ref_forward_t, Alt_reverse_t, Ref_reverse_t, Func.refGene, Gene.refGene, ExonicFunc.refGene, 
-# 				 AAChange.refGene, cosmic97_coding, avsnp150, CLNALLELEID, CLNSIG, Sample_name_n, VAF_n, Depth_n, Alt_forward_n, Ref_forward_n, Alt_reverse_n, Ref_reverse_n, tumor_to_normal_VAF_ratio) %>%
-# 				 mutate(across(c(VAF_t, Depth_t, Alt_forward_t, Alt_reverse_t, Ref_forward_t, Ref_reverse_t, VAF_n, Depth_n, Alt_forward_n, Alt_reverse_n, Ref_forward_n, Ref_reverse_n), as.numeric))
-
-# 	names(df) <- c("Patient_id", "Sample_name_t", "Date_collected", "Status", "Chrom", "Position", "Ref", "Alt", "Type", "VAF_t", "Depth_t", "Alt_forward_t", "Ref_forward_t", "Alt_reverse_t", "Ref_reverse_t", "Function", "Gene", "Consequence", 
-# 	"AAchange", "cosmic97_coding", "avsnp150", "gnomad40_exome_AF", "CLNALLELEID", "CLNSIG", "Sample_name_n", "VAF_n", "Depth_n", "Alt_forward_n", "Ref_forward_n", "Alt_reverse_n", "Ref_reverse_n", "tumor_to_normal_VAF_ratio")
-
-# 	return(df)
-# }
 
 return_anno_output_vardict_somatic <- function(PATH_variant_table) {
 
