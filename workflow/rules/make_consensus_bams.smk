@@ -1,7 +1,7 @@
 rule FastqToBam:
     input:
-        R1=DIR_trimmed_fastq + "/{wildcard}_1.fq.gz",
-        R2=DIR_trimmed_fastq + "/{wildcard}_2.fq.gz",
+        R1=DIR_fastq + "/trimmed/{wildcard}_1.fq.gz",
+        R2=DIR_fastq + "/trimmed/{wildcard}_2.fq.gz",
     output:
         temp(DIR_bams + "/uBAM/{wildcard}.bam"),
     params:
@@ -114,7 +114,7 @@ rule recalibrate_bases:
     input:
         DIR_bams + "/fixmate/{wildcard}.bam",
     output:
-        DIR_recalibrated_base_scores + "/{wildcard}_table",
+        DIR_metrics + "/base_recalc_info/{wildcard}_table",
     params:
         PATH_hg38=PATH_hg38,
         PATH_known_indels=PATH_known_indels,
@@ -130,7 +130,7 @@ rule recalibrate_bases:
 rule apply_base_scores:
     input:
         fixmate_BAM=DIR_bams + "/fixmate/{wildcard}.bam",
-        base_scores=DIR_recalibrated_base_scores + "/{wildcard}_table",
+        base_scores=DIR_metrics + "/base_recalc_info/{wildcard}_table",
     output:
         temp(DIR_bams + "/uncollapsed_BAM/{wildcard}.bam"),
     params: 
@@ -148,7 +148,7 @@ rule GroupReadsByUmi:
         DIR_bams + "/uncollapsed_BAM/{wildcard}.bam",  # output of the fixmate_and_recalibrate_bases rule from the process_bams.smk file
     output:
         bam = temp(DIR_bams + "/grouped_umi_BAM/{wildcard}.bam"),
-        family_size_hist = DIR_umi_metrics + "/{wildcard}.umi_metrics"
+        family_size_hist = DIR_metrics + "/umi_metrics/{wildcard}.umi_metrics"
     params:
         PATH_hg38=PATH_hg38,
         min_map_quality = 20
