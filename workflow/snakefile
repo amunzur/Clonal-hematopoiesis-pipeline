@@ -3,9 +3,7 @@ import re
 import os
 
 exec(open("workflow/snakemake_functions.py").read())
-# snakemake --reason --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch --exclude=cn[01-05] -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 50
-
-samples = pd.read_csv("/groups/wyattgrp/users/amunzur/lu_chip/resources/sample_lists/therap_wbc_progression.tsv", sep = "\t")["sample_names"].tolist()
+samples = pd.read_csv("resources/sample_lists/sample_list.tsv", sep = "\t")["sample_names"].tolist()
 cfDNA_samples = list(filter(lambda x: "cfDNA" in x, samples))
 WBC_samples = list(filter(lambda x: "WBC" in x, samples))
 
