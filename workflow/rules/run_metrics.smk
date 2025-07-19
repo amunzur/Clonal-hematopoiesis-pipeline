@@ -3,7 +3,7 @@ rule run_depth:
 		BAM = DIR_bams + "/{consensus_type}_final/{wildcard}.bam",
 		PATH_bed = PATH_bed 
 	output:
-		DIR_depth_metrics + "/{consensus_type}/{wildcard}.txt"
+		DIR_metrics + "/depth/{consensus_type}/{wildcard}.txt"
 	threads: 12
 	shell:
 		"samtools depth -b {input.PATH_bed} {input.BAM} > {output}"
@@ -15,7 +15,7 @@ rule run_mpileup:
 		PATH_hg38 = PATH_hg38, 
 		PATH_bed = PATH_bed,
 	output:
-		DIR_mpileup + "/{consensus_type}/{wildcard}.mpileup"
+		DIR_metrics + "/mpileup/{consensus_type}/{wildcard}.mpileup"
 	threads: 12
 	shell:
 		"samtools mpileup -A -f {input.PATH_hg38} --no-BAQ --positions {input.PATH_bed} --min-MQ 0 --min-BQ 0 {input.BAM} -o {output}"
@@ -24,8 +24,8 @@ rule run_insert_size:
 	input: 
 		DIR_bams + "/{consensus_type}_final/{wildcard}.bam"
 	output:
-		metrics = DIR_insertsize_metrics + "{consensus_type}/{wildcard}.txt",
-		figures = DIR_insertsize_figures + "{consensus_type}/{wildcard}.pdf"
+		metrics = DIR_metrics + "/insert_size/{consensus_type}/{wildcard}.txt",
+		figures = DIR_metrics + "/insert_size_figures/{consensus_type}/{wildcard}.pdf"
 	threads: 12
 	shell:
 		"picard CollectInsertSizeMetrics \
@@ -41,7 +41,7 @@ rule run_read_counts:
 	params:
 		sample_name = "{wildcard}"
 	output:
-		DIR_readcounts_metrics + "{wildcard}.txt",
+		DIR_metrics + "/read_counts/{wildcard}.txt",
 	shell:
 		"paste <(echo {params}) <(echo $(( ($(gunzip -c {input} | wc -l) / 4) * 2 )) ) > {output}"
 
@@ -52,10 +52,8 @@ rule hs_metrics:
 		PATH_baits = PATH_baits,
 		PATH_bed_intervals = PATH_bed_intervals,
 		PATH_hg38 = PATH_hg38
-	conda:
-		"../envs/picard.yaml"
 	output:
-		DIR_HS_metrics + "/{consensus_type}/{wildcard}.HS_metrics",
+		DIR_metrics + "/PICARD_HS_metrics/{consensus_type}/{wildcard}.HS_metrics",
 	shell:
 		"picard CollectHsMetrics \
 			I={input.SSCS_bam} \
@@ -68,8 +66,6 @@ rule alignment_summary_metrics:
 	input: 
 		bam = DIR_bams + "/{consensus_type}_final/{wildcard}.bam",
 		PATH_hg38 = PATH_hg38
-	conda:
-		"../envs/picard.yaml"
 	output:
 		DIR_metrics + "/PICARD_alignment_summary/{consensus_type}/{wildcard}.alignment_summary_metrics"
 	shell:
