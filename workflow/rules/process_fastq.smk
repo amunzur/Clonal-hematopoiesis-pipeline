@@ -9,16 +9,6 @@ rule run_fastqc_merged:
     shell:
         "/home/amunzur/FastQC/fastqc {input} --outdir=`dirname {output.output_zip}`"
 
-rule fastq_read_counts:
-    input:
-        DIR_fastq + "/merged/{wildcard}_1.fq.gz",
-    params:
-        sample_name="{wildcard}",
-    output:
-        DIR_readcounts_metrics + "/raw/{wildcard}.txt",
-    shell:
-        "paste <(echo {params}) <(echo $(cat {input}|wc -l)/4|bc) > {output}"
-
 rule mask_fastq:
     input:
         DIR_fastq + "/merged/{wildcard}.fq.gz",
