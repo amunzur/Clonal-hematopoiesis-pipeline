@@ -15,7 +15,6 @@
   - [VCF Post-processing](#vcf-post-processing)  
 - [Tools and Environments](#tools-and-environments)  
 - [Usage](#usage)  
-- [Contact](#contact)  
 
 ---
 
@@ -33,23 +32,11 @@ This Snakemake pipeline is designed for processing paired-end sequencing data to
 
 ## Directory Structure and Variables
 
-The workflow expects several directory variables to be set in the `config.yaml` file:
+Several directory variables are already defined in the `config.yaml` file, this file doesn't need to be edited.
 
-- `DIR_trimmed_fastq`: directory with trimmed fastq files  
-- `DIR_fastq`: directory with raw or merged fastq files  
 - `DIR_bams`: directory for all BAM outputs (including intermediate and final BAMs, subset BAM directories will be automatically generated)  
 - `DIR_results`: main results directory for variant calling, metrics, and other outputs  
-- `DIR_umi_metrics`: directory for UMI family size histograms  
-- `DIR_readcounts_metrics`: directory for read count metrics  
-- `DIR_depth_metrics`: directory for depth of coverage outputs  
-- `DIR_insertsize_metrics` & `DIR_insertsize_figures`: insert size metrics and plots  
-- `DIR_HS_metrics`: hybrid selection metrics output  
-- `DIR_metrics`: directory for other picard metrics (alignment summary etc.)  
-- `PATH_hg38`: path to the hg38 reference fasta file  
-- `PATH_bed`: target regions BED file  
-- `PATH_baits` & `PATH_bed_intervals`: bait and intervals BED files for hybrid capture  
-- `PATH_known_indels`, `PATH_gold_std_indels`, `PATH_SNP_db`: known sites for base recalibration  
-
+- `DIR_metrics`: metrics such as depth, insert size and duplicate percentage will be saved here.
 ---
 
 ## Pipeline Workflow
@@ -93,12 +80,12 @@ You can then run MultiQC on these files to generate one QC report.
 
 ### Variant Calling
 
-#### Somatic Variant Calling
+#### Tumor-originating Variant Calling
 
 - `run_VarDict_somatic`: Run VarDict paired variant caller on cfDNA and matched WBC BAMs.  
 - `run_mutect2_somatic`: Run GATK Mutect2 somatic variant caller on tumor and matched normal BAMs.  
 - `run_freebayes_somatic`: Run FreeBayes variant caller on paired BAMs.  
-- Post-process VCF files by compressing, indexing, sorting, normalizing, and decomposing using `bgzip`, `tabix`, `bcftools`, and `vt`.
+- Post-process VCF files by compressing, indexing, sorting, normalizing, and decomposing using `bgzip`, `tabix`, `bcftools`, and `vt`. Note that freebayes is not used for tumor-originating variant calling.
 
 #### Clonal Hematopoiesis Variant Calling
 
@@ -129,7 +116,7 @@ You can then run MultiQC on these files to generate one QC report.
 - **Base Recalibration:** `GATK BaseRecalibrator`, `ApplyBQSR`  
 - **UMI consensus:** `fgbio` GroupReadsByUmi and CallMolecularConsensusReads  
 
-Conda environment YAML files are specified for reproducibility and are provided in the `envs` directory. Snakemake will automatically generate the required environments.
+Conda environment YAML files are provided in the `envs` directory. Snakemake will automatically generate the required environments.
 
 ---
 
@@ -159,14 +146,15 @@ Contain helper functions and utilities used across the above scripts for data ma
 
 ## Usage
 
-1. Configure your environment variables and directory paths (e.g., `DIR_bams`, `DIR_results`, `PATH_hg38`, `PATH_bed`, etc.) in the Snakemake config or directly in the workflow script.  
-2. Prepare input data: paired-end FASTQ files and place (or link) them in `results/data/fastq/merged/`. If you set another path in the config file, place them there.
-3. Download snakemake through conda, or generate the snakemake environment using the .yaml file in `envs/snakemake_env.yaml`
-4. Run the pipeline with Snakemake from the root directory of the pipeline, specifying number of cores, e.g.:  
+1. Environment variables and directory paths are already configured in the config file (e.g., `DIR_bams`, `DIR_results`, `PATH_hg38`, `PATH_bed`, etc.), and they can be edited if you would like to save the results to another location.  
+2. Prepare input data: paired-end FASTQ files and place (or link) them in `results/data/fastq/merged/`. 
+3. Also prepare a  one-column sample list file and save it to `resources/sample_lists/sample_list.tsv`. An example file is provided in the repository. Sample names should match the fastq file names (without the file extensions). Samples that are absent in this file will not be processed by the pipeline.
+4. Download snakemake through conda, or generate the snakemake environment using the .yaml file in `envs/snakemake_env.yaml`
+5. Always run the snakemake pipeline from the project directory (where the repository was cloned to). The following will perform a dry run without running the pipeline:
    ```bash
-   snakemake --cores 12
+   snakemake --n
    ```
-   Following command can also be used when running Snakemake in an HPC setting:
+   Following command can also be used when running Snakemake in an HPC setting. Time limit and memory requested will be automatially determined based on the `config/cluster.yaml` file. You can update this file based on the system resources. Most memory heavy rules use 16GB or 32GB of RAM. In targeted sequencing data most jobs will complete within 10 minutes to 4 hours.
    ```bash
    snakemake --reason --rerun-incomplete --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch -N {cluster.nodes} -c {cluster.cpus-per-task} -o {cluster.output} --mem={cluster.mem} --time={cluster.time} --job-name={rule}' -j 100
    ```
