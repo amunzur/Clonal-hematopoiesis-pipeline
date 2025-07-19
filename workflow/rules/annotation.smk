@@ -43,7 +43,7 @@ rule vcfToTable_freebayes_somatic:
     output:
         DIR_results + "/data/variant_tables/somatic/freebayes/{consensus_type}/{wildcard}.tsv",
     params:
-        DIR_ANNOVAR + "/freebayes/{consensus_type}/{wildcard}",
+        DIR_results +  "/data/annovar_outputs/freebayes/{consensus_type}/{wildcard}",
     shell:
         """
         /home/amunzur/gatk-4.2.0.0/gatk VariantsToTable \
@@ -92,7 +92,7 @@ rule vcfToTable_freebayes_chip:
     output:
         DIR_results + "/data/variant_tables/chip/freebayes/{consensus_type}/{wildcard}.tsv",
     params:
-        DIR_ANNOVAR + "/freebayes/{consensus_type}/{wildcard}",
+        DIR_results +  "/data/annovar_outputs/freebayes/{consensus_type}/{wildcard}",
     shell:
         """
         /home/amunzur/gatk-4.2.0.0/gatk VariantsToTable \
