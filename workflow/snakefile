@@ -5,9 +5,7 @@ import os
 exec(open("workflow/snakemake_functions.py").read())
 # snakemake --reason --use-conda --keep-going --cluster-config config/cluster.yaml --cluster 'sbatch --exclude=cn[01-05] -t {cluster.time} --mem={cluster.mem} -c {cluster.cpus} -N {cluster.nodes} -o {cluster.output}' -j 50
 
-# samples = ["Prince-BXH-006_WBC_Baseline_2020Sep16"]
 samples = pd.read_csv("/groups/wyattgrp/users/amunzur/lu_chip/resources/sample_lists/therap_wbc_progression.tsv", sep = "\t")["sample_names"].tolist()
-# samples = ["TheraP-289_cfDNA_FirstProgression_2021Jun22.log"]
 cfDNA_samples = list(filter(lambda x: "cfDNA" in x, samples))
 WBC_samples = list(filter(lambda x: "WBC" in x, samples))
 
@@ -32,52 +30,11 @@ PATH_germline = config["PATH_germline"]
 PATH_PoN = config["PATH_PoN"]
 
 # data files
-DIR_fastq = config["DIR_fastq"]
-DIR_merged_fastq = config["DIR_merged_fastq"]
-DIR_masked_fastq = config["DIR_masked_fastq"]
-DIR_trimmed_fastq = config["DIR_trimmed_fastq"]
-DIR_trimmed_unpaired_fastq = config["DIR_trimmed_unpaired_fastq"]
-DIR_bams = config["DIR_bams"]
-
-# fastqc reports
-DIR_merged_fastqc = config["DIR_merged_fastqc"]
-DIR_trimmed_fastqc = config["DIR_trimmed_fastqc"]
-DIR_recalibrated_base_scores = config["DIR_recalibrated_base_scores"]
-DIR_umi_metrics = config["DIR_umi_metrics"]
-
-# metrics files
-DIR_metrics = config["DIR_metrics"]
-DIR_insertsize_metrics = config["DIR_insertsize_metrics"]
-DIR_depth_metrics = config["DIR_depth_metrics"]
-DIR_mpileup = config["DIR_mpileup"]
-DIR_readcounts_metrics = config["DIR_readcounts_metrics"]
-DIR_HS_metrics = config["DIR_HS_metrics"]
-
-# variant calling
-DIR_Vardict = config["DIR_Vardict"]
-DIR_Mutect = config["DIR_Mutect"]
-DIR_freebayes = config["DIR_freebayes"]
 DIR_results = config["DIR_results"]
-
-# annotating variants from varscan
-ANNOVAR_snv_input = config["ANNOVAR_snv_input"]
-ANNOVAR_indel_input = config["ANNOVAR_indel_input"]
-ANNOVAR_snv_output = config["ANNOVAR_snv_output"]
-ANNOVAR_indel_output = config["ANNOVAR_indel_output"]
-
-ANNOVAR_Vardict_input = config["ANNOVAR_Vardict_input"]
-ANNOVAR_Vardict_output = config["ANNOVAR_Vardict_output"]
-
-ANNOVAR_mutect_output = config["ANNOVAR_mutect_output"]
-
-ANNOVAR_mutato_input = config["ANNOVAR_mutato_input"]
-ANNOVAR_mutato_output = config["ANNOVAR_mutato_output"]
-
-DIR_ANNOVAR = config["DIR_ANNOVAR"]
-
-# figures
-DIR_insertsize_figures = config["DIR_insertsize_figures"]
-DIR_insertsize_figures_PNG = config["DIR_insertsize_figures_PNG"]
+DIR_fastq = config["DIR_fastq"]
+DIR_bams = config["DIR_bams"]
+DIR_metrics = config["DIR_metrics"]
+DIR_metrics = config["DIR_metrics"]
 
 # cnvkit
 chip_probes_bed = config["chip_probes_bed"]
@@ -198,7 +155,7 @@ variant_table_chip = expand(
 )
 
 # SV callers
-run_gridss = expand(DIR_results + "/gridss/{wildcard}.vcf.gz", wildcard=cfDNA_samples)
+# run_gridss = expand(DIR_results + "/gridss/{wildcard}.vcf.gz", wildcard=cfDNA_samples)
 
 # COPY NUMBER RELATED
 # generate_target_coverage = expand(DIR_results + "/cnvkit/coverage/SSCS2/{wildcard}.targetcoverage.cnn", wildcard=samples + VIP_normals_cfDNA + VIP_normals_wbc)
@@ -238,7 +195,6 @@ rule all:
         # generate_target_coverage,
         # cfDNA_corrected,
         # WBC_corrected,
-        # run_gridss
 
 
 ##### Modules #####
@@ -250,6 +206,3 @@ include: "rules/variant_calling.smk"
 include: "rules/variant_calling_somatic.smk"
 include: "rules/annotation.smk"
 include: "rules/index_bams.smk"
-include: "rules/make_bg_error_rate.smk"
-include: "rules/CNestimation.smk"
-include: "rules/SV_caller.smk"
