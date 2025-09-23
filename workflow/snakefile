@@ -41,16 +41,16 @@ WBC_reference = config["WBC_reference"]
 # TARGET FILES FOR RULE ALL
 ###################################################
 RUN_FastQC_merged = expand(
-    DIR_merged_fastqc + "/{wildcard}_fastqc.html", wildcard=all_pairs
+    DIR_results + "/reports/fastqc/merged/{wildcard}_fastqc.html", wildcard=all_pairs
 )
 RUN_FastQC_trimmed = expand(
-    DIR_trimmed_fastqc + "/{wildcard}_fastqc.html", wildcard=all_pairs
+    DIR_results + "/reports/fastqc/trimmed/{wildcard}_fastqc.html", wildcard=all_pairs
 )
-MASK_FastQ = expand(DIR_masked_fastq + "/{wildcard}_masked.fastq", wildcard=all_pairs)
+MASK_FastQ = expand(DIR_fastq + "/masked/{wildcard}_masked.fastq", wildcard=all_pairs)
 
 TRIM_FastQ = [
-    expand(DIR_trimmed_fastq + "/{wildcard}_1.fq.gz", wildcard=samples),
-    expand(DIR_trimmed_fastq + "/{wildcard}_2.fq.gz", wildcard=samples),
+    expand(DIR_fastq + "/trimmed/{wildcard}_1.fq.gz", wildcard=samples),
+    expand(DIR_fastq + "/trimmed/{wildcard}_2.fq.gz", wildcard=samples),
 ]
 
 make_consensus = expand(
@@ -66,7 +66,7 @@ filter_consensus = expand(
 )
 
 RUN_fastq_read_counts = expand(
-    DIR_readcounts_metrics + "/{wildcard}.txt", wildcard=samples
+    DIR_metrics + "/read_counts/{wildcard}.txt", wildcard=samples
 )
 
 call_variants_chip = expand(
@@ -113,19 +113,19 @@ run_insert_size = expand(
 
 # PDF_to_PNG = expand(DIR_insertsize_figures_PNG + "/{wildcard}.png", wildcard=samples)
 run_depth = expand(
-    DIR_depth_metrics + "/{consensus_type}/{wildcard}.txt",
+    DIR_metrics + "/depth/{consensus_type}/{wildcard}.txt",
     consensus_type=["SSCS2"],
     wildcard=samples,
 )
 
 RUN_mpileup = expand(
-    DIR_mpileup + "/{consensus_type}/{wildcard}.mpileup",
+    DIR_metrics + "/mpileup/{consensus_type}/{wildcard}.mpileup",
     consensus_type=["SSCS2"],
     wildcard=samples,
 )
 
 collect_HS_metrics = expand(
-    DIR_HS_metrics + "/{consensus_type}/{wildcard}.HS_metrics",
+    DIR_metrics + "/PICARD_HS_metrics/{consensus_type}/{wildcard}.HS_metrics",
     consensus_type=["SSCS2"],
     wildcard=samples,
 )
