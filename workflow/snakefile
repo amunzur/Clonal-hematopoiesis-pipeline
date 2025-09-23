@@ -106,7 +106,7 @@ run_annovar_somatic = expand(
 
 
 run_insert_size = expand(
-    DIR_insertsize_metrics + "/{consensus_type}/{wildcard}.txt",
+    DIR_metrics + "/insert_size/{consensus_type}/{wildcard}.txt",
     consensus_type=["SSCS2"],
     wildcard=samples,
 )
