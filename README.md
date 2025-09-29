@@ -48,7 +48,7 @@ Several directory variables are already defined in the `config.yaml` file, this 
 - `trim_fastq`: Trim adapters and low-quality bases using `fastp`, generating trimmed fastq with reports (HTML/JSON).  
 - `run_fastqc_trimmed`: Run FastQC again on trimmed fastq files for quality confirmation.
 
-You can then run MultiQC on these files to generate one QC report.
+You can then run MultiQC (optional) on these files to generate one QC report.
 
 ---
 
@@ -68,7 +68,6 @@ You can then run MultiQC on these files to generate one QC report.
 
 ### Quality Control
 
-- `index_bams`: Index BAM files using `samtools index`.  
 - `run_depth`: Calculate depth of coverage across target regions with `samtools depth`.  
 - `run_mpileup`: Generate pileup files with `samtools mpileup`.  
 - `run_insert_size`: Collect insert size metrics and plots using Picard.  
@@ -122,25 +121,7 @@ Conda environment YAML files are provided in the `envs` directory. Snakemake wil
 
 ## Post-processing tools
 
-Following variant calling, a series of custom R and Python scripts are used to filter, combine, curate, and visualize variants for downstream interpretation. Please refer to each individual script for example usage.
-
-### STEP1_filter_variants.R  
-Applies initial filtering criteria to raw variant call files to remove low-quality and likely false-positive calls.
-
-### STEP2_combine_variant_callers.R  
-Merges variant calls from multiple callers into a unified dataset, resolving overlaps and conflicts.
-
-### STEP3_make_IGV_snapshots.py  
-Automates generation of IGV screenshots around variants of interest to facilitate manual review. After running this script the user needs to go through IGV screenshots and delete those that fail manual inspection.
-
-### STEP4_curate_mutations.py  
-Performs additional mutation curation based on manually curated IGV screenshots.
-
-### STEP5_perform_dependent_calling.py  
-Executes dependent or secondary variant calling steps that leverage curated variant lists or additional input data.
-
-### combine_variant_callers_UTILITIES.R & UTILITIES.R  
-Contain helper functions and utilities used across the above scripts for data manipulation, annotation, and quality control.
+Following variant calling, a series of custom R and Python scripts are used to filter, combine, curate, and visualize variants for downstream interpretation. Please refer to `https://github.com/amunzur/genomics_toolkit` on detailed instructions on how to use them.
 
 ---
 
