@@ -32,11 +32,6 @@ DIR_bams = config["DIR_bams"]
 DIR_metrics = config["DIR_metrics"]
 DIR_metrics = config["DIR_metrics"]
 
-# cnvkit
-chip_probes_bed = config["chip_probes_bed"]
-cfDNA_reference = config["cfDNA_reference"]
-WBC_reference = config["WBC_reference"]
-
 ###################################################
 # TARGET FILES FOR RULE ALL
 ###################################################
