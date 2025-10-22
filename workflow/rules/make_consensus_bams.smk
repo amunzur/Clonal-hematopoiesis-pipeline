@@ -6,20 +6,22 @@ rule FastqToBam:
         temp(DIR_bams + "/uBAM/{wildcard}.bam"),
     params:
         sample="{wildcard}",
-    run:
-        shell(
-            "fgbio FastqToBam -Xmx50G \
-        --input {input.R1} {input.R2} \
-        --output {output} \
-        --read-structure 3M2S+T 3M2S+T \
-        --umi-tag RX \
-        --sample {params.sample} \
-        --library lib1 \
-        --platform illumina \
-        --sort true"
-        )
+    conda:
+        "../envs/snakemake_env.yaml"
+    shell:
+        """
+        fgbio FastqToBam -Xmx50G \
+            --input {input.R1} {input.R2} \
+            --output {output} \
+            --read-structure 3M2S+T 3M2S+T \
+            --umi-tag RX \
+            --sample {params.sample} \
+            --library lib1 \
+            --platform illumina \
+            --sort true"
+        """
 
-# Go back to the Fastq format
+# Revert to the Fastq format
 rule BamtoFastq:
     input:
         DIR_bams + "/uBAM/{wildcard}.bam",
@@ -28,10 +30,10 @@ rule BamtoFastq:
     output:
         temp(DIR_fastq + "/consensus_fq/{wildcard}.fastq"),
     threads: 12
-    run:
-        shell(
-            "picard SamToFastq -Xmx20G I={input} F={output} VALIDATION_STRINGENCY=SILENT INCLUDE_NON_PF_READS=true INCLUDE_NON_PRIMARY_ALIGNMENTS=true INTERLEAVE=true"
-        )
+    conda:
+        "../envs/snakemake_env.yaml"
+    shell:
+        "picard SamToFastq -Xmx20G I={input} F={output} VALIDATION_STRINGENCY=SILENT INCLUDE_NON_PF_READS=true INCLUDE_NON_PRIMARY_ALIGNMENTS=true INTERLEAVE=true"
 
 # Generate mapped bam
 rule mapBAM:
@@ -42,8 +44,10 @@ rule mapBAM:
     output:
         temp(DIR_bams + "/mBAM_raw/{wildcard}.bam"),
     threads: 12 # keep the same for deterministic
-    run:
-        shell("bwa mem {params.PATH_hg38} {input} -p -Y -t {threads} > {output}")
+    conda:
+        "../envs/snakemake_env.yaml"
+    shell:
+        "bwa mem {params.PATH_hg38} {input} -p -Y -t {threads} > {output}"
 
 rule MergeBamAlignment:
     input:
@@ -54,9 +58,11 @@ rule MergeBamAlignment:
     output:
         temp(DIR_bams + "/mBAM/{wildcard}.bam"),
     threads: 12
-    run:
-        shell(
-            "picard MergeBamAlignment -Xmx20G \
+    conda:
+        "../envs/snakemake_env.yaml"
+    shell:
+        """
+        picard MergeBamAlignment -Xmx20G \
             UNMAPPED={input.uBAM} \
             ALIGNED={input.mBAM} \
             O={output} \
@@ -70,7 +76,7 @@ rule MergeBamAlignment:
             REFERENCE_SEQUENCE={params.PATH_hg38} \
             CREATE_INDEX=true \
             SORT_ORDER=coordinate" # needs to be sorted for ABRA2
-        )
+        """
 
 rule indel_realignment:
     input:
@@ -83,21 +89,24 @@ rule indel_realignment:
     output:
         DIR_bams + "/abra2/{wildcard}.bam",
     threads: 12
-    run:
-        shell(
-            "java -Xms64G -jar /home/amunzur/anaconda3/envs/snakemake/share/abra2-2.24-1/abra2.jar \
-        --in {input.MAPPED_bam} \
-        --out {output} \
-        --ref {input.PATH_hg38} \
-        --threads {threads} \
-        --index \
-        --nosort \
-        --no-edge-ci \
-        --sa \
-        --targets {input.PATH_bed} \
-        --tmpdir /groups/wyattgrp/users/amunzur/COMPOST_BIN > \
-        '/groups/wyattgrp/users/amunzur/pipeline/results/logs_slurm/indel_realignment/{wildcards.wildcard}'"
-        ) # Assembly is skipped in the first run only 
+    conda:
+        "../envs/snakemake_env.yaml"
+    shell:
+        """
+        java -Xms64G -jar /home/amunzur/anaconda3/envs/snakemake/share/abra2-2.24-1/abra2.jar \
+            --in {input.MAPPED_bam} \
+            --out {output} \
+            --ref {input.PATH_hg38} \
+            --threads {threads} \
+            --index \
+            --nosort \
+            --no-edge-ci \
+            --sa \
+            --targets {input.PATH_bed} \
+            --tmpdir /groups/wyattgrp/users/amunzur/COMPOST_BIN > \
+            '/groups/wyattgrp/users/amunzur/pipeline/results/logs_slurm/indel_realignment/{wildcards.wildcard}'
+        """
+        # Assembly is skipped in the first run only 
 
 rule fixmate:
     input:
@@ -105,10 +114,10 @@ rule fixmate:
     output:
         temp(DIR_bams + "/fixmate/{wildcard}.bam"),
     threads: 12
-    run:
-        shell(
-            "picard -Xmx40g FixMateInformation I={input} O={output} SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT"
-        )
+    conda:
+        "../envs/snakemake_env.yaml"
+    shell:
+        "picard -Xmx40g FixMateInformation I={input} O={output} SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT"
 
 rule recalibrate_bases:
     input:
@@ -121,11 +130,10 @@ rule recalibrate_bases:
         PATH_gold_std_indels=PATH_gold_std_indels,
         PATH_SNP_db=PATH_SNP_db,
     threads: 12
-    run:
-        shell(
-            "~/gatk-4.2.0.0/gatk BaseRecalibrator -I {input} -R {params.PATH_hg38} --known-sites {params.PATH_known_indels} --known-sites {params.PATH_gold_std_indels} --known-sites {params.PATH_SNP_db} -O {output}"
-        )
-
+    conda:
+        "../envs/snakemake_env.yaml"
+    shell:
+        "~/gatk-4.2.0.0/gatk BaseRecalibrator -I {input} -R {params.PATH_hg38} --known-sites {params.PATH_known_indels} --known-sites {params.PATH_gold_std_indels} --known-sites {params.PATH_SNP_db} -O {output}"
 
 rule apply_base_scores:
     input:
@@ -136,10 +144,10 @@ rule apply_base_scores:
     params: 
         PATH_hg38=PATH_hg38
     threads: 12
-    run:
-        shell(
-            "~/gatk-4.2.0.0/gatk ApplyBQSR --reference {params.PATH_hg38} --input {input.fixmate_BAM} --output {output} --bqsr-recal-file {input.base_scores}"
-        )
+    conda:
+        "../envs/snakemake_env.yaml"
+    shell:
+        "~/gatk-4.2.0.0/gatk ApplyBQSR --reference {params.PATH_hg38} --input {input.fixmate_BAM} --output {output} --bqsr-recal-file {input.base_scores}"
 
 
 # Identify reads or read pairs that originate from the same source molecule based on genomic positions and UMI
@@ -152,10 +160,10 @@ rule GroupReadsByUmi:
     params:
         PATH_hg38=PATH_hg38,
         min_map_quality = 20
-    run:
-        shell(
-            "fgbio GroupReadsByUmi -Xmx20G --input={input} --output={output.bam} --strategy=paired --edits=1 --min-map-q={params.min_map_quality} --family-size-histogram={output.family_size_hist}"
-        )
+    conda:
+        "../envs/snakemake_env.yaml"
+    shell:
+        "fgbio GroupReadsByUmi -Xmx20G --input={input} --output={output.bam} --strategy=paired --edits=1 --min-map-q={params.min_map_quality} --family-size-histogram={output.family_size_hist}"
 
 rule CallMolecularConsensusReads:
     input:
@@ -168,14 +176,16 @@ rule CallMolecularConsensusReads:
         min_input_base_quality=20,
         error_rate_post_umi=40,
         error_rate_pre_umi=45,
-    run:
-        shell(
-            "fgbio CallMolecularConsensusReads -Xmx20G --input={input} --output={output} --threads={threads} \
+    conda:
+        "../envs/snakemake_env.yaml"
+    shell:
+        """
+        fgbio CallMolecularConsensusReads -Xmx20G --input={input} --output={output} --threads={threads} \
             --read-name-prefix=singlex \
             --sort-order=Queryname \
             --consensus-call-overlapping-bases=true \
             --error-rate-pre-umi={params.error_rate_pre_umi} \
             --error-rate-post-umi={params.error_rate_post_umi} \
             --min-input-base-quality={params.min_input_base_quality} \
-            --min-reads={params.min_reads}"
-        )
+            --min-reads={params.min_reads}
+        """
