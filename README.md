@@ -16,6 +16,7 @@
 - [Tools and Environments](#tools-and-environments)  
 - [Usage](#usage)  
 
+See https://www.aslimunzur.com/documentation/running-clonal-hematopoiesis-pipeline for additional details on how to run the pipeline.
 ---
 
 ## Overview
