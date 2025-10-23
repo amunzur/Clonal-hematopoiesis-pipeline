@@ -26,7 +26,7 @@ This Snakemake pipeline is designed for processing paired-end sequencing data to
 - Alignment, indel realignment, base quality score recalibration  
 - Depth and insert size metrics calculations  
 - Variant calling using multiple callers: Mutect2, VarDict, FreeBayes  
-- VCF normalization, sorting, indexing, and decomposition for downstream analysis
+- VCF normalization, sorting, indexing, and decomposition for downstream analysis  
 See https://www.aslimunzur.com/documentation/running-clonal-hematopoiesis-pipeline for additional details on how to run the pipeline.
 ---
 
