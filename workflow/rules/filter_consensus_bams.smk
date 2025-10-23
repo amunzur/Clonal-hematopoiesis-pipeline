@@ -18,7 +18,7 @@ rule mapBAM2:
         temp(DIR_bams + "/{consensus_type}_mBAM_raw_2/{wildcard}.bam"),
     threads: 12
     conda:
-        "../envs/snakemake_env.yaml"
+        "../envs/bwa.yaml"
     shell:
         "bwa mem {params.PATH_hg38} {input} -p -Y -t {threads} > {output}"
 
@@ -55,7 +55,7 @@ rule subset_to_proper_pairs:
         temp(DIR_bams + "/{consensus_type}_proper_pair/{wildcard}.bam"),
     threads: 12
     conda:
-        "../envs/snakemake_env.yaml"
+        "../envs/samtools.yaml"
     shell:
         "sambamba view {input} -F 'proper_pair' -t 12 -f bam -l 0 -o {output}"
 
@@ -67,7 +67,7 @@ rule sort_subsetted_bams:
         temp(DIR_bams + "/{consensus_type}_proper_pair_sorted/{wildcard}.bam"),
     threads: 12
     conda:
-        "../envs/snakemake_env.yaml"
+        "../envs/samtools.yaml"
     shell:
         "samtools sort -o {output} {input}"
 
@@ -78,7 +78,7 @@ rule index_sorted_subsetted_bams:
         temp(DIR_bams + "/{consensus_type}_proper_pair_sorted/{wildcard}.bam.bai"),
     threads: 12
     conda:
-        "../envs/snakemake_env.yaml"
+        "../envs/samtools.yaml"
     shell:
         "samtools index {input}"
 
@@ -92,10 +92,10 @@ rule indel_realignment2:
         temp(DIR_bams + "/{consensus_type}_abra2/{wildcard}.bam"),
     threads: 12
     conda:
-        "../envs/snakemake_env.yaml"
+        "../envs/abra2.yaml"
     shell:
         """
-        java -Xms64G -jar /home/amunzur/anaconda3/envs/snakemake/share/abra2-2.24-1/abra2.jar \
+        abra2 -Xms64G \
             --in {input.MAPPED_bam} \
             --out {output} \
             --ref {input.PATH_hg38} \
@@ -133,7 +133,7 @@ rule FilterConsensusReads_SSCS:
         temp(DIR_bams + "/{consensus_type}_final_no_rg/{wildcard}.bam"),
     threads: 12
     conda:
-        "../envs/snakemake_env.yaml"
+        "../envs/samtools.yaml"
     shell:
         """
         samtools sort -n {input} | fgbio FilterConsensusReads -Xmx20G \
@@ -179,6 +179,6 @@ rule index_rg_bams:
     output:
         DIR_bams + "/{consensus_type}_final/{wildcard}.bam.bai"
     conda:
-        "../envs/snakemake_env.yaml"
+        "../envs/samtools.yaml"
     shell: 
         "samtools index {input}"
