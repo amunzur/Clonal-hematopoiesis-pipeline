@@ -45,7 +45,7 @@ rule mapBAM:
         temp(DIR_bams + "/mBAM_raw/{wildcard}.bam"),
     threads: 12 # keep the same for deterministic
     conda:
-        "../envs/snakemake_env.yaml"
+        "../envs/bwa.yaml"
     shell:
         "bwa mem {params.PATH_hg38} {input} -p -Y -t {threads} > {output}"
 
@@ -90,10 +90,10 @@ rule indel_realignment:
         DIR_bams + "/abra2/{wildcard}.bam",
     threads: 12
     conda:
-        "../envs/snakemake_env.yaml"
+        "../envs/abra2.yaml"
     shell:
         """
-        java -Xms64G -jar /home/amunzur/anaconda3/envs/snakemake/share/abra2-2.24-1/abra2.jar \
+        abra2 -Xms64G \
             --in {input.MAPPED_bam} \
             --out {output} \
             --ref {input.PATH_hg38} \
@@ -133,7 +133,7 @@ rule recalibrate_bases:
     conda:
         "../envs/snakemake_env.yaml"
     shell:
-        "~/gatk-4.2.0.0/gatk BaseRecalibrator -I {input} -R {params.PATH_hg38} --known-sites {params.PATH_known_indels} --known-sites {params.PATH_gold_std_indels} --known-sites {params.PATH_SNP_db} -O {output}"
+        "gatk BaseRecalibrator -I {input} -R {params.PATH_hg38} --known-sites {params.PATH_known_indels} --known-sites {params.PATH_gold_std_indels} --known-sites {params.PATH_SNP_db} -O {output}"
 
 rule apply_base_scores:
     input:
@@ -147,7 +147,7 @@ rule apply_base_scores:
     conda:
         "../envs/snakemake_env.yaml"
     shell:
-        "~/gatk-4.2.0.0/gatk ApplyBQSR --reference {params.PATH_hg38} --input {input.fixmate_BAM} --output {output} --bqsr-recal-file {input.base_scores}"
+        "gatk ApplyBQSR --reference {params.PATH_hg38} --input {input.fixmate_BAM} --output {output} --bqsr-recal-file {input.base_scores}"
 
 
 # Identify reads or read pairs that originate from the same source molecule based on genomic positions and UMI
