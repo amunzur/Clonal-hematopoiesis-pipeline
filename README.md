@@ -15,8 +15,6 @@
   - [VCF Post-processing](#vcf-post-processing)  
 - [Tools and Environments](#tools-and-environments)  
 - [Usage](#usage)  
-
-See https://www.aslimunzur.com/documentation/running-clonal-hematopoiesis-pipeline for additional details on how to run the pipeline.
 ---
 
 ## Overview
@@ -29,6 +27,7 @@ This Snakemake pipeline is designed for processing paired-end sequencing data to
 - Depth and insert size metrics calculations  
 - Variant calling using multiple callers: Mutect2, VarDict, FreeBayes  
 - VCF normalization, sorting, indexing, and decomposition for downstream analysis
+See https://www.aslimunzur.com/documentation/running-clonal-hematopoiesis-pipeline for additional details on how to run the pipeline.
 ---
 
 ## Directory Structure and Variables
