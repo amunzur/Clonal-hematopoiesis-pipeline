@@ -6,7 +6,7 @@ rule run_depth:
 		DIR_metrics + "/depth/{consensus_type}/{wildcard}.txt"
 	threads: 12
     conda:
-        "../envs/snakemake_env.yaml"
+        "../envs/samtools.yaml"
 	shell:
 		"samtools depth -b {input.PATH_bed} {input.BAM} > {output}"
 
@@ -20,7 +20,7 @@ rule run_mpileup:
 		DIR_metrics + "/mpileup/{consensus_type}/{wildcard}.mpileup"
 	threads: 12
     conda:
-        "../envs/snakemake_env.yaml"
+        "../envs/samtools.yaml"
 	shell:
 		"samtools mpileup -A -f {input.PATH_hg38} --no-BAQ --positions {input.PATH_bed} --min-MQ 0 --min-BQ 0 {input.BAM} -o {output}"
 
