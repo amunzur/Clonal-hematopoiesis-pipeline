@@ -18,7 +18,7 @@ rule run_VarDict_somatic:
     threads: 12
     shell:
         """
-        /home/amunzur/VarDictJava/build/install/VarDict/bin/VarDict \
+        VarDict \
             -G {params.PATH_hg38} \
             -b '{input.cfDNA}|{input.wbc}' \
             -f {params.THRESHOLD_VarFreq} \
@@ -32,8 +32,8 @@ rule run_VarDict_somatic:
             --nosv \
             -th {threads} \
             {params.PATH_bed} | \
-            ~/VarDictJava/build/install/VarDict/bin/testsomatic.R | \
-            ~/VarDictJava/build/install/VarDict/bin/var2vcf_paired.pl \
+            testsomatic.R | \
+            var2vcf_paired.pl \
         -N '{params.sample_name_cfDNA}|{params.sample_name_wbc}' -f {params.THRESHOLD_VarFreq} > {output}
         """
 
@@ -52,7 +52,7 @@ rule run_mutect2_somatic:
         sample_name_wbc=lambda wildcards: get_wbc_name(wildcards.wildcard),
     threads: 12
     shell:
-        "/home/amunzur/gatk-4.2.0.0/gatk Mutect2 \
+        "gatk Mutect2 \
         --reference {params.PATH_hg38} \
         --input {input.cfDNA} \
         --input {input.wbc} \
