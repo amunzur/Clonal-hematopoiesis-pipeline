@@ -75,7 +75,7 @@ rule MergeBamAlignment:
             VALIDATION_STRINGENCY=SILENT \
             REFERENCE_SEQUENCE={params.PATH_hg38} \
             CREATE_INDEX=true \
-            SORT_ORDER=coordinate" # needs to be sorted for ABRA2
+            SORT_ORDER=coordinate # needs to be sorted for ABRA2
         """
 
 rule indel_realignment:
