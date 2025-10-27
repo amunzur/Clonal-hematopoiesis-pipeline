@@ -95,7 +95,9 @@ rule indel_realignment2:
         "../envs/abra2.yaml"
     shell:
         """
-        abra2 -Xms64G \
+        export JAVA_TOOL_OPTIONS="-Xms8G -Xmx64G -Djava.io.tmpdir=/groups/wyattgrp/users/amunzur/COMPOST_BIN"
+        export TMPDIR=/groups/wyattgrp/users/amunzur/COMPOST_BIN
+        abra2 \
             --in {input.MAPPED_bam} \
             --out {output} \
             --ref {input.PATH_hg38} \
@@ -142,7 +144,7 @@ rule FilterConsensusReads_SSCS:
             --ref={params.PATH_hg38} \
             --min-reads={params.min_reads} \
             --max-read-error-rate={params.max_read_error_rate} \
-            --max-no-call-fraction={params.max_no_call_fraction} \
+            --max-no-calls={params.max_no_call_fraction} \
             --min-base-quality={params.min_base_quality} \
             --reverse-per-base-tags=true \
             --sort-order=coordinate
