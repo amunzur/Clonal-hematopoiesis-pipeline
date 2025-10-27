@@ -126,8 +126,8 @@ run_freebayes_chip:
   time: "00-6:00:00"
 
 run_mpileup: 
-  mem: "2000MB"
-  time: "00-1:00:00"
+  mem: "1000MB"
+  time: "00-00:29:00"
 
 run_mutect2: 
   mem: "16GB"
