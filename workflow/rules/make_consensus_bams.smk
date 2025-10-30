@@ -10,6 +10,8 @@ rule FastqToBam:
         "../envs/snakemake_env.yaml"
     shell:
         """
+        TMPDIR={config[TMPDIR]}/FastqToBam/{wildcards.wildcard}
+        mkdir -p $TMPDIR
         fgbio FastqToBam -Xmx50G \
             --input {input.R1} {input.R2} \
             --output {output} \
@@ -47,7 +49,7 @@ rule mapBAM:
     conda:
         "../envs/bwa.yaml"
     shell:
-        "bwa mem {params.PATH_hg38} {input} -p -Y -t {threads} > {output}"
+        "bwa-mem2 mem {params.PATH_hg38} {input} -p -Y -t {threads} > {output}"
 
 rule MergeBamAlignment:
     input:
@@ -62,7 +64,10 @@ rule MergeBamAlignment:
         "../envs/snakemake_env.yaml"
     shell:
         """
+        TMPDIR={config[TMPDIR]}/MergeBamAlignment/{wildcards.wildcard}
+        mkdir -p $TMPDIR
         picard MergeBamAlignment -Xmx20G \
+            TMP_DIR=$TMPDIR
             UNMAPPED={input.uBAM} \
             ALIGNED={input.mBAM} \
             O={output} \
@@ -93,7 +98,10 @@ rule indel_realignment:
         "../envs/abra2.yaml"
     shell:
         """
-        abra2 -Xms64G \
+        TMPDIR={config[TMPDIR]}/indel_realignment/{wildcards.wildcard}
+        export JAVA_TOOL_OPTIONS="-Xms8G -Xmx64G -Djava.io.tmpdir=$TMPDIR"
+        mkdir -p $TMPDIR
+        abra2 \
             --in {input.MAPPED_bam} \
             --out {output} \
             --ref {input.PATH_hg38} \
@@ -103,7 +111,7 @@ rule indel_realignment:
             --no-edge-ci \
             --sa \
             --targets {input.PATH_bed} \
-            --tmpdir /groups/wyattgrp/users/amunzur/COMPOST_BIN > \
+            --tmpdir $TMPDIR > \
             '/groups/wyattgrp/users/amunzur/pipeline/results/logs_slurm/indel_realignment/{wildcards.wildcard}'
         """
         # Assembly is skipped in the first run only 
@@ -117,7 +125,11 @@ rule fixmate:
     conda:
         "../envs/snakemake_env.yaml"
     shell:
-        "picard -Xmx40g FixMateInformation I={input} O={output} SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT"
+        """
+        TMPDIR={config[TMPDIR]}/fixmate/{wildcards.wildcard}
+        mkdir -p $TMPDIR
+        picard -Xmx40g FixMateInformation I={input} O={output} SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT TMP_DIR=$TMPDIR
+        """
 
 rule recalibrate_bases:
     input:

@@ -20,7 +20,7 @@ rule mapBAM2:
     conda:
         "../envs/bwa.yaml"
     shell:
-        "bwa mem {params.PATH_hg38} {input} -p -Y -t {threads} > {output}"
+        "bwa-mem2 mem {params.PATH_hg38} {input} -p -Y -t {threads} > {output}"
 
 rule MergeBamAlignment2:
     input:
@@ -35,7 +35,10 @@ rule MergeBamAlignment2:
         "../envs/snakemake_env.yaml"
     shell:
         """
+        export TMPDIR={config[TMPDIR]}/MergeBamAlignment2/{wildcards.wildcard}
+        mkdir -p {config[TMPDIR]}/MergeBamAlignment2/{wildcards.wildcard}
         picard MergeBamAlignment -Xmx20G UNMAPPED={input.uBAM} ALIGNED={input.mBAM} O={output} R={params.PATH_hg38} \
+            TMP_DIR=$TMPDIR \
             CLIP_OVERLAPPING_READS=false \
             CLIP_ADAPTERS=false \
             ALIGNER_PROPER_PAIR_FLAGS=true \
@@ -95,8 +98,8 @@ rule indel_realignment2:
         "../envs/abra2.yaml"
     shell:
         """
-        export JAVA_TOOL_OPTIONS="-Xms8G -Xmx64G -Djava.io.tmpdir=/groups/wyattgrp/users/amunzur/COMPOST_BIN"
-        export TMPDIR=/groups/wyattgrp/users/amunzur/COMPOST_BIN
+        TMPDIR={config[TMPDIR]}/indel_realignment2/{wildcards.wildcard}
+        export JAVA_TOOL_OPTIONS="-Xms8G -Xmx64G -Djava.io.tmpdir=$TMPDIR"
         abra2 \
             --in {input.MAPPED_bam} \
             --out {output} \
@@ -105,7 +108,7 @@ rule indel_realignment2:
             --mad 5000 \
             --no-edge-ci \
             --targets {input.PATH_bed} \
-            --tmpdir /groups/wyattgrp/users/amunzur/COMPOST_BIN > \
+            --tmpdir $TMPDIR > \
             '/groups/wyattgrp/users/amunzur/pipeline/results/logs_slurm/indel_realignment/{wildcards.wildcard}'
         """
 
@@ -118,7 +121,11 @@ rule fixmate2:
     conda:
         "../envs/snakemake_env.yaml"
     shell:
-        "picard -Xmx40g FixMateInformation I={input} O={output} SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT"
+        """
+        TMPDIR={config[TMPDIR]}/fixmate/{wildcards.wildcard}
+        mkdir -p $TMPDIR 
+        picard -Xmx40g FixMateInformation I={input} O={output} SORT_ORDER=queryname VALIDATION_STRINGENCY=SILENT TMP_DIR=$TMPDIR
+        """
 
 rule FilterConsensusReads_SSCS:
     input:
@@ -138,8 +145,8 @@ rule FilterConsensusReads_SSCS:
         "../envs/samtools.yaml"
     shell:
         """
-        samtools sort -n {input} | fgbio FilterConsensusReads -Xmx20G \
-            --input=/dev/stdin \
+        fgbio FilterConsensusReads -Xmx20G \
+            --input={input} \
             --output={output} \
             --ref={params.PATH_hg38} \
             --min-reads={params.min_reads} \
@@ -165,6 +172,8 @@ rule add_rg_for_freebayes_somatic:
         "../envs/snakemake_env.yaml"
     shell:
         """
+        TMPDIR={config[TMPDIR]}/add_rg_for_freebayes_somatic/{wildcards.wildcard}
+        mkdir -p $TMPDIR         
         picard -Xmx40g AddOrReplaceReadGroups \
             I={input} \
             O={output.bam} \
@@ -172,7 +181,8 @@ rule add_rg_for_freebayes_somatic:
             RGLB={params.rg_lib} \
             RGPL={params.rg_pl} \
             RGPU={params.rg_pu} \
-            RGSM={params.rg_sm} && samtools index {output.bam}
+            RGSM={params.rg_sm} \
+            TMP_DIR=$TMPDIR
         """
 
 rule index_rg_bams: 
