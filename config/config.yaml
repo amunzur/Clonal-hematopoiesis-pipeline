@@ -12,6 +12,7 @@ PATH_known_indels: "/path/to/dbSNP/resources_broad_hg38_v0_Homo_sapiens_assembly
 PATH_gold_std_indels: "/path/to/dbSNP/resources_broad_hg38_v0_Mills_and_1000G_gold_standard.indels.hg38.vcf"
 PATH_SNP_db: "/path/to/dbSNP/resources_broad_hg38_v0_Homo_sapiens_assembly38.dbsnp138.vcf"
 PATH_ANNOVAR: "/path/to/annovar"
+PATH_gatk_wrapper: "/path/to/gatk_wrapper" # Such as /home/user/gatk-4.2.0.0/gatk
 TMPDIR: "path/to/tmpdir"
 ##################################
 
