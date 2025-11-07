@@ -145,7 +145,7 @@ rule recalibrate_bases:
     conda:
         "../envs/snakemake_env.yaml"
     shell:
-        "gatk BaseRecalibrator -I {input} -R {params.PATH_hg38} --known-sites {params.PATH_known_indels} --known-sites {params.PATH_gold_std_indels} --known-sites {params.PATH_SNP_db} -O {output}"
+        "{PATH_gatk_wrapper} BaseRecalibrator -I {input} -R {params.PATH_hg38} --known-sites {params.PATH_known_indels} --known-sites {params.PATH_gold_std_indels} --known-sites {params.PATH_SNP_db} -O {output}"
 
 rule apply_base_scores:
     input:
@@ -159,7 +159,7 @@ rule apply_base_scores:
     conda:
         "../envs/snakemake_env.yaml"
     shell:
-        "gatk ApplyBQSR --reference {params.PATH_hg38} --input {input.fixmate_BAM} --output {output} --bqsr-recal-file {input.base_scores}"
+        "{PATH_gatk_wrapper} ApplyBQSR --reference {params.PATH_hg38} --input {input.fixmate_BAM} --output {output} --bqsr-recal-file {input.base_scores}"
 
 
 # Identify reads or read pairs that originate from the same source molecule based on genomic positions and UMI

@@ -52,7 +52,7 @@ rule run_mutect2_somatic:
         sample_name_wbc=lambda wildcards: get_wbc_name(wildcards.wildcard),
     threads: 12
     shell:
-        "gatk Mutect2 \
+        "{PATH_gatk_wrapper} Mutect2 \
         --reference {params.PATH_hg38} \
         --input {input.cfDNA} \
         --input {input.wbc} \

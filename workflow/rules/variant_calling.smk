@@ -14,8 +14,8 @@ rule run_mutect2:
     threads: 12
     shell:
         """
-        export PATH=/usr/bin:$PATH
-        /home/amunzur/gatk-4.2.0.0/gatk Mutect2 \
+        # export PATH=/usr/bin:$PATH
+        {PATH_gatk_wrapper} Mutect2 \
             --reference {params.PATH_hg38} \
             --intervals {params.PATH_bed} \
             --input {input.bam} \
