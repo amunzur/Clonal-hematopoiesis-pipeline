@@ -25,6 +25,7 @@ PATH_SNP_db = config["PATH_SNP_db"]
 PATH_germline = config["PATH_germline"]
 PATH_PoN = config["PATH_PoN"]
 PATH_ANNOVAR=config["PATH_ANNOVAR"]
+PATH_gatk_wrapper=config["PATH_gatk_wrapper"]
 
 # data files
 DIR_results = config["DIR_results"]
