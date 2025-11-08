@@ -20,7 +20,7 @@ rule FastqToBam:
             --sample {params.sample} \
             --library lib1 \
             --platform illumina \
-            --sort true"
+            --sort true
         """
 
 # Revert to the Fastq format
