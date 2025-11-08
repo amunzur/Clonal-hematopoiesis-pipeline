@@ -55,4 +55,3 @@ dependencies:
   - wheel=0.38.4=pyhd8ed1ab_0
   - xz=5.2.6=h166bdaf_0
   - zlib=1.2.13=h166bdaf_4
-prefix: /home/amunzur/anaconda3/envs/chip_variantcalling

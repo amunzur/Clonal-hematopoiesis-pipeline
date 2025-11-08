@@ -332,4 +332,3 @@ dependencies:
     - pygments==2.10.0
     - radian==0.5.13
     - rchitect==0.3.35
-prefix: /home/amunzur/anaconda3/envs/r_env_v2
