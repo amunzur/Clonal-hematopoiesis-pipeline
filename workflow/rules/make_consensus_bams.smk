@@ -67,7 +67,7 @@ rule MergeBamAlignment:
         TMPDIR={config[TMPDIR]}/MergeBamAlignment/{wildcards.wildcard}
         mkdir -p $TMPDIR
         picard MergeBamAlignment -Xmx20G \
-            TMP_DIR=$TMPDIR
+            TMP_DIR=$TMPDIR \
             UNMAPPED={input.uBAM} \
             ALIGNED={input.mBAM} \
             O={output} \
