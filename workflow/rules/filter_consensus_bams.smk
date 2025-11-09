@@ -99,6 +99,7 @@ rule indel_realignment2:
     shell:
         """
         TMPDIR={config[TMPDIR]}/indel_realignment2/{wildcards.wildcard}
+        mkdir -p $TMPDIR
         export JAVA_TOOL_OPTIONS="-Xms8G -Xmx64G -Djava.io.tmpdir=$TMPDIR"
         abra2 \
             --in {input.MAPPED_bam} \
