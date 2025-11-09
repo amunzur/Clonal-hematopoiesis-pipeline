@@ -143,7 +143,7 @@ rule FilterConsensusReads_SSCS:
         temp(DIR_bams + "/{consensus_type}_final_no_rg/{wildcard}.bam"),
     threads: 12
     conda:
-        "../envs/samtools.yaml"
+        "../envs/snakemake_env.yaml"
     shell:
         """
         fgbio FilterConsensusReads -Xmx20G \
