@@ -39,6 +39,7 @@ dependencies:
   - lofreq=2.1.5=py310h24f5f0b_8
   - ncurses=6.3=h27087fc_1
   - openssl=1.1.1w=h7f8727e_0
+  - openjdk=8
   - parallel=20230122=ha770c72_0
   - perl=5.32.1=2_h7f98852_perl5
   - pip=23.0=pyhd8ed1ab_0
