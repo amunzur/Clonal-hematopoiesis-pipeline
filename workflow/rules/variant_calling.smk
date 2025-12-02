@@ -54,7 +54,7 @@ rule run_VarDict_chip:
         -r {params.min_variant_reads} \
         -b {input} \
         -k 0 -c 1 -S 2 -E 3 -g 4 {params.PATH_bed} | \
-        /home/amunzur/VarDictJava/build/install/VarDict/bin/teststrandbias.R | \
+        /groups/wyattgrp/users/amunzur/software/anaconda3/envs/vardict_env/bin/Rscript /home/amunzur/VarDictJava/build/install/VarDict/bin/teststrandbias.R | \
         /home/amunzur/VarDictJava/build/install/VarDict/bin/var2vcf_valid.pl \
         -f {params.THRESHOLD_VarFreq} > {output}"
 
