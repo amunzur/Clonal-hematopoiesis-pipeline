@@ -147,17 +147,6 @@ variant_table_chip = expand(
     variant_caller=["Vardict", "Mutect2", "freebayes"],
 )
 
-# SV callers
-# run_gridss = expand(DIR_results + "/gridss/{wildcard}.vcf.gz", wildcard=cfDNA_samples)
-
-# COPY NUMBER RELATED
-# generate_target_coverage = expand(DIR_results + "/cnvkit/coverage/SSCS2/{wildcard}.targetcoverage.cnn", wildcard=samples + VIP_normals_cfDNA + VIP_normals_wbc)
-
-# cfDNA_corrected = expand(DIR_results + "/cnvkit/coverage_fixed/cfDNA/{wildcard}.cnr", wildcard=cfDNA_samples)
-# WBC_corrected = expand(DIR_results + "/cnvkit/coverage_fixed/WBC/{wildcard}.cnr", wildcard=WBC_samples)
-# segmented_samples_cfDNA = expand(DIR_results + "/cnvkit/segmented/{sample_type}/{wildcard}.cns", wildcard=cfDNA_samples, sample_type="cfDNA")
-# segmented_samples_WBC = expand(DIR_results + "/cnvkit/segmented/{sample_type}/{wildcard}.cns", wildcard=WBC_samples, sample_type="WBC")
-
 # only use expansion here
 rule all:
     input:
@@ -177,18 +166,6 @@ rule all:
         collect_alignment_summary_metrics,
         # variant_table_somatic,
         variant_table_chip,
-        # DIR_results + "/cnvkit/coverage/SSCS2/Reference_for_CH_CN.cnn",
-        # DIR_results + "/cnvkit/coverage/SSCS2/Reference_for_somatic_CN.cnn",
-        # DIR_results + "/cnvkit/references/VIP_cfDNA_reference.cnn",
-        # DIR_results + "/cnvkit/references/VIP_WBC_reference.cnn",
-        # cfDNA_corrected,
-        # WBC_corrected,
-        # segmented_samples_cfDNA,
-        # segmented_samples_WBC,
-        # generate_target_coverage,
-        # cfDNA_corrected,
-        # WBC_corrected,
-
 
 ##### Modules #####
 include: "rules/process_fastq.smk"
