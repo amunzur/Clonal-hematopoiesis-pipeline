@@ -117,7 +117,7 @@ rule fixmate2:
     input:
         DIR_bams + "/{consensus_type}_abra2/{wildcard}.bam",
     output:
-        DIR_bams + "/{consensus_type}_fixmate/{wildcard}.bam"
+        temp(DIR_bams + "/{consensus_type}_fixmate/{wildcard}.bam")
     threads: 12
     conda:
         "../envs/snakemake_env.yaml"

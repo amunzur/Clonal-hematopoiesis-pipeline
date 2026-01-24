@@ -92,7 +92,7 @@ rule indel_realignment:
         min_mapping_quality=20,
         # tumor_normal_pair_input = lambda wildcards: get_relevant_bams_abra2_INPUT(wildcards.wildcard)
     output:
-        DIR_bams + "/abra2/{wildcard}.bam",
+        temp(DIR_bams + "/abra2/{wildcard}.bam"),
     threads: 12
     conda:
         "../envs/abra2.yaml"
@@ -135,7 +135,7 @@ rule recalibrate_bases:
     input:
         DIR_bams + "/fixmate/{wildcard}.bam",
     output:
-        DIR_metrics + "/base_recalc_info/{wildcard}_table",
+        temp(DIR_metrics + "/base_recalc_info/{wildcard}_table"),
     params:
         PATH_hg38=PATH_hg38,
         PATH_known_indels=PATH_known_indels,
@@ -181,7 +181,7 @@ rule CallMolecularConsensusReads:
     input:
         DIR_bams + "/grouped_umi_BAM/{wildcard}.bam",  # output of the fixmate_and_recalibrate_bases rule from the process_bams.smk file
     output:
-        DIR_bams + "/{consensus_type}_uBAM/{wildcard}.bam",
+        temp(DIR_bams + "/{consensus_type}_uBAM/{wildcard}.bam"),
     threads: 12
     params:
         min_reads=1,
