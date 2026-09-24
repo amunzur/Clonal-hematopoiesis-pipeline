@@ -8,11 +8,15 @@ rule FastqToBam:
         sample="{wildcard}",
     conda:
         "../envs/snakemake_env.yaml"
+    threads: 1
+    resources:
+        mem_mb=32000
     shell:
         """
         TMPDIR={config[TMPDIR]}/FastqToBam/{wildcards.wildcard}
         mkdir -p $TMPDIR
-        fgbio FastqToBam -Xmx50G \
+        export JAVA_TOOL_OPTIONS="-Xms8G -Xmx30G -Djava.io.tmpdir=$TMPDIR"
+        fgbio FastqToBam -Xmx30G \
             --input {input.R1} {input.R2} \
             --output {output} \
             --read-structure 3M2S+T 3M2S+T \
@@ -31,11 +35,18 @@ rule BamtoFastq:
         PATH_hg38=PATH_hg38,
     output:
         temp(DIR_fastq + "/consensus_fq/{wildcard}.fastq"),
-    threads: 12
     conda:
         "../envs/snakemake_env.yaml"
+    threads: 1
+    resources:
+        mem_mb=24000
     shell:
-        "picard SamToFastq -Xmx20G I={input} F={output} VALIDATION_STRINGENCY=SILENT INCLUDE_NON_PF_READS=true INCLUDE_NON_PRIMARY_ALIGNMENTS=true INTERLEAVE=true"
+        """
+        TMPDIR={config[TMPDIR]}/BamtoFastq/{wildcards.wildcard}
+        mkdir -p $TMPDIR
+        export JAVA_TOOL_OPTIONS="-Djava.io.tmpdir=$TMPDIR"
+        picard SamToFastq -Xmx20G I={input} F={output} VALIDATION_STRINGENCY=SILENT INCLUDE_NON_PF_READS=true INCLUDE_NON_PRIMARY_ALIGNMENTS=true INTERLEAVE=true TMP_DIR=$TMPDIR
+        """
 
 # Generate mapped bam
 rule mapBAM:
@@ -45,11 +56,18 @@ rule mapBAM:
         PATH_hg38=PATH_hg38,
     output:
         temp(DIR_bams + "/mBAM_raw/{wildcard}.bam"),
-    threads: 12 # keep the same for deterministic
+    threads: 12
+    resources:
+        mem_mb=32000
     conda:
         "../envs/bwa.yaml"
     shell:
-        "bwa-mem2 mem {params.PATH_hg38} {input} -p -Y -t {threads} > {output}"
+        """
+        TMPDIR={config[TMPDIR]}/mapBAM/{wildcards.wildcard}
+        mkdir -p $TMPDIR
+        export TMPDIR
+        bwa-mem2 mem {params.PATH_hg38} {input} -p -Y -t {threads} > {output}
+        """
 
 rule MergeBamAlignment:
     input:
@@ -59,9 +77,11 @@ rule MergeBamAlignment:
         PATH_hg38=PATH_hg38,
     output:
         temp(DIR_bams + "/mBAM/{wildcard}.bam"),
-    threads: 12
     conda:
         "../envs/snakemake_env.yaml"
+    threads: 1
+    resources:
+        mem_mb=24000
     shell:
         """
         TMPDIR={config[TMPDIR]}/MergeBamAlignment/{wildcards.wildcard}
@@ -93,13 +113,15 @@ rule indel_realignment:
         # tumor_normal_pair_input = lambda wildcards: get_relevant_bams_abra2_INPUT(wildcards.wildcard)
     output:
         temp(DIR_bams + "/abra2/{wildcard}.bam"),
-    threads: 12
+    threads: 4
+    resources:
+        mem_mb=32000
     conda:
         "../envs/abra2.yaml"
     shell:
         """
         TMPDIR={config[TMPDIR]}/indel_realignment/{wildcards.wildcard}
-        export JAVA_TOOL_OPTIONS="-Xms8G -Xmx64G -Djava.io.tmpdir=$TMPDIR"
+        export JAVA_TOOL_OPTIONS="-Xms8G -Xmx30G -Djava.io.tmpdir=$TMPDIR"
         mkdir -p $TMPDIR
         abra2 \
             --in {input.MAPPED_bam} \
@@ -121,14 +143,16 @@ rule fixmate:
         DIR_bams + "/abra2/{wildcard}.bam",
     output:
         temp(DIR_bams + "/fixmate/{wildcard}.bam"),
-    threads: 12
     conda:
         "../envs/snakemake_env.yaml"
+    threads: 1
+    resources:
+        mem_mb=24000
     shell:
         """
         TMPDIR={config[TMPDIR]}/fixmate/{wildcards.wildcard}
         mkdir -p $TMPDIR
-        picard -Xmx40g FixMateInformation I={input} O={output} SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT TMP_DIR=$TMPDIR
+        picard -Xmx20g FixMateInformation I={input} O={output} SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT TMP_DIR=$TMPDIR
         """
 
 rule recalibrate_bases:
@@ -141,11 +165,17 @@ rule recalibrate_bases:
         PATH_known_indels=PATH_known_indels,
         PATH_gold_std_indels=PATH_gold_std_indels,
         PATH_SNP_db=PATH_SNP_db,
-    threads: 12
     conda:
         "../envs/snakemake_env.yaml"
+    threads: 1
+    resources:
+        mem_mb=16000
     shell:
-        "{PATH_gatk_wrapper} BaseRecalibrator -I {input} -R {params.PATH_hg38} --known-sites {params.PATH_known_indels} --known-sites {params.PATH_gold_std_indels} --known-sites {params.PATH_SNP_db} -O {output}"
+        """
+        TMPDIR={config[TMPDIR]}/recalibrate_bases/{wildcards.wildcard}
+        mkdir -p $TMPDIR
+        {PATH_gatk_wrapper} BaseRecalibrator -I {input} -R {params.PATH_hg38} --known-sites {params.PATH_known_indels} --known-sites {params.PATH_gold_std_indels} --known-sites {params.PATH_SNP_db} -O {output}
+        """
 
 rule apply_base_scores:
     input:
@@ -155,12 +185,17 @@ rule apply_base_scores:
         temp(DIR_bams + "/uncollapsed_BAM/{wildcard}.bam"),
     params: 
         PATH_hg38=PATH_hg38
-    threads: 12
     conda:
         "../envs/snakemake_env.yaml"
+    threads: 1
+    resources:
+        mem_mb=16000
     shell:
-        "{PATH_gatk_wrapper} ApplyBQSR --reference {params.PATH_hg38} --input {input.fixmate_BAM} --output {output} --bqsr-recal-file {input.base_scores}"
-
+        """
+        TMPDIR={config[TMPDIR]}/apply_base_scores/{wildcards.wildcard}
+        mkdir -p $TMPDIR
+        {PATH_gatk_wrapper} ApplyBQSR --reference {params.PATH_hg38} --input {input.fixmate_BAM} --output {output} --bqsr-recal-file {input.base_scores} --tmp-dir $TMPDIR
+        """
 
 # Identify reads or read pairs that originate from the same source molecule based on genomic positions and UMI
 rule GroupReadsByUmi:
@@ -174,15 +209,23 @@ rule GroupReadsByUmi:
         min_map_quality = 20
     conda:
         "../envs/snakemake_env.yaml"
+    threads: 1
+    resources:
+        mem_mb=24000
     shell:
-        "fgbio GroupReadsByUmi -Xmx20G --input={input} --output={output.bam} --strategy=paired --edits=1 --min-map-q={params.min_map_quality} --family-size-histogram={output.family_size_hist}"
+        """
+        TMPDIR={config[TMPDIR]}/GroupReadsByUmi/{wildcards.wildcard}
+        mkdir -p $TMPDIR
+        export JAVA_TOOL_OPTIONS="-Djava.io.tmpdir=$TMPDIR"
+        fgbio GroupReadsByUmi -Xmx20G --input={input} --output={output.bam} --strategy=paired --edits=1 --min-map-q={params.min_map_quality} --family-size-histogram={output.family_size_hist}
+        """
 
 rule CallMolecularConsensusReads:
     input:
         DIR_bams + "/grouped_umi_BAM/{wildcard}.bam",  # output of the fixmate_and_recalibrate_bases rule from the process_bams.smk file
     output:
         temp(DIR_bams + "/{consensus_type}_uBAM/{wildcard}.bam"),
-    threads: 12
+    threads: 4
     params:
         min_reads=1,
         min_input_base_quality=20,
@@ -190,8 +233,14 @@ rule CallMolecularConsensusReads:
         error_rate_pre_umi=45,
     conda:
         "../envs/snakemake_env.yaml"
+    threads: 1
+    resources:
+        mem_mb=24000
     shell:
         """
+        TMPDIR={config[TMPDIR]}/CallMolecularConsensusReads/{wildcards.wildcard}
+        mkdir -p $TMPDIR
+        export JAVA_TOOL_OPTIONS="-Xmx20G -Djava.io.tmpdir=$TMPDIR"
         fgbio CallMolecularConsensusReads -Xmx20G --input={input} --output={output} --threads={threads} \
             --read-name-prefix=singlex \
             --sort-order=Queryname \

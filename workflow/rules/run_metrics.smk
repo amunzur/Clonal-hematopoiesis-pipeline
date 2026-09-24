@@ -4,7 +4,7 @@ rule run_depth:
         PATH_bed = PATH_bed 
     output:
         DIR_metrics + "/depth/{consensus_type}/{wildcard}.txt"
-    threads: 12
+    threads: 4
     conda:
         "../envs/samtools.yaml"
     shell:
@@ -18,7 +18,7 @@ rule run_mpileup:
         PATH_bed = PATH_bed,
     output:
         DIR_metrics + "/mpileup/{consensus_type}/{wildcard}.mpileup"
-    threads: 12
+    threads: 1
     conda:
         "../envs/samtools.yaml"
     shell:
@@ -30,7 +30,7 @@ rule run_insert_size:
     output:
         metrics = DIR_metrics + "/insert_size/{consensus_type}/{wildcard}.txt",
         figures = DIR_metrics + "/insert_size_figures/{consensus_type}/{wildcard}.pdf"
-    threads: 12
+    threads: 1
     conda:
         "../envs/snakemake_env.yaml"
     shell:
@@ -50,6 +50,7 @@ rule run_read_counts:
         DIR_metrics + "/read_counts/{wildcard}.txt",
     conda:
         "../envs/snakemake_env.yaml"
+    threads: 1
     shell:
         "paste <(echo {params}) <(echo $(( ($(gunzip -c {input} | wc -l) / 4) * 2 )) ) > {output}"
 
@@ -64,6 +65,7 @@ rule hs_metrics:
         DIR_metrics + "/PICARD_HS_metrics/{consensus_type}/{wildcard}.HS_metrics",
     conda:
         "../envs/snakemake_env.yaml"
+    threads: 1
     shell:
         "picard CollectHsMetrics \
             I={input.SSCS_bam} \
@@ -80,6 +82,7 @@ rule alignment_summary_metrics:
         DIR_metrics + "/PICARD_alignment_summary/{consensus_type}/{wildcard}.alignment_summary_metrics"
     conda:
         "../envs/snakemake_env.yaml"
+    threads: 1
     shell:
         "picard CollectAlignmentSummaryMetrics \
             I={input.bam} \

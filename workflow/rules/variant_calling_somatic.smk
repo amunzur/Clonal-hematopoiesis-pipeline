@@ -15,10 +15,10 @@ rule run_VarDict_somatic:
         THRESHOLD_VarFreq=0.005,
         sample_name_cfDNA="{wildcard}",
         sample_name_wbc=lambda wildcards: get_wbc_name(wildcards.wildcard),
-    threads: 12
+    threads: 4
     shell:
         """
-        VarDict \
+        /home/amunzur/VarDictJava/build/install/VarDict/bin/VarDict \
             -G {params.PATH_hg38} \
             -b '{input.cfDNA}|{input.wbc}' \
             -f {params.THRESHOLD_VarFreq} \
@@ -50,9 +50,9 @@ rule run_mutect2_somatic:
         PATH_hg38=PATH_hg38,
         PATH_bed=PATH_bed,
         sample_name_wbc=lambda wildcards: get_wbc_name(wildcards.wildcard),
-    threads: 12
+    threads: 4
     shell:
-        "{PATH_gatk_wrapper} Mutect2 \
+        "/home/amunzur/gatk-4.2.0.0/gatk Mutect2 \
         --reference {params.PATH_hg38} \
         --input {input.cfDNA} \
         --input {input.wbc} \
@@ -61,6 +61,7 @@ rule run_mutect2_somatic:
         --force-active true \
         --initial-tumor-lod 0 \
         --tumor-lod-to-emit 0 \
+        --native-pair-hmm-threads {threads} \
         --intervals {params.PATH_bed}"
 
 from os.path import basename
@@ -77,6 +78,7 @@ rule run_freebayes_somatic:
         PATH_bed=PATH_bed,
         cfDNA_name=lambda wildcards: basename(wildcards.wildcard),
         WBC_name=lambda wildcards: get_wbc_name(wildcards.wildcard)
+    threads: 1
     shell:
         "freebayes \
             -f {params.PATH_hg38} \
@@ -97,6 +99,7 @@ rule zip_vcf_files_freebayes_somatic:
         temp(DIR_results + "/variant_calling_somatic_raw/freebayes/{consensus_type}/{wildcard}.vcf.gz"),
     conda:
         "../envs/bcftools.yaml"
+    threads: 1
     shell:
         "bgzip -c {input} > {output}"
 
@@ -107,6 +110,7 @@ rule zip_vcf_files_vardict_somatic:
         temp(DIR_results + "/variant_calling_somatic_raw/Vardict/{consensus_type}/{wildcard}.vcf.gz"),
     conda:
         "../envs/bcftools.yaml"
+    threads: 1
     shell:
         "bgzip -c {input} > {output}"
 
@@ -117,6 +121,7 @@ rule index_vcf_files_somatic:
         temp(DIR_results + "/variant_calling_somatic_raw/{variant_caller}/{consensus_type}/{wildcard}.vcf.gz.tbi"),
     conda:
         "../envs/bcftools.yaml"
+    threads: 1
     shell:
         "tabix -p vcf {input}"
 
@@ -129,6 +134,7 @@ rule sort_vcf_somatic:
         temp(DIR_results + "/variant_calling_somatic_sorted/{variant_caller}/{consensus_type}/{wildcard}.vcf.gz"),
     conda:
         "../envs/bcftools.yaml"
+    threads: 1
     shell:
         "bcftools sort {input.vcf} -Oz -o {output}"
 
@@ -140,6 +146,7 @@ rule index_sorted_vcf_files_somatic:
         temp(DIR_results + "/variant_calling_somatic_sorted/{variant_caller}/{consensus_type}/{wildcard}.vcf.gz.tbi"),
     conda:
         "../envs/bcftools.yaml"
+    threads: 1
     shell:
         "tabix -p vcf {input}"
 
@@ -153,6 +160,7 @@ rule normalize_variants_somatic:
         PATH_hg38_dict="/groups/wyattgrp/reference/hg38/hg38.fa",
     conda:
         "../envs/bcftools.yaml"
+    threads: 1
     shell:
         "bcftools norm \
         {input.vcf} \
@@ -167,5 +175,6 @@ rule decompose_blocksubstitutions_somatic:
         DIR_results + "/variant_calling_somatic/{variant_caller}/{consensus_type}/{wildcard}.vcf.gz",
     conda:
         "../envs/chip_variantcalling.yaml"
+    threads: 1
     shell:
         "vt decompose_blocksub {input} -o {output}"

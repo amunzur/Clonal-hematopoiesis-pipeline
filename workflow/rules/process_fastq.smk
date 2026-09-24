@@ -5,7 +5,7 @@ rule run_fastqc_merged:
     output:
         output_zip= DIR_fastq + "/merged/{wildcard}_fastqc.zip",
         output_html= DIR_fastq + "/merged/{wildcard}_fastqc.html",
-    threads: 5
+    threads: 1
     conda:
         "../envs/snakemake_env.yaml"
     shell:
@@ -32,7 +32,7 @@ rule trim_fastq:
         R2=temp(DIR_fastq + "/trimmed/{wildcard}_2.fq.gz"),
         html_report="results/reports/fastp/{wildcard}.html",
         json_report="results/reports/fastp/{wildcard}.json",
-    threads: 12
+    threads: 4
     params:
         minimum_read_length=32,
     conda:
@@ -56,7 +56,7 @@ rule run_fastqc_trimmed:
     output:
         output_zip="results/reports/fastqc/trimmed/{wildcard}_fastqc.zip",
         output_html="results/reports/fastqc/trimmed/{wildcard}_fastqc.html",
-    threads: 5
+    threads: 1
     conda:
         "../envs/snakemake_env.yaml"
     shell:

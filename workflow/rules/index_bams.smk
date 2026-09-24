@@ -5,5 +5,6 @@ rule index_bams:
         DIR_results + "/data/bam/{consensus_type}_filtered/{wildcard}.bam.bai"
     conda:
         "../envs/samtools.yaml"
+    threads: 1
     shell:
         "samtools index {input}"

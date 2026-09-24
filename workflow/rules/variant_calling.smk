@@ -11,11 +11,11 @@ rule run_mutect2:
     params:
         PATH_hg38=PATH_hg38,
         PATH_bed=PATH_bed,
-    threads: 12
+    threads: 4
     shell:
         """
         # export PATH=/usr/bin:$PATH
-        {PATH_gatk_wrapper} Mutect2 \
+        /home/amunzur/gatk-4.2.0.0/gatk Mutect2 \
             --reference {params.PATH_hg38} \
             --intervals {params.PATH_bed} \
             --input {input.bam} \
@@ -23,6 +23,7 @@ rule run_mutect2:
             --bamout {output.bamout} \
             --force-active true \
             --initial-tumor-lod 0 \
+            --native-pair-hmm-threads {threads} \
             --tumor-lod-to-emit 0
         """
 
@@ -31,12 +32,14 @@ rule unzip_mutect:
         DIR_results + "/variant_calling_raw/Mutect2/{consensus_type}/{wildcard}.vcf.gz"
     output:
         temp(DIR_results + "/variant_calling_raw/Mutect2/{consensus_type}/{wildcard}.vcf")
+    threads: 4
     shell:
         "gunzip {input}"
 
 rule run_VarDict_chip:
     input:
-        DIR_bams + "/{consensus_type}_final/{wildcard}.bam",
+        bam=DIR_bams + "/{consensus_type}_final/{wildcard}.bam",
+        index=DIR_bams + "/{consensus_type}_final/{wildcard}.bam.bai",
     output:
         temp(DIR_results + "/variant_calling_raw/Vardict/{consensus_type}/{wildcard}.vcf"),
     params:
@@ -45,14 +48,15 @@ rule run_VarDict_chip:
         THRESHOLD_VarFreq="0.001",
         sample_name="{wildcard}",
         min_variant_reads=4,
-    threads: 12
+    threads: 4
     shell:
         "/home/amunzur/VarDictJava/build/install/VarDict/bin/VarDict \
+        -th {threads} \
         -G {params.PATH_hg38} \
         -f {params.THRESHOLD_VarFreq} \
         -N {params.sample_name} \
         -r {params.min_variant_reads} \
-        -b {input} \
+        -b {input.bam} \
         -k 0 -c 1 -S 2 -E 3 -g 4 {params.PATH_bed} | \
         /groups/wyattgrp/users/amunzur/software/anaconda3/envs/vardict_env/bin/Rscript /home/amunzur/VarDictJava/build/install/VarDict/bin/teststrandbias.R | \
         /home/amunzur/VarDictJava/build/install/VarDict/bin/var2vcf_valid.pl \
@@ -60,7 +64,8 @@ rule run_VarDict_chip:
 
 rule run_freebayes_chip:
     input:
-        DIR_bams + "/{consensus_type}_final/{wildcard}.bam",
+        bam=DIR_bams + "/{consensus_type}_final/{wildcard}.bam",
+        index=DIR_bams + "/{consensus_type}_final/{wildcard}.bam.bai",
     output:
         temp(DIR_results + "/variant_calling_raw/freebayes/{consensus_type}/{wildcard}.vcf"),
     conda:
@@ -68,9 +73,9 @@ rule run_freebayes_chip:
     params:
         PATH_hg38=PATH_hg38,
         PATH_bed=PATH_bed,
-    threads: 12
+    threads: 1
     shell:
-        "freebayes {input} \
+        "freebayes {input.bam} \
         -f {params.PATH_hg38} \
         -t {params.PATH_bed} \
         --pooled-continuous \
@@ -84,6 +89,7 @@ rule zip_vcf_files_vardict:
         temp(DIR_results + "/variant_calling_raw/Vardict/{consensus_type}/{wildcard}.vcf.gz"),
     conda:
         "../envs/bcftools.yaml"
+    threads: 1
     shell:
         "bgzip -c {input} > {output}"
 
@@ -94,6 +100,7 @@ rule zip_vcf_files_freebayes:
         temp(DIR_results + "/variant_calling_raw/freebayes/{consensus_type}/{wildcard}.vcf.gz"),
     conda:
         "../envs/bcftools.yaml"
+    threads: 1
     shell:
         "bgzip -c {input} > {output}"
 
@@ -104,6 +111,7 @@ rule index_vcf_files:
         temp(DIR_results + "/variant_calling_raw/{variant_caller}/{consensus_type}/{wildcard}.vcf.gz.tbi"),
     conda:
         "../envs/bcftools.yaml"
+    threads: 1
     shell:
         "tabix -p vcf {input}"
 
@@ -115,6 +123,7 @@ rule sort_vcf_chip:
         temp(DIR_results + "/variant_calling_sorted/{variant_caller}/{consensus_type}/{wildcard}.vcf.gz"),
     conda:
         "../envs/bcftools.yaml"
+    threads: 1
     shell:
         "bcftools sort {input.vcf} -Oz -o {output}"
 
@@ -125,6 +134,7 @@ rule index_sorted_vcf_files:
         temp(DIR_results + "/variant_calling_sorted/{variant_caller}/{consensus_type}/{wildcard}.vcf.gz.tbi"),
     conda:
         "../envs/bcftools.yaml"
+    threads: 1
     shell:
         "tabix -p vcf {input}"
 
@@ -138,6 +148,7 @@ rule normalize_variants:
         PATH_hg38_dict="/groups/wyattgrp/reference/hg38/hg38.fa",
     conda:
         "../envs/bcftools.yaml"
+    threads: 1
     shell:
         "bcftools norm \
             {input.vcf} \
@@ -152,5 +163,6 @@ rule decompose_blocksubstitutions_chip:
         DIR_results + "/variant_calling_chip/{variant_caller}/{consensus_type}/{wildcard}.vcf.gz",
     conda:
         "../envs/chip_variantcalling.yaml"
+    threads: 1
     shell:
         "vt decompose_blocksub {input} -o {output}"

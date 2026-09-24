@@ -3,11 +3,18 @@ rule BamtoFastq2:
         DIR_bams + "/{consensus_type}_uBAM/{wildcard}.bam",
     output:
         temp(DIR_fastq + "/{consensus_type}_consensus_fq_2/{wildcard}.fastq"),
-    threads: 12
     conda:
         "../envs/snakemake_env.yaml"
+    threads: 1
+    resources:
+        mem_mb=24000
     shell:
-        "picard SamToFastq -Xmx20G I={input} VALIDATION_STRINGENCY=SILENT INCLUDE_NON_PRIMARY_ALIGNMENTS=true INCLUDE_NON_PF_READS=true INTERLEAVE=true F={output}"
+        """
+        TMPDIR={config[TMPDIR]}/BamtoFastq2/{wildcards.wildcard}
+        mkdir -p $TMPDIR
+        export JAVA_TOOL_OPTIONS="-Djava.io.tmpdir=$TMPDIR"
+        picard SamToFastq -Xmx20G I={input} VALIDATION_STRINGENCY=SILENT INCLUDE_NON_PRIMARY_ALIGNMENTS=true INCLUDE_NON_PF_READS=true INTERLEAVE=true F={output} TMP_DIR=$TMPDIR
+        """
 
 rule mapBAM2:
     input:
@@ -17,10 +24,17 @@ rule mapBAM2:
     output:
         temp(DIR_bams + "/{consensus_type}_mBAM_raw_2/{wildcard}.bam"),
     threads: 12
+    resources:
+        mem_mb=32000
     conda:
         "../envs/bwa.yaml"
     shell:
-        "bwa-mem2 mem {params.PATH_hg38} {input} -p -Y -t {threads} > {output}"
+        """
+        TMPDIR={config[TMPDIR]}/mapBAM2/{wildcards.wildcard}
+        mkdir -p $TMPDIR
+        export TMPDIR
+        bwa-mem2 mem {params.PATH_hg38} {input} -p -Y -t {threads} > {output}
+        """
 
 rule MergeBamAlignment2:
     input:
@@ -30,13 +44,16 @@ rule MergeBamAlignment2:
         PATH_hg38=PATH_hg38,
     output:
         temp(DIR_bams + "/{consensus_type}_mBAM/{wildcard}.bam"),
-    threads: 12
+    threads: 1
+    resources:
+        mem_mb=24000
     conda:
         "../envs/snakemake_env.yaml"
     shell:
         """
         export TMPDIR={config[TMPDIR]}/MergeBamAlignment2/{wildcards.wildcard}
         mkdir -p {config[TMPDIR]}/MergeBamAlignment2/{wildcards.wildcard}
+        export JAVA_TOOL_OPTIONS="-Djava.io.tmpdir=$TMPDIR"
         picard MergeBamAlignment -Xmx20G UNMAPPED={input.uBAM} ALIGNED={input.mBAM} O={output} R={params.PATH_hg38} \
             TMP_DIR=$TMPDIR \
             CLIP_OVERLAPPING_READS=false \
@@ -56,11 +73,17 @@ rule subset_to_proper_pairs:
         DIR_bams + "/{consensus_type}_mBAM/{wildcard}.bam"
     output:
         temp(DIR_bams + "/{consensus_type}_proper_pair/{wildcard}.bam"),
-    threads: 12
     conda:
         "../envs/samtools.yaml"
+    threads: 1
+    resources:
+        mem_mb=8000
     shell:
-        "sambamba view {input} -F 'proper_pair' -t 12 -f bam -l 0 -o {output}"
+        """
+        TMPDIR={config[TMPDIR]}/subset_to_proper_pairs/{wildcards.wildcard}
+        mkdir -p $TMPDIR
+        sambamba view {input} -F 'proper_pair' -t 12 -f bam -l 0 -o {output}
+        """
 
 # abra2 requires sorted and indexed bams
 rule sort_subsetted_bams:
@@ -68,20 +91,26 @@ rule sort_subsetted_bams:
         DIR_bams + "/{consensus_type}_proper_pair/{wildcard}.bam",
     output:
         temp(DIR_bams + "/{consensus_type}_proper_pair_sorted/{wildcard}.bam"),
-    threads: 12
+    threads: 2
+    resources:
+        mem_mb=8000
     conda:
         "../envs/samtools.yaml"
     shell:
-        "samtools sort -o {output} {input}"
+        """
+        TMPDIR={config[TMPDIR]}/sort_subsetted_bams/{wildcards.wildcard}
+        mkdir -p $TMPDIR
+        samtools sort -@ {threads} -T $TMPDIR/sort -o {output} {input}
+        """
 
 rule index_sorted_subsetted_bams:
     input:
         DIR_bams + "/{consensus_type}_proper_pair_sorted/{wildcard}.bam",
     output:
         temp(DIR_bams + "/{consensus_type}_proper_pair_sorted/{wildcard}.bam.bai"),
-    threads: 12
     conda:
         "../envs/samtools.yaml"
+    threads: 1
     shell:
         "samtools index {input}"
 
@@ -93,14 +122,16 @@ rule indel_realignment2:
         PATH_hg38=PATH_hg38,
     output:
         temp(DIR_bams + "/{consensus_type}_abra2/{wildcard}.bam"),
-    threads: 12
+    threads: 4
+    resources:
+        mem_mb=32000
     conda:
         "../envs/abra2.yaml"
     shell:
         """
         TMPDIR={config[TMPDIR]}/indel_realignment2/{wildcards.wildcard}
         mkdir -p $TMPDIR
-        export JAVA_TOOL_OPTIONS="-Xms8G -Xmx64G -Djava.io.tmpdir=$TMPDIR"
+        export JAVA_TOOL_OPTIONS="-Xms8G -Xmx30G -Djava.io.tmpdir=$TMPDIR"
         abra2 \
             --in {input.MAPPED_bam} \
             --out {output} \
@@ -118,14 +149,16 @@ rule fixmate2:
         DIR_bams + "/{consensus_type}_abra2/{wildcard}.bam",
     output:
         temp(DIR_bams + "/{consensus_type}_fixmate/{wildcard}.bam")
-    threads: 12
     conda:
         "../envs/snakemake_env.yaml"
+    threads: 1
+    resources:
+        mem_mb=24000
     shell:
         """
-        TMPDIR={config[TMPDIR]}/fixmate/{wildcards.wildcard}
+        TMPDIR={config[TMPDIR]}/fixmate2/{wildcards.wildcard}
         mkdir -p $TMPDIR 
-        picard -Xmx40g FixMateInformation I={input} O={output} SORT_ORDER=queryname VALIDATION_STRINGENCY=SILENT TMP_DIR=$TMPDIR
+        picard -Xmx20g FixMateInformation I={input} O={output} SORT_ORDER=queryname VALIDATION_STRINGENCY=SILENT TMP_DIR=$TMPDIR
         """
 
 rule FilterConsensusReads_SSCS:
@@ -141,11 +174,16 @@ rule FilterConsensusReads_SSCS:
         max_no_call_fraction=0.15,
     output:
         temp(DIR_bams + "/{consensus_type}_final_no_rg/{wildcard}.bam"),
-    threads: 12
     conda:
         "../envs/snakemake_env.yaml"
+    threads: 1
+    resources:
+        mem_mb=24000
     shell:
         """
+        TMPDIR={config[TMPDIR]}/FilterConsensusReads_SSCS/{wildcards.wildcard}
+        mkdir -p $TMPDIR
+        export JAVA_TOOL_OPTIONS="-Djava.io.tmpdir=$TMPDIR"
         fgbio FilterConsensusReads -Xmx20G \
             --input={input} \
             --output={output} \
@@ -171,11 +209,14 @@ rule add_rg_for_freebayes_somatic:
         rg_sm="{wildcard}"
     conda:
         "../envs/snakemake_env.yaml"
+    threads: 1
+    resources:
+        mem_mb=16000
     shell:
         """
         TMPDIR={config[TMPDIR]}/add_rg_for_freebayes_somatic/{wildcards.wildcard}
         mkdir -p $TMPDIR         
-        picard -Xmx40g AddOrReplaceReadGroups \
+        picard -Xmx12g AddOrReplaceReadGroups \
             I={input} \
             O={output.bam} \
             RGID={params.rg_id} \
@@ -193,5 +234,6 @@ rule index_rg_bams:
         DIR_bams + "/{consensus_type}_final/{wildcard}.bam.bai"
     conda:
         "../envs/samtools.yaml"
+    threads: 1
     shell: 
         "samtools index {input}"
