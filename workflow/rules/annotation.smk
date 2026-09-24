@@ -47,9 +47,11 @@ rule vcfToTable_freebayes_somatic:
     params:
         DIR_results +  "/data/annovar_outputs/freebayes/{consensus_type}/{wildcard}",
     threads: 1
+    conda:
+        "../envs/gatk42.yaml"
     shell:
         """
-        /home/amunzur/gatk-4.2.0.0/gatk VariantsToTable \
+        gatk VariantsToTable \
             -V {input} \
             -F CHROM -F POS -F REF -F ALT -F TYPE -F SAF -F SRF -F SAR -F SRR -F SAP -F somatic_germline \
             -F Func.refGene -F Gene.refGene -F ExonicFunc.refGene -F AAChange.refGene -F cosmic97_coding -F avsnp150 -F gnomad40_exome_AF -F CLNALLELEID -F CLNSIG \
@@ -64,9 +66,11 @@ rule vcfToTable_Vardict:
         DIR_results
         + "/data/variant_tables/somatic/Vardict/{consensus_type}/{wildcard}.tsv",
     threads: 1
+    conda:
+        "../envs/gatk42.yaml"
     shell:
         """
-        /home/amunzur/gatk-4.2.0.0/gatk VariantsToTable \
+        gatk VariantsToTable \
         -V {input} \
         -F CHROM -F POS -F REF -F ALT -F TYPE -F FILTER -F STATUS -GF DP -GF VD -GF AF -GF ALD -GF RD -GF SBF -GF ODDRATIO \
         -F Func.refGene -F Gene.refGene -F ExonicFunc.refGene -F AAChange.refGene -F cosmic97_coding -F avsnp150 -F gnomad40_exome_AF -F CLNALLELEID -F CLNSIG \
@@ -80,9 +84,11 @@ rule vcfToTable_Mutect2_somatic:
     output:
         DIR_results + "/data/variant_tables/somatic/Mutect2/{consensus_type}/{wildcard}.tsv",
     threads: 1
+    conda:
+        "../envs/gatk42.yaml"
     shell:
         """
-        /home/amunzur/gatk-4.2.0.0/gatk VariantsToTable \
+        gatk VariantsToTable \
             -V {input} \
             -F CHROM -F POS -F REF -F ALT -F TYPE -F EVENTLENGTH -GF SB \
             -F Func.refGene -F Gene.refGene -F ExonicFunc.refGene -F AAChange.refGene -F AF -F cosmic97_coding -F avsnp150 -F gnomad40_exome_AF -F CLNALLELEID -F CLNSIG \
@@ -99,9 +105,11 @@ rule vcfToTable_freebayes_chip:
     params:
         DIR_results +  "/data/annovar_outputs/freebayes/{consensus_type}/{wildcard}",
     threads: 1
+    conda:
+        "../envs/gatk42.yaml"
     shell:
         """
-        /home/amunzur/gatk-4.2.0.0/gatk VariantsToTable \
+        gatk VariantsToTable \
             -V {input} \
             -F CHROM -F POS -F REF -F ALT -F TYPE -F SAF -F SRF -F SAR -F SRR -F SAP \
             -F Func.refGene -F Gene.refGene -F ExonicFunc.refGene -F AAChange.refGene -F cosmic97_coding -F avsnp150 -F gnomad40_exome_AF -F CLNALLELEID -F CLNSIG \
@@ -117,9 +125,11 @@ rule vcfToTable_Vardict_chip:
         DIR_results
         + "/data/variant_tables/chip/Vardict/{consensus_type}/{wildcard}.tsv",
     threads: 1
+    conda:
+        "../envs/gatk42.yaml"
     shell:
         """
-        /home/amunzur/gatk-4.2.0.0/gatk VariantsToTable \
+        gatk VariantsToTable \
             -V {input} \
             -F CHROM -F POS -F REF -F ALT -F TYPE -F FILTER -F STATUS -GF DP -GF VD -GF AF -GF ALD -GF RD -GF BIAS -GF ODDRATIO\
             -F Func.refGene -F Gene.refGene -F ExonicFunc.refGene -F AAChange.refGene -F cosmic97_coding -F avsnp150 -F gnomad40_exome_AF -F CLNALLELEID -F CLNSIG \
@@ -136,8 +146,10 @@ rule vcfToTable_Mutect2_chip:
         DIR_results + "/data/variant_tables/chip/Mutect2/{consensus_type}/{wildcard}.tsv",
     threads: 1
     shell:
+    conda:
+        "../envs/gatk42.yaml"
         """
-        /home/amunzur/gatk-4.2.0.0/gatk VariantsToTable \
+        gatk VariantsToTable \
             -V {input} \
             -F CHROM -F POS -F REF -F ALT -F TYPE -F EVENTLENGTH -GF SB \
             -F Func.refGene -F Gene.refGene -F ExonicFunc.refGene -F AAChange.refGene -F AF -F cosmic97_coding -F avsnp150 -F gnomad40_exome_AF -F CLNALLELEID -F CLNSIG \
