@@ -7,15 +7,14 @@ rule run_mutect2:
         stats=DIR_results + "/variant_calling_raw/Mutect2/{consensus_type}/{wildcard}.vcf.gz.stats",
         bamout=DIR_results + "/variant_calling_raw/Mutect2/{consensus_type}_bamout/{wildcard}.bam",
     conda:
-        "../envs/chip_variantcalling.yaml"
+        "../envs/gatk42.yaml"
     params:
         PATH_hg38=PATH_hg38,
         PATH_bed=PATH_bed,
     threads: 4
     shell:
         """
-        # export PATH=/usr/bin:$PATH
-        /home/amunzur/gatk-4.2.0.0/gatk Mutect2 \
+        gatk --java-options "-Xmx15G -Djava.io.tmpdir=$TMPDIR" Mutect2 \
             --reference {params.PATH_hg38} \
             --intervals {params.PATH_bed} \
             --input {input.bam} \
@@ -23,6 +22,7 @@ rule run_mutect2:
             --bamout {output.bamout} \
             --force-active true \
             --initial-tumor-lod 0 \
+            --max-reads-per-alignment-start 0 \
             --native-pair-hmm-threads {threads} \
             --tumor-lod-to-emit 0
         """
@@ -32,7 +32,7 @@ rule unzip_mutect:
         DIR_results + "/variant_calling_raw/Mutect2/{consensus_type}/{wildcard}.vcf.gz"
     output:
         temp(DIR_results + "/variant_calling_raw/Mutect2/{consensus_type}/{wildcard}.vcf")
-    threads: 4
+    threads: 1
     shell:
         "gunzip {input}"
 

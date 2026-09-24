@@ -47,24 +47,27 @@ rule run_mutect2_somatic:
         vcf=temp(DIR_results + "/variant_calling_somatic_raw/Mutect2/{consensus_type}/{wildcard}.vcf.gz"),
         stats=DIR_results + "/variant_calling_somatic_raw/Mutect2/{consensus_type}/{wildcard}.vcf.gz.stats",
     conda:
-        "../envs/chip_variantcalling.yaml"
+        "../envs/gatk42.yaml"
     params:
         PATH_hg38=PATH_hg38,
         PATH_bed=PATH_bed,
         sample_name_wbc=lambda wildcards: get_wbc_name(wildcards.wildcard),
     threads: 4
     shell:
-        "/home/amunzur/gatk-4.2.0.0/gatk Mutect2 \
+        """
+        gatk --java-options "-Xmx15G -Djava.io.tmpdir=$TMPDIR" Mutect2 \
         --reference {params.PATH_hg38} \
         --input {input.cfDNA} \
         --input {input.wbc} \
         --normal-sample {params.sample_name_wbc} \
         --output {output.vcf} \
         --force-active true \
+        --max-reads-per-alignment-start 0 \
         --initial-tumor-lod 0 \
         --tumor-lod-to-emit 0 \
         --native-pair-hmm-threads {threads} \
-        --intervals {params.PATH_bed}"
+        --intervals {params.PATH_bed}
+        """
 
 from os.path import basename
 rule run_freebayes_somatic:

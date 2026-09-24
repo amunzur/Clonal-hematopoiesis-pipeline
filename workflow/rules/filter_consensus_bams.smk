@@ -46,7 +46,7 @@ rule MergeBamAlignment2:
         temp(DIR_bams + "/{consensus_type}_mBAM/{wildcard}.bam"),
     threads: 1
     resources:
-        mem_mb=24000
+        mem_mb=12000
     conda:
         "../envs/snakemake_env.yaml"
     shell:
@@ -54,7 +54,7 @@ rule MergeBamAlignment2:
         export TMPDIR={config[TMPDIR]}/MergeBamAlignment2/{wildcards.wildcard}
         mkdir -p {config[TMPDIR]}/MergeBamAlignment2/{wildcards.wildcard}
         export JAVA_TOOL_OPTIONS="-Djava.io.tmpdir=$TMPDIR"
-        picard MergeBamAlignment -Xmx20G UNMAPPED={input.uBAM} ALIGNED={input.mBAM} O={output} R={params.PATH_hg38} \
+        picard MergeBamAlignment -Xmx12G UNMAPPED={input.uBAM} ALIGNED={input.mBAM} O={output} R={params.PATH_hg38} \
             TMP_DIR=$TMPDIR \
             CLIP_OVERLAPPING_READS=false \
             CLIP_ADAPTERS=false \
@@ -82,7 +82,7 @@ rule subset_to_proper_pairs:
         """
         TMPDIR={config[TMPDIR]}/subset_to_proper_pairs/{wildcards.wildcard}
         mkdir -p $TMPDIR
-        sambamba view {input} -F 'proper_pair' -t 12 -f bam -l 0 -o {output}
+        sambamba view {input} -F 'proper_pair' -t {threads} -f bam -l 0 -o {output}
         """
 
 # abra2 requires sorted and indexed bams
@@ -100,7 +100,7 @@ rule sort_subsetted_bams:
         """
         TMPDIR={config[TMPDIR]}/sort_subsetted_bams/{wildcards.wildcard}
         mkdir -p $TMPDIR
-        samtools sort -@ {threads} -T $TMPDIR/sort -o {output} {input}
+        samtools sort -@ $(({threads} - 1)) -T $TMPDIR/sort -o {output} {input}
         """
 
 rule index_sorted_subsetted_bams:
@@ -131,7 +131,7 @@ rule indel_realignment2:
         """
         TMPDIR={config[TMPDIR]}/indel_realignment2/{wildcards.wildcard}
         mkdir -p $TMPDIR
-        export JAVA_TOOL_OPTIONS="-Xms8G -Xmx30G -Djava.io.tmpdir=$TMPDIR"
+        export JAVA_TOOL_OPTIONS="-Xmx24G -Djava.io.tmpdir=$TMPDIR"
         abra2 \
             --in {input.MAPPED_bam} \
             --out {output} \
@@ -152,12 +152,12 @@ rule fixmate2:
         "../envs/snakemake_env.yaml"
     threads: 1
     resources:
-        mem_mb=24000
+        mem_mb=16000
     shell:
         """
         TMPDIR={config[TMPDIR]}/fixmate2/{wildcards.wildcard}
         mkdir -p $TMPDIR 
-        picard -Xmx20g FixMateInformation I={input} O={output} SORT_ORDER=queryname VALIDATION_STRINGENCY=SILENT TMP_DIR=$TMPDIR
+        picard -Xmx12g FixMateInformation I={input} O={output} SORT_ORDER=queryname VALIDATION_STRINGENCY=SILENT TMP_DIR=$TMPDIR
         """
 
 rule FilterConsensusReads_SSCS:
@@ -177,13 +177,13 @@ rule FilterConsensusReads_SSCS:
         "../envs/snakemake_env.yaml"
     threads: 1
     resources:
-        mem_mb=24000
+        mem_mb=16000
     shell:
         """
         TMPDIR={config[TMPDIR]}/FilterConsensusReads_SSCS/{wildcards.wildcard}
         mkdir -p $TMPDIR
         export JAVA_TOOL_OPTIONS="-Djava.io.tmpdir=$TMPDIR"
-        fgbio FilterConsensusReads -Xmx20G \
+        fgbio FilterConsensusReads -Xmx12G \
             --input={input} \
             --output={output} \
             --ref={params.PATH_hg38} \

@@ -9,7 +9,7 @@ rule run_ANNOVAR_chip:
         placeholder = DIR_results + "/data/annovar_outputs/{variant_caller}/{consensus_type}/{wildcard}",
     threads: 1
     shell:
-        "perl /groups/wyattgrp/users/amunzur/software/annovar/table_annovar.pl {input} /groups/wyattgrp/users/amunzur/software/annovar/table_annovar.pl/humandb \
+        "perl {PATH_ANNOVAR}/table_annovar.pl {input} {PATH_ANNOVAR}/humandb \
         -vcfinput \
         -buildver hg38 \
         -out {params.placeholder} \
@@ -28,7 +28,7 @@ rule run_ANNOVAR_somatic:
         DIR_results + "/data/annovar_outputs_somatic/{variant_caller}/{consensus_type}/{wildcard}",
     threads: 1
     shell:
-        "perl /groups/wyattgrp/users/amunzur/software/annovar/table_annovar.pl {input} /groups/wyattgrp/users/amunzur/software/annovar/table_annovar.pl/humandb \
+        "perl {PATH_ANNOVAR}/table_annovar.pl {input} {PATH_ANNOVAR}/humandb \
         -vcfinput \
         -buildver hg38 \
         -out {params} \
