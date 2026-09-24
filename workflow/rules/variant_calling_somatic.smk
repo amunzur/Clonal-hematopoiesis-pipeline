@@ -16,9 +16,11 @@ rule run_VarDict_somatic:
         sample_name_cfDNA="{wildcard}",
         sample_name_wbc=lambda wildcards: get_wbc_name(wildcards.wildcard),
     threads: 4
+    conda:
+        "../envs/chip_variantcalling.yaml"
     shell:
         """
-        /home/amunzur/VarDictJava/build/install/VarDict/bin/VarDict \
+        vardict-java \
             -G {params.PATH_hg38} \
             -b '{input.cfDNA}|{input.wbc}' \
             -f {params.THRESHOLD_VarFreq} \

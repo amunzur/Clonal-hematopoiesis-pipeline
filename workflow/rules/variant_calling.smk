@@ -48,9 +48,11 @@ rule run_VarDict_chip:
         THRESHOLD_VarFreq="0.001",
         sample_name="{wildcard}",
         min_variant_reads=4,
+    conda:
+        "../envs/chip_variantcalling.yaml"
     threads: 4
     shell:
-        "/home/amunzur/VarDictJava/build/install/VarDict/bin/VarDict \
+        "vardict-java \
         -th {threads} \
         -G {params.PATH_hg38} \
         -f {params.THRESHOLD_VarFreq} \
@@ -58,8 +60,8 @@ rule run_VarDict_chip:
         -r {params.min_variant_reads} \
         -b {input.bam} \
         -k 0 -c 1 -S 2 -E 3 -g 4 {params.PATH_bed} | \
-        /groups/wyattgrp/users/amunzur/software/anaconda3/envs/vardict_env/bin/Rscript /home/amunzur/VarDictJava/build/install/VarDict/bin/teststrandbias.R | \
-        /home/amunzur/VarDictJava/build/install/VarDict/bin/var2vcf_valid.pl \
+        teststrandbias.R | \
+        var2vcf_valid.pl \
         -f {params.THRESHOLD_VarFreq} > {output}"
 
 rule run_freebayes_chip:
