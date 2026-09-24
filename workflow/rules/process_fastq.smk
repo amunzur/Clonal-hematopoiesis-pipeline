@@ -7,9 +7,9 @@ rule run_fastqc_merged:
         output_html= DIR_fastq + "/merged/{wildcard}_fastqc.html",
     threads: 1
     conda:
-        "../envs/snakemake_env.yaml"
+        "../envs/fastqc.yaml"
     shell:
-        "/home/amunzur/FastQC/fastqc {input} --outdir=`dirname {output.output_zip}`"
+        "fastqc {input} --outdir=`dirname {output.output_zip}`"
 
 # rule mask_fastq:
 #     input:
