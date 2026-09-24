@@ -145,7 +145,7 @@ rule normalize_variants:
     output:
         temp(DIR_results + "/variant_calling_normalized/{variant_caller}/{consensus_type}/{wildcard}.vcf.gz"),
     params:
-        PATH_hg38_dict="/groups/wyattgrp/reference/hg38/hg38.fa",
+        PATH_hg38_dict=PATH_hg38,
     conda:
         "../envs/bcftools.yaml"
     threads: 1
