@@ -4,7 +4,7 @@ rule run_depth:
         PATH_bed = PATH_bed 
     output:
         DIR_metrics + "/depth/{consensus_type}/{wildcard}.txt"
-    threads: 4
+    threads: 1
     conda:
         "../envs/samtools.yaml"
     shell:
