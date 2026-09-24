@@ -2,7 +2,6 @@ __default__:
   mem: "20000"
   time: "03:30:00"
   output: "results/logs_slurm/{rule}/{wildcards.wildcard}.log"
-  cpus-per-task: 12
   nodes: 1
 
 BamtoFastq: 
@@ -17,9 +16,9 @@ CallMolecularConsensusReads:
   mem: "16GB"
   time: "00-4:00:00"
 
-FastqToBam: 
-  mem: "2000MB"
-  time: "00-00:29:00"
+FastqToBam:
+  mem: "12GB"
+  time: "00-1:00:00"
 
 FilterConsensusReads_SSCS: 
   mem: "16GB"
@@ -133,6 +132,10 @@ run_mutect2:
   mem: "16GB"
   time: "00-4:00:00"
 
+run_mutect2_somatic:
+  mem: "20GB"
+  time: "00-4:00:00"
+
 run_read_counts: 
   mem: "500MB"
   time: "00-00:29:00"
@@ -170,5 +173,9 @@ zip_vcf_files_freebayes:
   time: "00-00:29:00"
 
 zip_vcf_files_vardict: 
+  mem: "2000MB"
+  time: "00-00:29:00"
+
+vcfToTable_Mutect2_somatic:
   mem: "2000MB"
   time: "00-00:29:00"
