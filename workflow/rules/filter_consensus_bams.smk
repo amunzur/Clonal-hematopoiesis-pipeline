@@ -140,8 +140,7 @@ rule indel_realignment2:
             --mad 5000 \
             --no-edge-ci \
             --targets {input.PATH_bed} \
-            --tmpdir $TMPDIR > \
-            '/groups/wyattgrp/users/amunzur/pipeline/results/logs_slurm/indel_realignment/{wildcards.wildcard}'
+            --tmpdir $TMPDIR
         """
 
 rule fixmate2:

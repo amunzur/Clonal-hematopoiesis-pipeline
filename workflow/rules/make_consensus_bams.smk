@@ -133,8 +133,7 @@ rule indel_realignment:
             --no-edge-ci \
             --sa \
             --targets {input.PATH_bed} \
-            --tmpdir $TMPDIR > \
-            '/groups/wyattgrp/users/amunzur/pipeline/results/logs_slurm/indel_realignment/{wildcards.wildcard}'
+            --tmpdir $TMPDIR 
         """
         # Assembly is skipped in the first run only 
 
